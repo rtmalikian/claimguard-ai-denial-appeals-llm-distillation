@@ -939,6 +939,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   no raw documents, no source paths/URLs, no checksums, no approval reference
   values, no PHI, and `production_corpus_ready=false` markers without emitting
   the checklist text.
+  The production corpus evidence path now also includes
+  `llm-distill/scripts/render_production_corpus_private_evidence.py`, a
+  renderer for the final private boolean-only production corpus evidence file.
+  It refuses output inside source control, requires explicit approved
+  non-synthetic pair, privacy, license, residual-risk, training-scope, no-PHI,
+  source/license, pair-id, source-document, metadata-only manifest,
+  no-raw-document, and no-raw-value attestations before approved mode, reads
+  private manifest and review references from environment variables, writes
+  private output with `0600` permissions, and prints only redacted
+  booleans/counts. This prepares the private production-corpus evidence handoff
+  without storing raw denial letters, raw appeal letters, source paths,
+  checksums, approval references, credentials, PHI, secrets, or production
+  document content in source control.
 - Add a non-secret MLX student runtime supervisor evidence template at
   `llm-distill/data/runtime_supervision/` plus
   `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. The checked-in
@@ -1123,7 +1136,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   no-PHI/licensed examples are available, and with Raphael-approved
   de-identified real examples. Keep the current manifest review attestations
   ready, add at least one approved non-synthetic paired denial/appeal source
-  reviewed outside source control, then rerun
+  reviewed outside source control, render the final private corpus evidence
+  file with `llm-distill/scripts/render_production_corpus_private_evidence.py`,
+  then rerun
   `llm-distill/scripts/validate_production_corpus_evidence.py`.
 - When adding future automated file-ingestion workflows beyond
   `/api/v1/claims/upload-document`, `/api/v1/claims/batch-upload`, and

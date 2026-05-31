@@ -67,6 +67,10 @@ def _ready_evidence(manifest_path: Path) -> dict:
             "source_control_collection_license_checklist_path": (
                 "llm-distill/docs/production-corpus-collection-license-checklist.md"
             ),
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_production_corpus_private_evidence.py"
+            ),
             "privacy_review_attested": True,
             "license_review_attested": True,
             "residual_risk_review_attested": True,
@@ -109,6 +113,7 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert "production_corpus_operator_runbook" not in blocked_ids
     assert "production_corpus_collection_license_checklist" not in blocked_ids
     assert "production_corpus_pair_source_checklist" not in blocked_ids
+    assert "production_corpus_private_evidence_renderer" not in blocked_ids
     assert "production_corpus_manifest_pair_evidence" in blocked_ids
     runbook_requirement = next(
         item
@@ -178,8 +183,24 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
         "training_scope_reviewed",
         "no_phi_review_attested",
         "source_license_scope_documented",
+        "source_control_private_evidence_renderer_documented",
     ]:
         assert corpus_review_requirement["evidence"][key] is True
+    private_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "production_corpus_private_evidence_renderer"
+    )
+    assert private_renderer_requirement["status"] == "ready"
+    assert (
+        private_renderer_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert private_renderer_requirement["evidence"]["private_evidence_renderer_exists"] is True
+    assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     manifest_requirement = next(
         item
         for item in report["blocked_items"]
@@ -354,3 +375,40 @@ def test_production_corpus_evidence_blocks_incomplete_pair_source_checklist_with
     )
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
     assert raw_checklist_text not in serialized
+
+
+def test_production_corpus_evidence_blocks_incomplete_private_renderer_without_emitting_text(
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "manifest.json"
+    evidence_path = tmp_path / "corpus_evidence.json"
+    incomplete_renderer = tmp_path / "render_production_corpus_private_evidence.py"
+    raw_renderer_text = "RenderConfig"
+    incomplete_renderer.write_text(raw_renderer_text, encoding="utf-8")
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    evidence = _ready_evidence(manifest_path)
+    evidence["corpus_review"]["private_evidence_renderer_path"] = str(
+        incomplete_renderer
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "production_corpus_private_evidence_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_private_evidence_renderer_markers_missing"
+        in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert raw_renderer_text not in serialized

@@ -43,7 +43,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-05-31T17:37:09.732850+00:00",
+  "generated_at": "2026-05-31T21:53:26.073941+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -51,7 +51,7 @@
   ],
   "objective": "Validate production denial/appeal corpus evidence without storing PHI, secrets, approval values, source paths, checksums, or raw documents.",
   "production_corpus_ready": false,
-  "ready_item_count": 6,
+  "ready_item_count": 7,
   "requirements": [
     {
       "blockers": [],
@@ -91,6 +91,7 @@
         "privacy_review_attested": true,
         "residual_risk_review_attested": true,
         "source_control_collection_license_checklist_documented": true,
+        "source_control_private_evidence_renderer_documented": true,
         "source_control_review_runbook_documented": true,
         "source_license_scope_documented": true,
         "training_scope_reviewed": true
@@ -148,6 +149,24 @@
       },
       "name": "Source-controlled production corpus pair/source checklist is documented",
       "requirement_id": "production_corpus_pair_source_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 14,
+        "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_production_corpus_private_evidence.py",
+        "private_output_required": true,
+        "raw_renderer_text_included": false,
+        "required_marker_count": 14,
+        "source_control_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled production corpus private evidence renderer is available",
+      "requirement_id": "production_corpus_private_evidence_renderer",
       "status": "ready",
       "warnings": []
     },

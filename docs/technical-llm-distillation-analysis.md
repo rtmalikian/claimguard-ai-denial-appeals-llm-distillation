@@ -201,6 +201,25 @@ private env file with `0600` permissions, and prints only redacted
 booleans/counts. It does not approve user-data use, validate legal/BAA records,
 train a model, or store approval/consent values in checked-in reports.
 
+### Production Corpus Private Evidence Controls
+
+Production corpus readiness remains blocked until at least one approved
+non-synthetic denial/appeal pair exists in a private metadata-only manifest
+after privacy review, license review, residual-risk review, training-scope
+review, no-PHI review, source/license scope documentation, pair-id review, and
+source-document review outside source control. The repository now includes
+`llm-distill/scripts/render_production_corpus_private_evidence.py` so an
+operator can render the final production corpus evidence file to a private path
+after those gates are complete.
+
+The renderer refuses output inside source control, requires explicit corpus,
+review, pair/source, metadata-only manifest, no-raw-document, and no-raw-value
+attestations before approved mode, reads private manifest and review
+references from environment variables, writes the private evidence file with
+`0600` permissions, and prints only redacted booleans/counts. It does not add
+approved production pairs, validate raw source documents, or store review
+reference values in checked-in reports.
+
 ### Prediction-Fairness Private Evidence Controls
 
 Production threshold calibration and fairness monitoring remain blocked until
@@ -291,6 +310,10 @@ Safety and validation:
 - `llm-distill/scripts/render_model_improvement_private_env.py` for private
   model-improvement env rendering after external legal, BAA, consent, and
   approval gates are complete.
+- `llm-distill/scripts/render_production_corpus_private_evidence.py` for
+  private boolean-only production corpus evidence rendering after approved
+  non-synthetic pair, privacy, license, residual-risk, training-scope,
+  pair/source, and metadata-only manifest gates are complete.
 - `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
   private boolean-only prediction-fairness evidence rendering after approved
   outcome, monitoring, latest-run, and legal/privacy gates are complete.

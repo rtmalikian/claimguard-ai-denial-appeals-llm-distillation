@@ -38,7 +38,13 @@ de-identified, approved denial/appeal pair has been reviewed or approved.
    control.
 6. Record only boolean readiness evidence, aggregate counts, source-type
    categories, and blocker identifiers in checked-in evidence.
-7. Rerun `llm-distill/scripts/validate_production_corpus_evidence.py`.
+7. Render any final private evidence file with
+   `llm-distill/scripts/render_production_corpus_private_evidence.py` only to a
+   private path outside source control after privacy, license, residual-risk,
+   training-scope, no-PHI, source/license, pair-id, source-document, and
+   metadata-only manifest attestations are complete. Confirm command output
+   includes redacted booleans/counts only.
+8. Rerun `llm-distill/scripts/validate_production_corpus_evidence.py`.
 
 ## Required Before Production Corpus Readiness
 
@@ -54,6 +60,9 @@ de-identified, approved denial/appeal pair has been reviewed or approved.
 
 - Checked-in evidence may include booleans, aggregate counts, source-type
   categories, status tokens, blocker IDs, runbook path, and marker counts only.
+- Private rendered evidence files must stay outside source control and may not
+  be copied into changelog entries, reports, screenshots, tests, or checked-in
+  documentation.
 - Checked-in evidence must not include raw denial letters, raw appeal letters,
   source paths, checksums, approval references, credentials, tokens, matched
   PHI/PII values, claim identifiers, patient identifiers, production claim

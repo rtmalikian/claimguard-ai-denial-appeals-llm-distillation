@@ -219,6 +219,39 @@ The helper refuses source-control output, writes the private env file with
 approval reference in a private shell or approved secret path, not in docs,
 screenshots, logs, or committed files.
 
+Only point production corpus gates at private approved corpus evidence after at
+least one approved non-synthetic denial/appeal pair exists in a private
+metadata-only manifest and privacy, license, residual-risk, training-scope,
+no-PHI, source/license, pair-id, source-document, and metadata-only manifest
+reviews are complete outside source control. When those gates are complete,
+render the final private evidence file with the source-controlled helper:
+
+```bash
+# Set PRODUCTION_CORPUS_* reference variables and
+# PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH in a private shell first.
+python3 ../llm-distill/scripts/render_production_corpus_private_evidence.py \
+  --approved-production-corpus \
+  --approved-non-synthetic-pair-attested \
+  --privacy-review-attested \
+  --license-review-attested \
+  --residual-risk-review-attested \
+  --training-scope-reviewed \
+  --no-phi-review-attested \
+  --source-license-scope-documented \
+  --pair-ids-reviewed-outside-source-control \
+  --source-documents-reviewed-outside-source-control \
+  --metadata-only-manifest-attested \
+  --no-raw-document-content-attested \
+  --no-raw-values-attested \
+  --output /path/to/private-production-corpus-evidence.json
+```
+
+The helper refuses source-control output, writes the private evidence file with
+`0600` permissions, and prints only redacted booleans/counts. Keep private
+manifest paths, review references, raw denial letters, raw appeal letters,
+source paths, checksums, approval references, and production document content
+out of docs, screenshots, logs, tests, reports, and committed files.
+
 Only point `PREDICTION_FAIRNESS_EVIDENCE_REPORT` at a private approved
 fairness evidence file after approved outcome-data, sample-size,
 threshold-review, demographic-grouping, monitoring-config, alert-owner,

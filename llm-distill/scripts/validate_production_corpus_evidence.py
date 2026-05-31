@@ -23,6 +23,9 @@ DEFAULT_EVIDENCE = (
 )
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "production_corpus_evidence_report.json"
 DEFAULT_MANIFEST = DISTILL_DIR / "data" / "corpus" / "manifest.json"
+DEFAULT_PRIVATE_EVIDENCE_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_production_corpus_private_evidence.py"
+)
 EXPECTED_ARTIFACT = "claimguard_production_corpus_evidence"
 REQUIRED_PAIR_ROLES = {"denial_letter", "appeal_letter"}
 PRODUCTION_PAIR_SOURCE_TYPES = {
@@ -121,6 +124,22 @@ COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS = (
     "no approval reference values",
     "no PHI",
     "production_corpus_ready=false",
+)
+PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = (
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "claimguard_production_corpus_evidence",
+    "approved non-synthetic denial/appeal pair",
+    "production_corpus_ready",
+    "source_control_private_evidence_renderer_documented",
+    "pair_ids_reviewed_outside_source_control",
+    "source_documents_reviewed_outside_source_control",
+    "no_raw_document_content_attested",
+    "private_manifest_path_value_included",
+    "approval_reference_value_included",
+    "raw_document_content_included",
+    "0600",
+    "values_redacted",
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -267,6 +286,7 @@ def corpus_review_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     required_flags = {
         "source_control_review_runbook_documented": "source_control_review_runbook_not_documented",
         "source_control_collection_license_checklist_documented": "source_control_collection_license_checklist_not_documented",
+        "source_control_private_evidence_renderer_documented": "source_control_private_evidence_renderer_not_documented",
         "privacy_review_attested": "privacy_review_not_attested",
         "license_review_attested": "license_review_not_attested",
         "residual_risk_review_attested": "residual_risk_review_not_attested",
@@ -451,6 +471,61 @@ def pair_source_checklist_requirement(evidence_path: Path, evidence: dict[str, A
     )
 
 
+def private_evidence_renderer_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("corpus_review", {})
+    renderer_configured = bool_value(
+        section,
+        "source_control_private_evidence_renderer_documented",
+    )
+    configured_path = str_value(section, "private_evidence_renderer_path")
+    renderer_path = (
+        resolve_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_EVIDENCE_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    if not renderer_configured:
+        blockers.append("source_control_private_evidence_renderer_not_documented")
+    if not renderer_path.exists():
+        blockers.append("source_control_private_evidence_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("source_control_private_evidence_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
+            if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_private_evidence_renderer_markers_missing")
+
+    return requirement(
+        requirement_id="production_corpus_private_evidence_renderer",
+        name="Source-controlled production corpus private evidence renderer is available",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_evidence_renderer_documented": renderer_configured,
+            "private_evidence_renderer_path": str(renderer_path),
+            "private_evidence_renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "private_output_required": True,
+            "values_redacted": True,
+        },
+    )
+
+
 def manifest_records(path: Path) -> tuple[list[dict[str, Any]], list[str]]:
     payload, errors = load_json(path)
     if errors:
@@ -542,6 +617,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         operator_runbook_requirement(evidence_path, evidence),
         collection_license_checklist_requirement(evidence_path, evidence),
         pair_source_checklist_requirement(evidence_path, evidence),
+        private_evidence_renderer_requirement(evidence_path, evidence),
         manifest_pair_requirement(evidence_path, evidence),
     ]
     if errors:

@@ -78,6 +78,10 @@ def _ready_packet() -> dict:
             "source_control_review_runbook_documented": True,
             "source_control_collection_license_checklist_documented": True,
             "source_control_pair_source_checklist_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_production_corpus_private_evidence.py"
+            ),
             "privacy_review_attested": True,
             "license_review_attested": True,
             "residual_risk_review_attested": True,
@@ -285,12 +289,14 @@ def test_template_packet_is_safe_to_review_but_not_ready():
         "production_corpus_source_control_review_runbook_not_documented",
         "production_corpus_collection_license_checklist_not_documented",
         "production_corpus_pair_source_checklist_not_documented",
+        "production_corpus_private_evidence_renderer_not_documented",
     ]:
         assert blocker not in corpus_requirement["blockers"]
     for key in [
         "source_control_review_runbook_documented",
         "source_control_collection_license_checklist_documented",
         "source_control_pair_source_checklist_documented",
+        "source_control_private_evidence_renderer_documented",
         "privacy_review_attested",
         "license_review_attested",
         "residual_risk_review_attested",
@@ -559,6 +565,30 @@ def test_production_corpus_pair_source_checklist_documentation_is_required(tmp_p
     assert report["production_gate_ready"] is False
     assert corpus_requirement["blockers"] == [
         "production_corpus_pair_source_checklist_not_documented"
+    ]
+
+
+def test_production_corpus_private_evidence_renderer_documentation_is_required(
+    tmp_path,
+):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["production_corpus"][
+        "source_control_private_evidence_renderer_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    corpus_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_production_corpus_evidence"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert corpus_requirement["blockers"] == [
+        "production_corpus_private_evidence_renderer_not_documented"
     ]
 
 

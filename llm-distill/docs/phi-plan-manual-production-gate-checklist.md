@@ -18,6 +18,7 @@ identifiers, or credentials.
 - user-data model improvement legal/BAA/consent approval required
 - model-improvement private environment renderer required
 - approved non-synthetic denial/appeal pair required
+- production corpus private evidence renderer required
 - production semantic vector backend required
 - retrieval vector private environment renderer required
 - production threshold/fairness monitoring evidence required
@@ -44,19 +45,25 @@ identifiers, or credentials.
    private path outside source control after legal, BAA, consent, request, and
    approval evidence are complete; confirm command output includes redacted
    booleans/counts only.
-5. For retrieval vector backend promotion, render any final environment file
+5. For production corpus promotion, render any final evidence file with
+   `llm-distill/scripts/render_production_corpus_private_evidence.py` only to a
+   private path outside source control after privacy, license, residual-risk,
+   training-scope, no-PHI, source/license, pair-id, source-document, and
+   metadata-only manifest evidence are complete; confirm command output
+   includes redacted booleans/counts only.
+6. For retrieval vector backend promotion, render any final environment file
    with `llm-distill/scripts/render_retrieval_vector_private_env.py` only to a
    private path outside source control after semantic backend, embedding model,
    production vector backend, reindex, health, quality smoke, and rollback
    evidence are complete; confirm command output includes redacted
    booleans/counts only.
-6. For prediction fairness monitoring, render any final evidence file with
+7. For prediction fairness monitoring, render any final evidence file with
    `llm-distill/scripts/render_prediction_fairness_private_evidence.py` only
    to a private path outside source control after outcome-data, sample-size,
    threshold-review, monitoring, latest-run, and legal/privacy evidence are
    complete; confirm command output includes redacted booleans/counts only.
-7. Confirm production readiness remains blocked until every required gate is
+8. Confirm production readiness remains blocked until every required gate is
    ready in `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`
    and `llm-distill/evals/reports/phi_plan_production_readiness_report.json`.
-8. Confirm any future document-ingestion surface is registered in the
+9. Confirm any future document-ingestion surface is registered in the
    file-ingestion surface audit before it handles production material.
