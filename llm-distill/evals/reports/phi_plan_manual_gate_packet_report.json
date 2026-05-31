@@ -146,7 +146,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T23:33:55.094474+00:00",
+  "generated_at": "2026-05-31T23:44:19.313543+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -205,12 +205,12 @@
       "evidence": {
         "approval_reference_value_included": false,
         "missing_marker_count": 0,
-        "present_marker_count": 13,
+        "present_marker_count": 16,
         "private_output_required": true,
         "private_packet_renderer_exists": true,
         "private_packet_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
         "raw_renderer_text_included": false,
-        "required_marker_count": 13,
+        "required_marker_count": 16,
         "source_control_private_packet_renderer_documented": true
       },
       "name": "Source-controlled manual gate private packet renderer is available",

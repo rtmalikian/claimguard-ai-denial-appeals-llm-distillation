@@ -31,6 +31,22 @@ DEFAULT_RELEASE_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_RELEASE_REFERENCE"
 DEFAULT_PRIVATE_PACKET_RENDERER_PATH = (
     "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
 )
+DEFAULT_SUPERVISOR_REPORT = "llm-distill/evals/reports/mlx_runtime_supervisor_report.json"
+DEFAULT_MODEL_IMPROVEMENT_REPORT = (
+    "llm-distill/evals/reports/model_improvement_evidence_report.json"
+)
+DEFAULT_PRODUCTION_CORPUS_REPORT = (
+    "llm-distill/evals/reports/production_corpus_evidence_report.json"
+)
+DEFAULT_RETRIEVAL_VECTOR_REPORT = (
+    "llm-distill/evals/reports/retrieval_vector_backend_report.json"
+)
+DEFAULT_PREDICTION_FAIRNESS_REPORT = (
+    "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
+)
+DEFAULT_FILE_INGESTION_SURFACE_REPORT = (
+    "llm-distill/evals/reports/file_ingestion_surface_audit_report.json"
+)
 ACCEPTED_PRODUCTION_SOURCE_TYPES = {
     "real_deidentified_pair",
     "real_world_deidentified_pair",
@@ -84,6 +100,12 @@ class RenderConfig:
     manual_review_reference_env: str = DEFAULT_MANUAL_REVIEW_REFERENCE_ENV
     dependent_evidence_reference_env: str = DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV
     release_reference_env: str = DEFAULT_RELEASE_REFERENCE_ENV
+    supervisor_report: str = DEFAULT_SUPERVISOR_REPORT
+    model_improvement_report: str = DEFAULT_MODEL_IMPROVEMENT_REPORT
+    production_corpus_report: str = DEFAULT_PRODUCTION_CORPUS_REPORT
+    retrieval_vector_report: str = DEFAULT_RETRIEVAL_VECTOR_REPORT
+    prediction_fairness_report: str = DEFAULT_PREDICTION_FAIRNESS_REPORT
+    file_ingestion_surface_report: str = DEFAULT_FILE_INGESTION_SURFACE_REPORT
     student_cutover_attested: bool = False
     student_runtime_attested: bool = False
     model_improvement_attested: bool = False
@@ -207,6 +229,113 @@ def _load_template(template_path: Path) -> dict[str, Any]:
     return payload
 
 
+def _validate_report_path(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise RenderError("manual gate dependent report path is required")
+    if "\n" in cleaned or "\r" in cleaned or "\t" in cleaned or "#" in cleaned:
+        raise RenderError("manual gate dependent report path contains unsupported characters")
+    if Path(cleaned).is_absolute():
+        raise RenderError("manual gate dependent report path must be repository-relative")
+    report_path = (REPO_ROOT / cleaned).resolve()
+    if not path_is_within(report_path, REPO_ROOT):
+        raise RenderError("manual gate dependent report path must stay inside source control")
+    return cleaned
+
+
+def _load_dependent_report(report_path: Path) -> dict[str, Any]:
+    if not report_path.exists():
+        raise RenderError("manual gate dependent report is unavailable")
+    if not report_path.is_file():
+        raise RenderError("manual gate dependent report path must be a file")
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RenderError("manual gate dependent report is unreadable") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("manual gate dependent report must be a JSON object")
+    return payload
+
+
+def _dependent_report_specs(config: RenderConfig) -> tuple[tuple[str, str, str, bool], ...]:
+    return (
+        ("supervisor", config.supervisor_report, "supervisor_ready", True),
+        (
+            "model improvement",
+            config.model_improvement_report,
+            "model_improvement_ready",
+            True,
+        ),
+        (
+            "production corpus",
+            config.production_corpus_report,
+            "production_corpus_ready",
+            True,
+        ),
+        (
+            "retrieval vector",
+            config.retrieval_vector_report,
+            "vector_backend_ready",
+            True,
+        ),
+        (
+            "prediction fairness",
+            config.prediction_fairness_report,
+            "prediction_fairness_monitoring_ready",
+            True,
+        ),
+        (
+            "file ingestion surface",
+            config.file_ingestion_surface_report,
+            "ready",
+            False,
+        ),
+    )
+
+
+def _validate_dependent_report_ready(
+    label: str,
+    report_path_text: str,
+    ready_key: str,
+    require_safe_to_review: bool,
+) -> None:
+    report_path = (REPO_ROOT / report_path_text).resolve()
+    report = _load_dependent_report(report_path)
+    blocked_items = report.get("blocked_items")
+    blocked_item_count = report.get("blocked_item_count")
+    blocked_reasons = report.get("blocked_reasons")
+    summary = report.get("summary")
+    if require_safe_to_review and report.get("safe_to_review") is not True:
+        raise RenderError(f"{label} manual gate dependent report is not safe to review")
+    if report.get(ready_key) is not True:
+        raise RenderError(f"{label} manual gate dependent report is not ready")
+    if blocked_item_count not in (0, None):
+        raise RenderError(f"{label} manual gate dependent report has blocked requirements")
+    if isinstance(blocked_items, list) and blocked_items:
+        raise RenderError(f"{label} manual gate dependent report has blocked requirements")
+    if isinstance(blocked_reasons, list) and blocked_reasons:
+        raise RenderError(f"{label} manual gate dependent report has blocked requirements")
+    if isinstance(summary, dict) and summary.get("unregistered_count") not in (0, None):
+        raise RenderError(f"{label} manual gate dependent report has blocked requirements")
+
+
+def _validate_dependent_report_paths(config: RenderConfig) -> tuple[tuple[str, str, str, bool], ...]:
+    return tuple(
+        (label, _validate_report_path(report_path), ready_key, require_safe_to_review)
+        for label, report_path, ready_key, require_safe_to_review in _dependent_report_specs(config)
+    )
+
+
+def _validate_dependent_reports_ready(config: RenderConfig) -> None:
+    for label, report_path, ready_key, require_safe_to_review in _validate_dependent_report_paths(config):
+        _validate_dependent_report_ready(
+            label,
+            report_path,
+            ready_key,
+            require_safe_to_review,
+        )
+
+
 def _mark_source_control_renderer(packet: dict[str, Any]) -> None:
     packet["source_control_private_packet_renderer_documented"] = True
     packet["private_packet_renderer_path"] = DEFAULT_PRIVATE_PACKET_RENDERER_PATH
@@ -226,6 +355,7 @@ def _approved_packet(
     config: RenderConfig,
 ) -> tuple[dict[str, Any], int, int]:
     _validate_approved_attestations(config)
+    _validate_dependent_reports_ready(config)
     private_reference_count = len(_load_private_references(config))
     manifest_record_ids = _load_manifest_record_ids(config)
     minimum_record_count = config.approved_non_synthetic_pair_count * 2
@@ -352,6 +482,7 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
     if path_is_within(output_path, REPO_ROOT):
         raise RenderError("refusing_to_write_inside_source_control")
 
+    _validate_dependent_report_paths(config)
     template = _load_template(config.template_path)
     if config.approved_production_gate:
         packet, private_reference_count, manifest_record_id_count = _approved_packet(
@@ -376,6 +507,9 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
         "prediction_fairness_attested": config.prediction_fairness_attested,
         "file_ingestion_surface_attested": config.file_ingestion_surface_attested,
         "dependent_reports_ready_attested": config.dependent_reports_ready_attested,
+        "dependent_evidence_reports_configured": True,
+        "dependent_evidence_reports_checked": config.approved_production_gate,
+        "dependent_evidence_reports_ready": config.approved_production_gate,
         "approved_non_synthetic_pair_count": (
             config.approved_non_synthetic_pair_count
             if config.approved_production_gate
@@ -419,6 +553,12 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         manual_review_reference_env=args.manual_review_reference_env,
         dependent_evidence_reference_env=args.dependent_evidence_reference_env,
         release_reference_env=args.release_reference_env,
+        supervisor_report=args.supervisor_report,
+        model_improvement_report=args.model_improvement_report,
+        production_corpus_report=args.production_corpus_report,
+        retrieval_vector_report=args.retrieval_vector_report,
+        prediction_fairness_report=args.prediction_fairness_report,
+        file_ingestion_surface_report=args.file_ingestion_surface_report,
         student_cutover_attested=args.student_cutover_attested,
         student_runtime_attested=args.student_runtime_attested,
         model_improvement_attested=args.model_improvement_attested,
@@ -453,6 +593,15 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
     )
     parser.add_argument("--release-reference-env", default=DEFAULT_RELEASE_REFERENCE_ENV)
+    parser.add_argument("--supervisor-report", default=DEFAULT_SUPERVISOR_REPORT)
+    parser.add_argument("--model-improvement-report", default=DEFAULT_MODEL_IMPROVEMENT_REPORT)
+    parser.add_argument("--production-corpus-report", default=DEFAULT_PRODUCTION_CORPUS_REPORT)
+    parser.add_argument("--retrieval-vector-report", default=DEFAULT_RETRIEVAL_VECTOR_REPORT)
+    parser.add_argument("--prediction-fairness-report", default=DEFAULT_PREDICTION_FAIRNESS_REPORT)
+    parser.add_argument(
+        "--file-ingestion-surface-report",
+        default=DEFAULT_FILE_INGESTION_SURFACE_REPORT,
+    )
     parser.add_argument("--student-cutover-attested", action="store_true")
     parser.add_argument("--student-runtime-attested", action="store_true")
     parser.add_argument("--model-improvement-attested", action="store_true")

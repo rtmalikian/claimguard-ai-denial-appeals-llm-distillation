@@ -855,8 +855,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   student-runtime, model-improvement, production-corpus, retrieval-vector,
   prediction-fairness, file-ingestion, dependent-report-readiness, and
   no-raw-value attestations before approved mode, reads private manifest record
-  ids and governance references from environment variables, writes private
-  output with `0600` permissions, and prints only redacted booleans/counts. This
+  ids and governance references from environment variables, verifies the
+  configured supervisor, model-improvement, production-corpus,
+  retrieval-vector, prediction-fairness, and file-ingestion surface reports are
+  ready before writing a ready packet, writes private output with `0600`
+  permissions, and prints only redacted booleans/counts. This
   prepares the final manual gate packet handoff without storing approval
   values, manifest record ids, PHI, source text, vectors, raw demographic
   values, production outcome rows, or production document content in source
@@ -1253,7 +1256,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` before any
   production default cutover, model-improvement enablement, non-synthetic
   corpus-derived training run, production semantic retrieval promotion, or
-  production calibrated-threshold/fairness-monitoring promotion.
+  production calibrated-threshold/fairness-monitoring promotion. The private
+  manual gate renderer now refuses a ready packet if any configured dependent
+  report is missing, unsafe, blocked, or not ready.
 
 ## Rollback
 

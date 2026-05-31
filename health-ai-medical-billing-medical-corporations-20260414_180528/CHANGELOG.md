@@ -2,6 +2,68 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 16:45:16 PDT - Manual gate dependent report readiness gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the PHIplan manual production-gate private packet renderer so
+  approved-mode rendering refuses to write a ready packet unless the configured
+  supervisor, model-improvement, production-corpus, retrieval-vector,
+  prediction-fairness, and file-ingestion surface reports are ready and
+  unblocked.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/PHIplan.md` | Documented that manual gate private packet rendering checks dependent report readiness before writing a ready packet. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/docs/technical-llm-distillation-analysis.md` | Added dependent-report readiness gating to the technical tool list. | Restore backup over the same path. |
+| `docs/deployment-guide.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Clarified that approved private packet rendering refuses missing, unsafe, blocked, or not-ready dependent reports. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for manual gate dependent-report readiness parity. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | `backups/20260531-163937-manual-gate-dependent-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | Added coverage for blocked dependent-report refusal, ready-report success, path traversal rejection, and redacted summary booleans. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-163937-manual-gate-dependent-report-readiness/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-163937-manual-gate-dependent-report-readiness/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | `backups/20260531-163937-manual-gate-dependent-report-readiness/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | Added approved-mode dependent evidence report readiness checks and source-control-relative report path enforcement. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-163937-manual-gate-dependent-report-readiness/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added private renderer marker checks for dependent-report readiness gating. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-163937-manual-gate-dependent-report-readiness/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `tests/fixtures/production_corpus_ready_report.json`: synthetic ready-report
+  fixture used only by renderer unit tests.
+- `tests/fixtures/prediction_fairness_ready_report.json`: synthetic
+  ready-report fixture used only by renderer unit tests.
+- `tests/fixtures/file_ingestion_surface_ready_report.json`: synthetic
+  ready-report fixture used only by renderer unit tests.
+
+### Validation
+- `find backups/20260531-163937-manual-gate-dependent-report-readiness -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...`: passed for the renderer, manual-gate validator, and focused tests.
+- `python3 -m json.tool` over the three new ready-report fixtures: passed.
+- Focused pytest for `tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` and `tests/unit/test_phi_plan_manual_gate_packet.py`: passed, 44 tests.
+- Command-level approved-mode smoke: current blocked dependent reports refused ready packet rendering with exit status 2; synthetic ready-report fixtures wrote a private packet with `file_mode=600`, `dependent_evidence_reports_checked=true`, `dependent_evidence_reports_ready=true`, and no private references in the command summary. The temporary private packet validated with `production_gate_ready=True`, `safe_to_review=True`, and `blocked=0`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `--fail-on-blocked` checks for manual gate packet and PHIplan readiness intentionally returned exit status 2 while preserving safe review status.
+- Combined dependent pytest over manual gate private packet, manual gate validator, and PHIplan production-readiness audit: passed, 56 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, fixtures, and refreshed JSON reports: passed with no findings.
+- Broader documentation PHI scan returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing label text in long docs/changelogs; manual inspection found no raw PHI/PII values, production claim data, private governance references, approval values, or secrets introduced.
+
+### Failed Or Avoided Approaches
+- Avoided allowing approved manual-gate packet rendering to rely only on a human dependent-report attestation while checked-in dependent reports remain blocked.
+- Avoided adding checked-in private packets, approval values, private governance references, source paths, manifest record IDs beyond synthetic test placeholders, source text, vector values, raw demographic values, production outcome rows, PHI, secrets, production claim content, or production document content.
+- Avoided marking the manual production gate ready; it remains blocked until the dependent evidence reports and external governance gates are complete outside source control.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-163937-manual-gate-dependent-report-readiness/`, delete
+  the three new ready-report fixtures listed above, then rerun the manual-gate
+  and PHIplan readiness validators if refreshed reports are needed after
+  rollback.
+- This slice hardens private packet rendering for the final manual gate; it
+  does not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-05-31 16:34:44 PDT - Retrieval vector env report readiness gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

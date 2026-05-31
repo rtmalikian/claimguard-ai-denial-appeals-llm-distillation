@@ -394,11 +394,14 @@ python3 ../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py \
 ```
 
 The helper refuses source-control output, writes the private packet with `0600`
-permissions, and prints only redacted booleans/counts. Keep manifest record
-IDs, governance references, approval values, source paths, vectors, raw
-demographic values, production outcome rows, PHI, secrets, and production
-document content out of docs, screenshots, logs, tests, reports, and committed
-files.
+permissions, and prints only redacted booleans/counts. Approved mode also reads
+the configured supervisor, model-improvement, production-corpus,
+retrieval-vector, prediction-fairness, and file-ingestion surface reports before
+writing and refuses a ready packet if any report is missing, unsafe, blocked, or
+not ready. Keep manifest record IDs, governance references, approval values,
+source paths, vectors, raw demographic values, production outcome rows, PHI,
+secrets, and production document content out of docs, screenshots, logs, tests,
+reports, and committed files.
 
 ## Pre-Deployment Validation
 

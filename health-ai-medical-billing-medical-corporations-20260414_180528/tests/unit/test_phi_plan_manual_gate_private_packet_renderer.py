@@ -12,6 +12,30 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = REPO_ROOT / "llm-distill" / "scripts"
 RENDERER_SCRIPT = SCRIPT_DIR / "render_phi_plan_manual_gate_private_packet.py"
 VALIDATOR_SCRIPT = SCRIPT_DIR / "validate_phi_plan_manual_gate_packet.py"
+READY_SUPERVISOR_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/mlx_runtime_supervisor_ready_report.json"
+)
+READY_MODEL_IMPROVEMENT_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/model_improvement_ready_report.json"
+)
+READY_PRODUCTION_CORPUS_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/production_corpus_ready_report.json"
+)
+READY_RETRIEVAL_VECTOR_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/retrieval_vector_backend_ready_report.json"
+)
+READY_PREDICTION_FAIRNESS_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/prediction_fairness_ready_report.json"
+)
+READY_FILE_INGESTION_SURFACE_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/file_ingestion_surface_ready_report.json"
+)
 
 
 def _load_script(script_path: Path, module_name: str) -> ModuleType:
@@ -55,6 +79,12 @@ def _approved_config(renderer: ModuleType, output_path: Path):
         file_ingestion_surface_attested=True,
         dependent_reports_ready_attested=True,
         no_raw_values_attested=True,
+        supervisor_report=READY_SUPERVISOR_REPORT_FIXTURE,
+        model_improvement_report=READY_MODEL_IMPROVEMENT_REPORT_FIXTURE,
+        production_corpus_report=READY_PRODUCTION_CORPUS_REPORT_FIXTURE,
+        retrieval_vector_report=READY_RETRIEVAL_VECTOR_REPORT_FIXTURE,
+        prediction_fairness_report=READY_PREDICTION_FAIRNESS_REPORT_FIXTURE,
+        file_ingestion_surface_report=READY_FILE_INGESTION_SURFACE_REPORT_FIXTURE,
     )
 
 
@@ -85,6 +115,8 @@ def test_conservative_dry_run_redacts_values(tmp_path):
     assert summary["rendered"] is False
     assert summary["approved_production_gate_requested"] is False
     assert summary["production_gate_ready"] is False
+    assert summary["dependent_evidence_reports_checked"] is False
+    assert summary["dependent_evidence_reports_ready"] is False
     assert summary["approved_non_synthetic_pair_count"] == 0
     assert summary["manifest_record_id_count"] == 0
     assert summary["raw_packet_values_included"] is False
@@ -122,6 +154,30 @@ def test_approved_mode_requires_private_manifest_record_ids(monkeypatch, tmp_pat
         renderer.render_private_packet(config)
 
 
+def test_approved_mode_requires_ready_dependent_reports(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+
+    with pytest.raises(renderer.RenderError, match="manual gate dependent report is not ready"):
+        renderer.render_private_packet(
+            renderer.RenderConfig(
+                output_path=tmp_path / "manual-gate.private.json",
+                approved_production_gate=True,
+                approved_non_synthetic_pair_count=1,
+                approved_source_types=("real_deidentified_pair",),
+                student_cutover_attested=True,
+                student_runtime_attested=True,
+                model_improvement_attested=True,
+                production_corpus_attested=True,
+                retrieval_vector_attested=True,
+                prediction_fairness_attested=True,
+                file_ingestion_surface_attested=True,
+                dependent_reports_ready_attested=True,
+                no_raw_values_attested=True,
+            )
+        )
+
+
 def test_approved_mode_rejects_insufficient_manifest_record_ids(monkeypatch, tmp_path):
     renderer = _load_renderer()
     _set_private_values(monkeypatch, renderer)
@@ -154,6 +210,8 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
 
     assert output_mode == 0o600
     assert summary["production_gate_ready"] is True
+    assert summary["dependent_evidence_reports_checked"] is True
+    assert summary["dependent_evidence_reports_ready"] is True
     assert summary["private_reference_count"] == 3
     assert summary["manifest_record_id_count"] == 2
     assert summary["manifest_record_ids_included_in_summary"] is False
@@ -170,6 +228,18 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
         assert private_value not in serialized_summary
     assert "PRIVATE-DENIAL-REC-1" not in serialized_summary
     assert "PRIVATE-APPEAL-REC-1" not in serialized_summary
+
+
+def test_dependent_report_path_must_stay_inside_source_control(tmp_path):
+    renderer = _load_renderer()
+
+    with pytest.raises(renderer.RenderError, match="inside source control"):
+        renderer.render_private_packet(
+            renderer.RenderConfig(
+                output_path=tmp_path / "manual-gate.private.json",
+                supervisor_report="../private-supervisor-report.json",
+            )
+        )
 
 
 def test_renderer_refuses_source_control_output():

@@ -355,8 +355,11 @@ requires explicit student cutover, student runtime, model-improvement,
 production-corpus, retrieval-vector, prediction-fairness, file-ingestion,
 dependent-report-readiness, and no-raw-value attestations before approved
 mode, reads private manifest record ids and governance references from
-environment variables only, writes `0600` private output, and reports redacted
-booleans/counts while preserving all external manual-gate blockers.
+environment variables only, verifies the configured supervisor,
+model-improvement, production-corpus, retrieval-vector, prediction-fairness,
+and file-ingestion surface reports are ready before writing a ready packet,
+writes `0600` private output, and reports redacted booleans/counts while
+preserving all external manual-gate blockers.
 The manual production-gate packet now also carries the boolean
 `model_improvement_evidence_report_ready` flag so the packet cannot pass
 user-data model-improvement approval unless the dedicated evidence report has
@@ -785,6 +788,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   ids and governance references from environment variables only, writes `0600`
   private output, and reports redacted booleans/counts while preserving external
   manual-gate blockers
+- [x] Manual production-gate private packet renderer approved mode now refuses
+  a ready packet unless the configured supervisor, model-improvement,
+  production-corpus, retrieval-vector, prediction-fairness, and file-ingestion
+  surface reports are safe or otherwise metadata-ready, ready, and unblocked
 - [x] Boolean-only MLX runtime supervisor template, validator, and report wired
   into manual gate and PHIplan production-readiness blockers
 - [x] MLX runtime supervisor operator-control evidence attests restart-policy
@@ -1105,7 +1112,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   approval references, PHI, secrets, or production document content, including
   the source-controlled manual gate checklist, the private manual-packet
   renderer, and the dedicated model-improvement, production-corpus,
-  retrieval-vector, and prediction-fairness evidence-report readiness flags
+  retrieval-vector, and prediction-fairness evidence-report readiness flags.
+  Local progress: the private manual-packet renderer now also verifies
+  configured dependent evidence reports before writing a ready packet.
 
 ### ❌ Not Implemented (Required for Production)
 - JWT Authentication & RBAC
