@@ -23,6 +23,8 @@ from app.schemas.denial_workflow import (
     DenialWorkflowStudentModelStatus,
     ModelImprovementComplianceStatus,
     RetrievalAuditDashboardResponse,
+    RetrievalEmbeddingReindexRequest,
+    RetrievalEmbeddingReindexResponse,
     RetrievalSearchRequest,
     RetrievalSearchResponse,
     RetrievalSourceCreateRequest,
@@ -400,6 +402,54 @@ async def retrieval_vector_readiness(
             "chunk_count": result.chunk_count,
             "sources_requiring_reindex_count": result.sources_requiring_reindex_count,
             "blocker_count": len(result.blockers),
+        },
+        ip_address=get_client_ip(request),
+    )
+    return result
+
+
+@router.post(
+    "/sources/reindex-embeddings",
+    response_model=RetrievalEmbeddingReindexResponse,
+)
+async def reindex_retrieval_embeddings(
+    request: Request,
+    reindex_request: RetrievalEmbeddingReindexRequest,
+    current_user: dict = Depends(require_roles(*ADMIN_ROLES)),
+    db=Depends(get_db),
+):
+    try:
+        result = RetrievalStoreService(db).reindex_embeddings(
+            reindex_request,
+            current_user=current_user,
+        )
+    except RetrievalStoreError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    log_audit(
+        db=db,
+        action="denial_retrieval_embeddings_reindexed",
+        user_id=_current_user_id(current_user),
+        details={
+            "dry_run": result.dry_run,
+            "source_type": reindex_request.source_type,
+            "phi_status": reindex_request.phi_status,
+            "limit": result.limit,
+            "provider_backend": result.provider_backend,
+            "embedding_model": result.embedding_model,
+            "embedding_dimensions": result.embedding_dimensions,
+            "source_count": result.source_count,
+            "chunk_count": result.chunk_count,
+            "eligible_chunk_count": result.eligible_chunk_count,
+            "updated_chunk_count": result.updated_chunk_count,
+            "skipped_chunk_count": result.skipped_chunk_count,
+            "sources_requiring_reindex_count_before": (
+                result.sources_requiring_reindex_count_before
+            ),
+            "sources_requiring_reindex_count_after": (
+                result.sources_requiring_reindex_count_after
+            ),
+            "warning_count": len(result.warnings),
         },
         ip_address=get_client_ip(request),
     )

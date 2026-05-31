@@ -10,12 +10,13 @@ from app.db.database import Base
 from app.models import RetrievalSourceChunk, RetrievalSourceDocument
 from app.schemas.denial_workflow import (
     DenialWorkflowAnalysisRequest,
+    RetrievalEmbeddingReindexRequest,
     RetrievalSearchRequest,
     RetrievalSourceCreateRequest,
 )
 from app.services.retrieval import EmbeddingResult, hash_embedding
 from app.services.denial_workflow import DenialWorkflowService
-from app.services.retrieval_store import RetrievalStoreService
+from app.services.retrieval_store import RetrievalStoreError, RetrievalStoreService
 
 
 SEMANTIC_SETTINGS = SimpleNamespace(
@@ -218,6 +219,117 @@ def test_vector_readiness_passes_when_semantic_provider_indexes_chunks(
     assert status.stored_embedding_models == {"synthetic-semantic-embedding-v1": 1}
     assert status.sources_requiring_reindex_count == 0
     assert status.blockers == []
+
+
+def test_reindex_embeddings_dry_run_reports_without_metadata_write(db_session):
+    encryption = EncryptionService(keys=[generate_fernet_key()], app_env="test")
+    hash_store = RetrievalStoreService(db_session, encryption=encryption)
+    hash_store.create_source(
+        RetrievalSourceCreateRequest(
+            title="Synthetic Dry Run Reindex Source",
+            source_type="public_rule",
+            document_text=(
+                "Synthetic source. dry run semantic reindex evidence "
+                "for appeal retrieval without writing metadata."
+            ),
+            phi_status="no_phi",
+            license_status="synthetic_internal",
+        )
+    )
+    semantic_store = RetrievalStoreService(
+        db_session,
+        encryption=encryption,
+        embedding_provider=SyntheticSemanticEmbeddingProvider(),
+    )
+    stored_chunk = db_session.query(RetrievalSourceChunk).one()
+    encrypted_metadata_before = stored_chunk.extra_metadata_encrypted
+
+    result = semantic_store.reindex_embeddings(
+        RetrievalEmbeddingReindexRequest(dry_run=True)
+    )
+
+    assert result.dry_run is True
+    assert result.provider_backend == "semantic"
+    assert result.embedding_model == "synthetic-semantic-embedding-v1"
+    assert result.chunk_count == 1
+    assert result.eligible_chunk_count == 1
+    assert result.updated_chunk_count == 0
+    assert result.skipped_chunk_count == 1
+    assert result.sources_requiring_reindex_count_before == 1
+    assert result.sources_requiring_reindex_count_after == 1
+    assert result.stored_embedding_models_before == {"claimguard-hash-embedding-v1": 1}
+    assert result.stored_embedding_models_after == {"claimguard-hash-embedding-v1": 1}
+    assert result.safe_context["raw_source_text_included"] is False
+    assert result.safe_context["raw_vector_values_included"] is False
+    assert stored_chunk.extra_metadata_encrypted == encrypted_metadata_before
+
+
+def test_reindex_embeddings_updates_hash_chunks_with_semantic_provider(db_session):
+    encryption = EncryptionService(keys=[generate_fernet_key()], app_env="test")
+    hash_store = RetrievalStoreService(db_session, encryption=encryption)
+    hash_store.create_source(
+        RetrievalSourceCreateRequest(
+            title="Synthetic Semantic Reindex Source",
+            source_type="public_rule",
+            document_text=(
+                "Synthetic source. semantic reindex operation should replace "
+                "local hash metadata for approved retrieval source chunks."
+            ),
+            phi_status="no_phi",
+            license_status="synthetic_internal",
+        )
+    )
+    semantic_store = RetrievalStoreService(
+        db_session,
+        encryption=encryption,
+        embedding_provider=SyntheticSemanticEmbeddingProvider(),
+    )
+
+    result = semantic_store.reindex_embeddings(
+        RetrievalEmbeddingReindexRequest(dry_run=False)
+    )
+    stored_chunk = db_session.query(RetrievalSourceChunk).one()
+    metadata = semantic_store._decrypt_metadata(stored_chunk.extra_metadata_encrypted)
+    serialized_result = result.model_dump_json()
+
+    assert result.dry_run is False
+    assert result.eligible_chunk_count == 1
+    assert result.updated_chunk_count == 1
+    assert result.skipped_chunk_count == 0
+    assert result.sources_requiring_reindex_count_before == 1
+    assert result.sources_requiring_reindex_count_after == 0
+    assert result.stored_embedding_models_before == {"claimguard-hash-embedding-v1": 1}
+    assert result.stored_embedding_models_after == {"synthetic-semantic-embedding-v1": 1}
+    assert metadata["embedding_backend"] == "semantic"
+    assert metadata["embedding_dimensions"] == 128
+    assert metadata["embedding_model"] == "synthetic-semantic-embedding-v1"
+    assert "reindexed_at" in metadata
+    assert isinstance(metadata["embedding"], list)
+    assert "semantic reindex operation should replace" not in serialized_result
+
+    status = semantic_store.vector_readiness(settings_like=SEMANTIC_SETTINGS)
+
+    assert status.production_ready is True
+    assert status.sources_requiring_reindex_count == 0
+    assert status.stored_embedding_models == {"synthetic-semantic-embedding-v1": 1}
+
+
+def test_reindex_embeddings_refuses_actual_hash_provider(store):
+    store.create_source(
+        RetrievalSourceCreateRequest(
+            title="Synthetic Hash Reindex Refusal Source",
+            source_type="public_rule",
+            document_text=(
+                "Synthetic source. actual reindexing with the development hash "
+                "provider must remain blocked."
+            ),
+            phi_status="no_phi",
+            license_status="synthetic_internal",
+        )
+    )
+
+    with pytest.raises(RetrievalStoreError, match="development hash embedding provider"):
+        store.reindex_embeddings(RetrievalEmbeddingReindexRequest(dry_run=False))
 
 
 def test_embedding_search_uses_injected_semantic_provider(semantic_store):

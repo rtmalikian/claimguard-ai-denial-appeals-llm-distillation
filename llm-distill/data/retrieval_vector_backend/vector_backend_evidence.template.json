@@ -16,6 +16,7 @@
   "index_state": {
     "source_control_reindex_checklist_documented": true,
     "source_control_reindex_checklist_path": "llm-distill/docs/retrieval-vector-reindex-checklist.md",
+    "application_reindex_operation_available": true,
     "active_retrieval_chunks_indexed": false,
     "stored_hash_embeddings_absent": false,
     "reindex_job_completed": false,

@@ -17,6 +17,13 @@ production semantic adapter must be configured from a private runtime package
 or deployment layer and must not place service URLs, credentials, source text,
 or vector values in this repository.
 
+The application also exposes a metadata-only reindex operation at
+`POST /api/v1/denial-workflow/sources/reindex-embeddings`. The checked-in route
+is admin-only, defaults to dry-run mode, refuses non-dry-run writes with the
+development hash provider, and returns only aggregate counts, provider labels,
+safe status flags, and blocker/warning tokens. Private production deployments
+must inject the approved semantic provider before running a write reindex.
+
 ## Safety Boundaries
 
 - Configure semantic backend settings in private runtime configuration only.
@@ -44,18 +51,21 @@ or vector values in this repository.
    source indexing and query embeddings without logging raw source text or
    vectors.
 4. Disable hash fallback for production in private runtime configuration.
-5. Reindex active retrieval and corpus chunks with the approved semantic
+5. Run the admin reindex operation in dry-run mode and verify the response
+   contains no raw source text, raw vectors, credentials, PHI, secrets, or
+   production document content.
+6. Reindex active retrieval and corpus chunks with the approved semantic
    embedding model.
-6. Confirm stored hash embeddings are absent from active production retrieval
+7. Confirm stored hash embeddings are absent from active production retrieval
    paths.
-7. Run the vector backend health check without logging URLs, credentials,
+8. Run the vector backend health check without logging URLs, credentials,
    source text, vector values, PHI, or production document content.
-8. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
+9. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
    record only boolean status in checked-in evidence.
-9. Update
+10. Update
    `llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json`
    only with booleans, counts, status tokens, and safe blocker identifiers.
-10. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
+11. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
 
 ## Rollback Or Disable Path
 

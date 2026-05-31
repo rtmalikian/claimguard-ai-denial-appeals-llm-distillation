@@ -253,6 +253,40 @@ class RetrievalVectorReadinessResponse(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+class RetrievalEmbeddingReindexRequest(BaseModel):
+    dry_run: bool = True
+    source_type: str | None = None
+    phi_status: Literal[
+        "no_phi",
+        "contains_phi",
+        "deidentified",
+        "unknown",
+    ] | None = None
+    limit: int = Field(default=500, ge=1, le=5000)
+
+
+class RetrievalEmbeddingReindexResponse(BaseModel):
+    dry_run: bool
+    provider_backend: str
+    embedding_model: str
+    embedding_dimensions: int
+    source_type: str | None = None
+    phi_status: str | None = None
+    limit: int
+    source_count: int
+    chunk_count: int
+    eligible_chunk_count: int
+    updated_chunk_count: int
+    skipped_chunk_count: int
+    sources_requiring_reindex_count_before: int
+    sources_requiring_reindex_count_after: int
+    stored_embedding_models_before: dict[str, int]
+    stored_embedding_models_after: dict[str, int]
+    warnings: list[str] = Field(default_factory=list)
+    safe_context: dict[str, bool] = Field(default_factory=dict)
+    reindexed_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class RetrievalAuditEvent(BaseModel):
     id: int
     action: str

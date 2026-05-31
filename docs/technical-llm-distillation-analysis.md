@@ -167,6 +167,23 @@ The synthetic-900 SFT export is ready as a data artifact, but its full LoRA run
 is blocked in the current headless session because MLX cannot access a Metal
 device. That block is recorded separately from the reviewed-label adapter run.
 
+### Retrieval Reindex Controls
+
+The production retrieval path is intentionally split between checked-in safety
+controls and private infrastructure evidence. The repository now includes an
+admin-only reindex operation,
+`POST /api/v1/denial-workflow/sources/reindex-embeddings`, for approved private
+semantic providers. It defaults to dry-run mode, refuses non-dry-run writes
+with the development hash provider, and returns only aggregate counts, provider
+labels, warning tokens, and safe-context flags. It does not return source text,
+raw vectors, provider endpoints, credentials, PHI, secrets, or production
+document content.
+
+This means the technical implementation path exists, but production readiness
+still requires private semantic backend configuration, a production vector
+backend, a completed write reindex, a metadata-only reindex audit, backend
+health checks, and retrieval quality smoke checks.
+
 ## Tools Used
 
 Core application and workflow:
@@ -194,6 +211,8 @@ Safety and validation:
   release evidence aggregation.
 - `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` for
   production-gate separation.
+- `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
+  retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual
   production gate evidence.
 - Targeted pytest tests for validators, reports, and manual gates.
@@ -204,6 +223,7 @@ Run from the repository root unless noted otherwise.
 
 ```bash
 python3 llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py --fail-on-blocked
+python3 llm-distill/scripts/validate_retrieval_vector_backend.py
 python3 llm-distill/scripts/run_distillation_readiness_audit.py
 python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py
 python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py
@@ -215,6 +235,8 @@ Run focused unit tests from the application directory:
 cd health-ai-medical-billing-medical-corporations-20260414_180528
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
   python3 -m pytest \
+  tests/unit/test_retrieval_store.py \
+  tests/unit/test_retrieval_vector_backend_evidence.py \
   tests/unit/test_prediction_fairness_evidence.py \
   tests/unit/test_phi_plan_manual_gate_packet.py \
   tests/unit/test_phi_plan_production_readiness_audit.py \
@@ -231,4 +253,3 @@ training on real user data, or automated filing of appeal letters. Those steps
 require external approvals, live supervised runtime evidence, approved
 non-synthetic corpus records, production retrieval infrastructure, and fairness
 monitoring evidence that are deliberately kept outside source control.
-

@@ -31,6 +31,7 @@
       ],
       "evidence": {
         "active_retrieval_chunks_indexed": false,
+        "application_reindex_operation_available": true,
         "reindex_audit_checked": false,
         "reindex_job_completed": false,
         "stored_hash_embeddings_absent": false
@@ -58,7 +59,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-05-31T17:00:52.098662+00:00",
+  "generated_at": "2026-05-31T18:20:00.312100+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
@@ -139,9 +140,9 @@
         "checklist_exists": true,
         "checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-reindex-checklist.md",
         "missing_marker_count": 0,
-        "present_marker_count": 14,
+        "present_marker_count": 15,
         "raw_checklist_text_included": false,
-        "required_marker_count": 14,
+        "required_marker_count": 15,
         "source_control_reindex_checklist_documented": true,
         "values_redacted": true
       },
@@ -159,6 +160,7 @@
       ],
       "evidence": {
         "active_retrieval_chunks_indexed": false,
+        "application_reindex_operation_available": true,
         "reindex_audit_checked": false,
         "reindex_job_completed": false,
         "stored_hash_embeddings_absent": false

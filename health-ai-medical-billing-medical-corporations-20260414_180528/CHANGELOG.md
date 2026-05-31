@@ -2,6 +2,92 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 11:20:38 PDT - Retrieval embedding reindex operation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a guarded retrieval embedding reindex operation so a future
+  approved private semantic provider can reindex encrypted retrieval chunks,
+  while keeping the checked-in hash fallback development-only and preserving
+  blocked production readiness until private backend, write-reindex, audit,
+  health, and quality evidence are complete.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-111440-retrieval-embedding-reindex/root/PHIplan.md` | Documented the admin metadata-only reindex operation, dry-run default, hash-provider write refusal, and remaining private production blockers. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-111440-retrieval-embedding-reindex/docs/technical-llm-distillation-analysis.md` | Added a technical reindex-controls section and linked the validation commands to the LLM distillation analysis statistics. | Restore backup over the same path. |
+| `app/api/v1/denial_workflow.py` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/denial_workflow.py` | Added admin `POST /api/v1/denial-workflow/sources/reindex-embeddings` with safe audit details. | Restore backup over the same path. |
+| `app/schemas/denial_workflow.py` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/app/schemas/denial_workflow.py` | Added aggregate-only reindex request/response schemas. | Restore backup over the same path. |
+| `app/services/retrieval_store.py` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py` | Added dry-run/write reindex logic, aggregate model counts, hash-provider write refusal, safe context flags, and safe audit keys. | Restore backup over the same path. |
+| `tests/unit/test_retrieval_store.py` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_store.py` | Added synthetic tests for dry-run no-write behavior, semantic-provider reindex updates, vector readiness after reindex, and hash-provider write refusal. | Restore backup over the same path. |
+| `tests/unit/test_retrieval_vector_backend_evidence.py` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | Added evidence expectations for the checked-in application reindex operation. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation tracking for the metadata-only reindex operation. | Restore backup over the same path. |
+| `../llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | Added `application_reindex_operation_available=true` while leaving production indexing/reindex flags false. | Restore backup over the same path. |
+| `../llm-distill/docs/retrieval-vector-backend-runbook.md` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/docs/retrieval-vector-backend-runbook.md` | Documented dry-run/write reindex operator steps and private-provider requirements. | Restore backup over the same path. |
+| `../llm-distill/docs/retrieval-vector-reindex-checklist.md` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/docs/retrieval-vector-reindex-checklist.md` | Added the application reindex operation to source-controlled reindex preconditions and operator steps. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_retrieval_vector_backend.py` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/scripts/validate_retrieval_vector_backend.py` | Required boolean-only evidence that the application reindex operation is available. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/retrieval_vector_backend_report.json` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed retrieval vector evidence; `safe_to_review=true`, `vector_backend_ready=false`, and `blocked=3`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-111440-retrieval-embedding-reindex/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `CHANGELOG.md` | `backups/20260531-111440-retrieval-embedding-reindex/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-111440-retrieval-embedding-reindex/root/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- None.
+
+### Validation
+- `find backups/20260531-111440-retrieval-embedding-reindex -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/denial_workflow.py app/schemas/denial_workflow.py app/services/retrieval_store.py tests/unit/test_retrieval_store.py tests/unit/test_retrieval_vector_backend_evidence.py ../llm-distill/scripts/validate_retrieval_vector_backend.py`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_store.py -q -p no:cacheprovider`:
+  passed, 10 tests with pre-existing SQLAlchemy/Pydantic deprecation warnings.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_vector_backend_evidence.py -q -p no:cacheprovider`:
+  passed, 7 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_store.py tests/unit/test_retrieval_vector_startup_config.py tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 33 tests with pre-existing SQLAlchemy/Pydantic deprecation warnings.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py --report ../llm-distill/evals/reports/retrieval_vector_backend_report.json`:
+  passed with `vector_backend_ready=False`, `safe_to_review=True`, and
+  `blocked=3`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the local development `ENCRYPTION_KEYS` warning
+  was emitted and no key material was written to reports.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py --report /private/tmp/claimguard-retrieval-embedding-reindex-vector-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because production vector backend
+  readiness remains blocked; report stayed `safe_to_review=true`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-retrieval-embedding-reindex-phi-plan-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because PHIplan production readiness
+  remains blocked; report stayed `safe_current_state=true`.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, refreshed reports, and temporary reports: passed with
+  no findings.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed public
+  docs: returned only required Raphael attribution `email_like` findings.
+- Full changed-file PHI scan including historical changelogs returned existing
+  attribution emails and historical label-token findings; no matched values
+  were printed.
+- High-confidence secret-pattern scan over changed files returned no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- A first shell wrapper around the vector validator used the read-only zsh
+  variable name `status`; it failed before recording the expected exit code and
+  was rerun immediately with `rc`.
+- Avoided adding a real semantic provider URL, vector-store URL, credential,
+  raw vector value, source text, PHI, production document content, or any claim
+  that retrieval semantic/vector production readiness is complete.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-111440-retrieval-embedding-reindex/`, then rerun the
+  retrieval-vector and PHIplan readiness validators only if refreshed reports
+  are needed after rollback.
+- This slice adds the application operation needed for a future private
+  semantic reindex. It does not complete the full PHIplan objective.
+
 ## 2026-05-31 11:07:30 PDT - Semantic retrieval provider boundary
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

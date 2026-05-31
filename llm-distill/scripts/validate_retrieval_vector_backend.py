@@ -58,6 +58,7 @@ REINDEX_CHECKLIST_REQUIRED_MARKERS = (
     "approved semantic embedding model required",
     "production vector backend required",
     "hash fallback disabled for production required",
+    "application reindex operation available",
     "active retrieval chunks reindexed required",
     "stored hash embeddings absent required",
     "reindex job completion required",
@@ -402,6 +403,7 @@ def runtime_smoke_checklist_requirement(evidence_path: Path, evidence: dict[str,
 def index_state_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("index_state", {})
     required_flags = {
+        "application_reindex_operation_available": "application_reindex_operation_not_available",
         "active_retrieval_chunks_indexed": "active_retrieval_chunks_not_indexed",
         "stored_hash_embeddings_absent": "stored_hash_embeddings_still_present",
         "reindex_job_completed": "reindex_job_not_completed",

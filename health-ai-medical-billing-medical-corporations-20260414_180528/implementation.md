@@ -221,6 +221,11 @@ template, validator, and checked-in report; the report is safe to review but
 not production-ready, and the PHIplan audit blocks until semantic backend
 configuration, production vector backend configuration, chunk reindexing,
 runtime health, and quality smoke checks are complete outside source control.
+Retrieval reindexing now also has an admin-only, metadata-only API/service
+operation that defaults to dry-run mode, refuses non-dry-run writes with the
+development hash provider, and reports only aggregate counts, provider labels,
+warnings, and safe-context flags. Private production deployments must inject an
+approved semantic provider before using the write path.
 Local governance checks, source-controlled retrieval-vector runbook
 documentation, source-controlled retrieval reindex-checklist documentation,
 backup/restore review, and rollback/disable-path review are now attested
@@ -771,6 +776,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   runbook, reindex checklist, and runtime smoke checklist procedures without
   storing source text, vector values, service URLs, credentials, PHI, or
   production document content
+- [x] Metadata-only retrieval embedding reindex operation for approved private
+  semantic providers, with dry-run default, aggregate-only response, safe audit
+  details, and non-dry-run hash-provider refusal
 - [x] Boolean-only production corpus evidence template, validator, and report
   wired into PHIplan production-readiness blockers
 - [x] Boolean-only user-data model-improvement evidence template, validator,
@@ -1424,9 +1432,10 @@ query indexes.
   `llm-distill/docs/retrieval-vector-reindex-checklist.md`, and runtime smoke
   checklist at
   `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` while keeping
-  the injectable semantic embedding provider boundary ready in code and
-  private semantic backend configuration, chunk reindexing, health, and quality
-  checks blocked until real production evidence exists.
+  the injectable semantic embedding provider boundary and metadata-only reindex
+  operation ready in code, and private semantic backend configuration, chunk
+  reindexing, health, and quality checks blocked until real production
+  evidence exists.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through
   the production corpus review workflow. Local progress: production corpus
   evidence now requires the checked-in operator runbook at

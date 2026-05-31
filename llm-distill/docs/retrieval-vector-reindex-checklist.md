@@ -15,6 +15,8 @@ completed.
 - approved semantic embedding model required before reindexing active chunks.
 - production vector backend required in private runtime configuration.
 - hash fallback disabled for production required before production promotion.
+- application reindex operation available before private semantic providers are
+  allowed to update encrypted chunk metadata.
 - active retrieval chunks reindexed required with the approved semantic model.
 - stored hash embeddings absent required from active production retrieval paths.
 - reindex job completion required before toggling evidence booleans.
@@ -37,13 +39,15 @@ completed.
 1. Confirm the approved semantic embedding model outside source control.
 2. Configure the production vector backend outside source control.
 3. Disable production hash fallback outside source control.
-4. Reindex active retrieval and corpus chunks with approved semantic
+4. Confirm the metadata-only application reindex operation is available and
+   dry-run results show no raw text, vectors, credentials, PHI, or secrets.
+5. Reindex active retrieval and corpus chunks with approved semantic
    embeddings.
-5. Confirm stored hash embeddings are absent from active production retrieval
+6. Confirm stored hash embeddings are absent from active production retrieval
    paths.
-6. Record reindex job completion as a boolean-only private operational result.
-7. Complete a metadata-only reindex audit.
-8. Run vector backend health checks without logging values.
-9. Run retrieval quality smoke checks on approved non-sensitive fixtures.
-10. Update checked-in evidence only with booleans, counts, safe status tokens,
+7. Record reindex job completion as a boolean-only private operational result.
+8. Complete a metadata-only reindex audit.
+9. Run vector backend health checks without logging values.
+10. Run retrieval quality smoke checks on approved non-sensitive fixtures.
+11. Update checked-in evidence only with booleans, counts, safe status tokens,
     and blocker identifiers.

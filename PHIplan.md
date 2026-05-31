@@ -233,6 +233,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   retrieval remains blocked until a private approved semantic provider,
   production vector backend, reindex evidence, health check, and quality smoke
   evidence are configured outside source control.
+- Add a metadata-only retrieval embedding reindex operation at
+  `/api/v1/denial-workflow/sources/reindex-embeddings`. The operation is
+  admin-only, defaults to dry-run mode, returns aggregate counts and safe
+  provider labels only, refuses non-dry-run writes with the checked-in
+  development hash provider, and keeps raw source text, vector values,
+  provider endpoints, PHI, secrets, and production document content out of
+  responses and audit details. Production write reindexing still requires a
+  privately injected approved semantic provider and private vector backend
+  evidence outside source control.
 - Add a retrieval-vector startup configuration guard in
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py`.
   Startup now validates that production environments are not using the
@@ -263,9 +272,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   The validator now also verifies the source-controlled reindex checklist at
   `llm-distill/docs/retrieval-vector-reindex-checklist.md` exists with
   required approved-model, production-vector-backend, hash-fallback-disable,
-  active-chunk reindex, stored-hash absence, reindex job, reindex audit,
-  health-check, quality-smoke, boolean-only, no-raw-source-text, and
-  `vector_backend_ready=false` markers without emitting the checklist text.
+  application-reindex-operation, active-chunk reindex, stored-hash absence,
+  reindex job, reindex audit, health-check, quality-smoke, boolean-only,
+  no-raw-source-text, and `vector_backend_ready=false` markers without
+  emitting the checklist text.
   The validator now also verifies the source-controlled runtime smoke checklist
   at `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` exists
   with required approved-model, production-vector-backend,
@@ -1079,8 +1089,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   then rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py` before
   setting supervised runtime flags.
 - Configure the production semantic embedding backend/vector store outside
-  source control, reindex retrieval/corpus chunks, run health and retrieval
-  quality smoke checks, and rerun
+  source control, run the admin reindex operation in dry-run mode, reindex
+  retrieval/corpus chunks with the approved private provider, run health and
+  retrieval quality smoke checks, and rerun
   `llm-distill/scripts/validate_retrieval_vector_backend.py` before treating
   retrieval as production semantic search. Keep the local governance,
   source-controlled retrieval-vector runbook and reindex-checklist

@@ -12,6 +12,8 @@ from app.models import AuditLog, RetrievalSourceChunk, RetrievalSourceDocument
 from app.schemas.denial_workflow import (
     RetrievalAuditDashboardResponse,
     RetrievalAuditEvent,
+    RetrievalEmbeddingReindexRequest,
+    RetrievalEmbeddingReindexResponse,
     RetrievalSearchRequest,
     RetrievalSearchResponse,
     RetrievalSourceDeleteResponse,
@@ -53,6 +55,7 @@ RETRIEVAL_DOCUMENT_AUDIT_ACTIONS = {
     "denial_retrieval_sources_listed",
     "denial_retrieval_sources_searched",
     "denial_retrieval_source_deleted",
+    "denial_retrieval_embeddings_reindexed",
     "denial_retrieval_source_governance_viewed",
     "denial_retrieval_vector_readiness_viewed",
     "denial_retrieval_document_audit_dashboard_viewed",
@@ -71,7 +74,11 @@ SAFE_AUDIT_DETAIL_KEYS = {
     "deleted_by_user_id",
     "deletion_reason",
     "chunk_count",
+    "dry_run",
     "embedding_model",
+    "embedding_dimensions",
+    "eligible_chunk_count",
+    "provider_backend",
     "embedding_model_approved",
     "document_id",
     "document_role",
@@ -97,6 +104,12 @@ SAFE_AUDIT_DETAIL_KEYS = {
     "hash_fallback_in_use",
     "hash_fallback_disabled_for_production",
     "sources_requiring_reindex_count",
+    "sources_requiring_reindex_count_before",
+    "sources_requiring_reindex_count_after",
+    "source_count",
+    "skipped_chunk_count",
+    "updated_chunk_count",
+    "warning_count",
     "blocker_count",
     "user_data_opt_in_for_model_improvement",
 }
@@ -492,6 +505,117 @@ class RetrievalStoreService:
             ],
         )
 
+    def reindex_embeddings(
+        self,
+        request: RetrievalEmbeddingReindexRequest,
+        *,
+        current_user: dict | None = None,
+    ) -> RetrievalEmbeddingReindexResponse:
+        provider_model = self._provider_model_name()
+        provider_backend = self._provider_backend_name()
+        provider_dimensions = self._provider_dimensions()
+        warnings: list[str] = []
+        if provider_backend == "hash" or provider_model == HASH_EMBEDDING_MODEL:
+            warnings.append("hash_embedding_provider_is_development_fallback")
+            if not request.dry_run:
+                raise RetrievalStoreError(
+                    "Refusing to reindex with the development hash embedding provider"
+                )
+
+        bounded_limit = max(1, min(request.limit, 5000))
+        stored_chunks = self._active_stored_chunks(
+            source_type=request.source_type,
+            phi_status=request.phi_status,
+            current_user=current_user,
+            limit=bounded_limit,
+        )
+        if len(stored_chunks) == bounded_limit:
+            warnings.append("limit_reached_reindex_may_be_partial")
+
+        stored_models_before, sources_requiring_before = (
+            self._stored_embedding_model_counts(stored_chunks)
+        )
+        source_ids = {
+            stored_chunk.source.source_id
+            for stored_chunk in stored_chunks
+            if stored_chunk.source is not None
+        }
+        eligible_chunk_count = 0
+        updated_chunk_count = 0
+        missing_text_count = 0
+
+        for stored_chunk in stored_chunks:
+            metadata = self._decrypt_metadata(stored_chunk.extra_metadata_encrypted)
+            if not self._metadata_requires_embedding_reindex(
+                metadata,
+                provider_model=provider_model,
+                provider_backend=provider_backend,
+                provider_dimensions=provider_dimensions,
+            ):
+                continue
+            text = self._decrypt_optional(stored_chunk.text_encrypted)
+            if not text:
+                missing_text_count += 1
+                continue
+            eligible_chunk_count += 1
+            if request.dry_run:
+                continue
+
+            embedding_result = self.embedding_provider.embed(text)
+            updated_metadata = dict(metadata)
+            updated_metadata.update(
+                {
+                    "embedding": embedding_result.vector,
+                    "embedding_backend": embedding_result.backend,
+                    "embedding_dimensions": embedding_result.dimensions,
+                    "embedding_model": embedding_result.model,
+                    "reindexed_at": datetime.utcnow().isoformat(),
+                }
+            )
+            stored_chunk.extra_metadata_encrypted = self.encryption.encrypt(
+                json.dumps(
+                    updated_metadata,
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+            )
+            updated_chunk_count += 1
+
+        if missing_text_count:
+            warnings.append("chunks_with_unreadable_encrypted_text_skipped")
+        if updated_chunk_count:
+            self.db.commit()
+
+        stored_models_after, sources_requiring_after = (
+            self._stored_embedding_model_counts(stored_chunks)
+        )
+        chunk_count = len(stored_chunks)
+        return RetrievalEmbeddingReindexResponse(
+            dry_run=request.dry_run,
+            provider_backend=provider_backend,
+            embedding_model=provider_model,
+            embedding_dimensions=provider_dimensions,
+            source_type=request.source_type,
+            phi_status=request.phi_status,
+            limit=bounded_limit,
+            source_count=len(source_ids),
+            chunk_count=chunk_count,
+            eligible_chunk_count=eligible_chunk_count,
+            updated_chunk_count=updated_chunk_count,
+            skipped_chunk_count=chunk_count - updated_chunk_count,
+            sources_requiring_reindex_count_before=len(sources_requiring_before),
+            sources_requiring_reindex_count_after=len(sources_requiring_after),
+            stored_embedding_models_before=stored_models_before,
+            stored_embedding_models_after=stored_models_after,
+            warnings=warnings,
+            safe_context={
+                "raw_source_text_included": False,
+                "raw_vector_values_included": False,
+                "provider_endpoint_included": False,
+                "phi_or_secret_values_included": False,
+            },
+        )
+
     def audit_dashboard(
         self,
         *,
@@ -636,6 +760,96 @@ class RetrievalStoreService:
             if isinstance(embedding_model, str):
                 return embedding_model
         return None
+
+    def _active_stored_chunks(
+        self,
+        *,
+        source_type: str | None,
+        phi_status: str | None,
+        current_user: dict | None,
+        limit: int,
+    ) -> list[RetrievalSourceChunk]:
+        query = (
+            self.db.query(RetrievalSourceChunk)
+            .join(RetrievalSourceDocument)
+            .options(joinedload(RetrievalSourceChunk.source))
+            .filter(RetrievalSourceDocument.deleted_at.is_(None))
+        )
+        query = self._apply_access_scope(query, current_user)
+        if source_type:
+            query = query.filter(RetrievalSourceDocument.source_type == source_type)
+        if phi_status:
+            query = query.filter(RetrievalSourceDocument.phi_status == phi_status)
+        return query.order_by(RetrievalSourceChunk.id.asc()).limit(limit).all()
+
+    def _stored_embedding_model_counts(
+        self,
+        stored_chunks: list[RetrievalSourceChunk],
+    ) -> tuple[dict[str, int], set[str]]:
+        stored_embedding_models: dict[str, int] = {}
+        sources_requiring_reindex: set[str] = set()
+        provider_model = self._provider_model_name()
+        provider_backend = self._provider_backend_name()
+        provider_dimensions = self._provider_dimensions()
+        for stored_chunk in stored_chunks:
+            metadata = self._decrypt_metadata(stored_chunk.extra_metadata_encrypted)
+            model_name = metadata.get("embedding_model")
+            if not isinstance(model_name, str) or not model_name.strip():
+                model_name = "unknown"
+            stored_embedding_models[model_name] = (
+                stored_embedding_models.get(model_name, 0) + 1
+            )
+            needs_reindex = self._metadata_requires_embedding_reindex(
+                metadata,
+                provider_model=provider_model,
+                provider_backend=provider_backend,
+                provider_dimensions=provider_dimensions,
+            )
+            if needs_reindex and stored_chunk.source is not None:
+                sources_requiring_reindex.add(stored_chunk.source.source_id)
+        return stored_embedding_models, sources_requiring_reindex
+
+    def _metadata_requires_embedding_reindex(
+        self,
+        metadata: dict,
+        *,
+        provider_model: str,
+        provider_backend: str,
+        provider_dimensions: int,
+    ) -> bool:
+        stored_embedding = metadata.get("embedding")
+        stored_dimensions = metadata.get("embedding_dimensions")
+        try:
+            stored_dimensions = int(stored_dimensions)
+        except (TypeError, ValueError):
+            stored_dimensions = 0
+        return (
+            metadata.get("embedding_model") != provider_model
+            or metadata.get("embedding_backend") != provider_backend
+            or stored_dimensions != provider_dimensions
+            or not isinstance(stored_embedding, list)
+            or len(stored_embedding) != provider_dimensions
+        )
+
+    def _provider_model_name(self) -> str:
+        value = getattr(self.embedding_provider, "model_name", None)
+        return str(value).strip() if value else "unknown"
+
+    def _provider_backend_name(self) -> str:
+        value = getattr(self.embedding_provider, "backend_name", None)
+        return str(value).strip().lower() if value else "unknown"
+
+    def _provider_dimensions(self) -> int:
+        value = getattr(
+            self.embedding_provider,
+            "dimensions",
+            DEFAULT_EMBEDDING_DIMENSIONS,
+        )
+        try:
+            dimensions = int(value)
+        except (TypeError, ValueError):
+            dimensions = DEFAULT_EMBEDDING_DIMENSIONS
+        return dimensions if dimensions > 0 else DEFAULT_EMBEDDING_DIMENSIONS
 
     def _encrypt_optional(self, value: str | None) -> str | None:
         if value is None or not value.strip():

@@ -50,6 +50,7 @@ def _ready_evidence() -> dict:
             "source_control_reindex_checklist_path": (
                 "llm-distill/docs/retrieval-vector-reindex-checklist.md"
             ),
+            "application_reindex_operation_available": True,
             "active_retrieval_chunks_indexed": True,
             "stored_hash_embeddings_absent": True,
             "reindex_job_completed": True,
@@ -155,6 +156,16 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert "disable_or_rollback_path_not_reviewed" not in runtime_requirement["blockers"]
     assert runtime_requirement["evidence"]["backup_restore_reviewed"] is True
     assert runtime_requirement["evidence"]["disable_or_rollback_path_reviewed"] is True
+    index_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_index_state"
+    )
+    assert (
+        "application_reindex_operation_not_available"
+        not in index_requirement["blockers"]
+    )
+    assert index_requirement["evidence"]["application_reindex_operation_available"] is True
 
 
 def test_ready_vector_backend_evidence_passes_all_requirements(tmp_path):
