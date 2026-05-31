@@ -20,6 +20,8 @@
     "runtime_owner_configured": false,
     "launchd_private_copy_renderer_available": true,
     "launchd_private_copy_renderer_path": "llm-distill/scripts/render_mlx_launchd_private_copy.py",
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
     "source_control_runbook_documented": true,
     "source_control_runbook_path": "llm-distill/docs/mlx-runtime-supervisor-runbook.md",
     "source_control_owner_handoff_checklist_documented": true,

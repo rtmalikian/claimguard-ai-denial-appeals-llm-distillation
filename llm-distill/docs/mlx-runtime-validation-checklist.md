@@ -32,12 +32,18 @@ approved for production default routing.
 5. Student runtime health check required before any default routing request.
 6. Supervisor restart test required before production auto-launch readiness.
 7. Rollback to NVIDIA required if any validation step fails.
+8. Private supervisor evidence render required outside source control after all
+   validation booleans pass.
 
 ## Evidence Rules
 
 - Record only booleans for `mlx_runtime_preflight_ready`,
   `student_status_endpoint_checked`, `student_runtime_health_ok`,
   `supervisor_loaded_in_user_session`, and `supervisor_restart_test_passed`.
+- Render final private evidence with
+  `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` only
+  to a private path, and verify the summary contains redacted booleans/counts
+  only.
 - Do not paste logs, shell output, local usernames, private paths, endpoint
   response bodies, prompts, model responses, approval references, PHI, secrets,
   credentials, production claim content, or production document content.

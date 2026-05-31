@@ -15,6 +15,7 @@ identifiers, or credentials.
 
 - student default cutover approval required
 - student cutover private environment renderer required
+- student runtime supervisor private evidence renderer required
 - user-data model improvement legal/BAA/consent approval required
 - model-improvement private environment renderer required
 - approved non-synthetic denial/appeal pair required
@@ -39,7 +40,11 @@ identifiers, or credentials.
 3. For student default cutover, render any final environment file with
    `llm-distill/scripts/render_student_cutover_private_env.py` only to a
    private path outside source control, and confirm its command output includes
-   redacted booleans/counts only.
+   redacted booleans/counts only. Render any final runtime-supervisor evidence
+   file with `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`
+   only to a private path outside source control after owner, private launchd
+   copy, preflight, health, status, load, restart, and rollback evidence are
+   complete; confirm command output includes redacted booleans/counts only.
 4. For user-data model improvement, render any final environment file with
    `llm-distill/scripts/render_model_improvement_private_env.py` only to a
    private path outside source control after legal, BAA, consent, request, and

@@ -989,6 +989,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   source-controlled runbook documentation, runtime validation checklist
   documentation, owner handoff checklist documentation, and environment-file
   exclusion from source control.
+  The runtime supervision path now also includes
+  `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`, a
+  renderer for the final private boolean-only supervisor evidence file. It
+  refuses output inside source control, requires explicit runtime owner,
+  private launchd copy, restart-policy, health-check, manual-start, rollback,
+  environment-file exclusion, preflight, status endpoint, runtime health,
+  launchd load, restart-test, and no-raw-value attestations before approved
+  mode, reads private launchd plist and validation references from environment
+  variables, writes private output with `0600` permissions, and prints only
+  redacted booleans/counts. This prepares the private runtime-supervision
+  evidence handoff without storing private plist paths, runtime owner values,
+  approval references, logs, endpoint responses, model output, PHI, or secrets
+  in source control.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,
@@ -1155,7 +1168,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   environment.
 - Install and validate the MLX runtime supervisor from a private operator copy
   of `llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist`,
-  follow `llm-distill/docs/mlx-runtime-supervisor-runbook.md`,
+  follow `llm-distill/docs/mlx-runtime-supervisor-runbook.md`, render the
+  final private supervisor evidence file with
+  `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`,
   then rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py` before
   setting supervised runtime flags.
 - Configure the production semantic embedding backend/vector store outside

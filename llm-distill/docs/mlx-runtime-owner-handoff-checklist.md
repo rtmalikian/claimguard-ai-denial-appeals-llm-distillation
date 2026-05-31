@@ -16,6 +16,7 @@ approved for production default routing.
 - approval reference configured outside source control required
 - private launchd copy required
 - private launchd plist render required outside source control
+- private supervisor evidence renderer required
 - loopback runtime required
 - MLX runtime preflight required
 - student status endpoint check required

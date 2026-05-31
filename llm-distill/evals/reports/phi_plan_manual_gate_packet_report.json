@@ -19,6 +19,7 @@
         "source_control_private_env_renderer_documented": true,
         "source_control_runbook_documented": true,
         "source_control_runtime_owner_handoff_checklist_documented": true,
+        "source_control_runtime_supervisor_private_evidence_renderer_documented": true,
         "source_control_runtime_validation_checklist_documented": true,
         "supervised_runtime_owner_configured": false,
         "supervised_runtime_runbook_reviewed": false,
@@ -145,7 +146,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T21:53:26.074870+00:00",
+  "generated_at": "2026-05-31T22:08:16.755802+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -189,8 +190,8 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 16,
-        "manual_gate_checklist_required_marker_count": 16,
+        "manual_gate_checklist_present_marker_count": 17,
+        "manual_gate_checklist_required_marker_count": 17,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
@@ -235,6 +236,7 @@
         "source_control_private_env_renderer_documented": true,
         "source_control_runbook_documented": true,
         "source_control_runtime_owner_handoff_checklist_documented": true,
+        "source_control_runtime_supervisor_private_evidence_renderer_documented": true,
         "source_control_runtime_validation_checklist_documented": true,
         "supervised_runtime_owner_configured": false,
         "supervised_runtime_runbook_reviewed": false,

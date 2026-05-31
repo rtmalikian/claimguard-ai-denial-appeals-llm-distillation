@@ -776,6 +776,14 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   leaving runtime owner and live runtime validation blocked
 - [x] Non-installing MLX private launchd renderer that refuses source-control
   output paths and emits only redacted booleans/counts for private operator use
+- [x] MLX runtime supervisor now has a source-controlled private evidence
+  renderer that refuses repository output, requires runtime owner, private
+  launchd copy, restart-policy, health-check, manual-start, rollback,
+  environment-file exclusion, preflight, status endpoint, runtime health,
+  launchd load, restart-test, and no-raw-value attestations for approved mode,
+  reads private plist/review references from environment variables only, writes
+  `0600` output, and reports redacted booleans/counts while preserving live
+  runtime owner and validation blockers
 - [x] MLX runtime supervisor evidence validates a source-controlled runtime
   validation checklist with required MLX preflight, student status endpoint,
   runtime health, launchd load, restart-test, rollback, boolean-only, and
@@ -951,6 +959,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] MLX runtime supervisor validator requires the source-controlled owner
   handoff checklist to exist before any private runtime owner assignment can
   clear the student cutover documentation sub-gate
+- [x] MLX runtime supervisor validator requires the source-controlled private
+  evidence renderer before private runtime owner and validation evidence can
+  clear the supervisor-ready gate
 - [x] Student default cutover now has a source-controlled private env renderer
   that refuses repository output, requires approval/runtime/distillation/
   rollback attestations for approved-cutover mode, reads the approval reference

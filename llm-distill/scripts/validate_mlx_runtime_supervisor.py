@@ -20,6 +20,9 @@ DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "mlx_runtime_supervisor_rep
 DEFAULT_PRIVATE_COPY_RENDERER = (
     DISTILL_DIR / "scripts" / "render_mlx_launchd_private_copy.py"
 )
+DEFAULT_PRIVATE_EVIDENCE_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_mlx_runtime_supervisor_private_evidence.py"
+)
 EXPECTED_ARTIFACT = "claimguard_mlx_runtime_supervisor_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -43,6 +46,7 @@ ALLOWED_LAUNCHD_ENVIRONMENT_VARIABLES = set(REQUIRED_LAUNCHD_ENVIRONMENT_VARIABL
 RUNBOOK_REQUIRED_MARKERS = (
     "ClaimGuard AI is architected by Raphael Malikian",
     "private operator copy",
+    "render_mlx_runtime_supervisor_private_evidence.py",
     "CLAIMGUARD_RUNTIME_PROFILE=student_denial_workflow_local_only",
     "loopback",
     "Do not store approval reference values",
@@ -59,6 +63,7 @@ VALIDATION_CHECKLIST_REQUIRED_MARKERS = (
     "Student status endpoint check required",
     "Student runtime health check required",
     "Supervisor restart test required",
+    "Private supervisor evidence render required",
     "Rollback to NVIDIA required",
     "boolean-only evidence",
     "no raw runtime output",
@@ -71,6 +76,7 @@ OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS = (
     "Raphael approval required",
     "approval reference configured outside source control required",
     "private launchd copy required",
+    "private supervisor evidence renderer required",
     "loopback runtime required",
     "MLX runtime preflight required",
     "student status endpoint check required",
@@ -91,6 +97,22 @@ PRIVATE_COPY_RENDERER_REQUIRED_MARKERS = (
     "student_denial_workflow_local_only",
     "LOOPBACK_HOSTS",
     "raw_environment_values_included",
+    "values_redacted",
+)
+PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = (
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "claimguard_mlx_runtime_supervisor_evidence",
+    "supervisor_ready",
+    "MLX_RUNTIME_SUPERVISOR_PRIVATE_PLIST_PATH",
+    "source_control_private_evidence_renderer_documented",
+    "runtime_owner_configured",
+    "student_runtime_health_ok",
+    "supervisor_restart_test_passed",
+    "private_plist_path_value_included",
+    "raw_runtime_output_included",
+    "approval_reference_value_included",
+    "0600",
     "values_redacted",
 )
 FORBIDDEN_LAUNCHD_ENV_KEY_FRAGMENTS = {
@@ -462,6 +484,60 @@ def private_copy_renderer_requirement(
     )
 
 
+def private_evidence_renderer_requirement(
+    evidence_path: Path,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    section = evidence.get("operator_controls", {})
+    configured = bool_value(section, "source_control_private_evidence_renderer_documented")
+    configured_path = str_value(section, "private_evidence_renderer_path")
+    renderer_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_EVIDENCE_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    if not configured:
+        blockers.append("source_control_private_evidence_renderer_not_documented")
+    if not renderer_path.exists():
+        blockers.append("source_control_private_evidence_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("source_control_private_evidence_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
+            if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_private_evidence_renderer_required_markers_missing")
+    return requirement(
+        requirement_id="mlx_runtime_supervisor_private_evidence_renderer",
+        name="Private supervisor evidence renderer is source-controlled and safe",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_evidence_renderer_documented": configured,
+            "private_evidence_renderer_path": str(renderer_path),
+            "private_evidence_renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "private_output_required": True,
+            "values_redacted": True,
+        },
+    )
+
+
 def owner_handoff_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("operator_controls", {})
     checklist_configured = bool_value(
@@ -518,6 +594,7 @@ def operator_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("operator_controls", {})
     required_flags = {
         "runtime_owner_configured": "runtime_owner_not_configured",
+        "source_control_private_evidence_renderer_documented": "source_control_private_evidence_renderer_not_documented",
         "source_control_runbook_documented": "source_control_runbook_not_documented",
         "source_control_owner_handoff_checklist_documented": (
             "source_control_owner_handoff_checklist_not_documented"
@@ -624,6 +701,7 @@ def build_report(evidence_path: Path) -> dict[str, Any]:
         no_phi_or_secret_values_requirement(evidence_path, evidence, plist_path),
         launchd_template_requirement(evidence if isinstance(evidence, dict) else {}, plist_path),
         private_copy_renderer_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
+        private_evidence_renderer_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         operator_runbook_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         owner_handoff_checklist_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         operator_controls_requirement(evidence if isinstance(evidence, dict) else {}),

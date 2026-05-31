@@ -39,6 +39,12 @@ installed, loaded, health checked, or approved for production default routing.
 7. Check the local MLX server health and the ClaimGuard student status endpoint.
 8. Perform a supervised restart test and record only boolean evidence in
    `llm-distill/data/runtime_supervision/supervisor_evidence.template.json`.
+9. Render any final private supervisor evidence file with
+   `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`
+   only to a private path outside source control after runtime owner, private
+   launchd copy, preflight, status endpoint, health, launchd load, restart,
+   rollback, and no-raw-value attestations are complete. Confirm command output
+   includes redacted booleans/counts only.
 
 ## Rollback To NVIDIA
 
@@ -54,6 +60,9 @@ installed, loaded, health checked, or approved for production default routing.
 
 - The checked-in evidence file may record booleans, counts, marker status, and
   blocker identifiers only.
+- Private rendered supervisor evidence files must stay outside source control
+  and may not be copied into changelog entries, reports, screenshots, tests, or
+  checked-in documentation.
 - Do not paste command output that contains local account names, approval
   references, environment values, raw prompts, model responses, or document
   content.

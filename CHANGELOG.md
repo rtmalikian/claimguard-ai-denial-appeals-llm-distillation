@@ -2,6 +2,125 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 15:08:45 PDT - MLX runtime supervisor private evidence renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan student-runtime supervision gate by adding a safe
+  renderer for private MLX runtime supervisor evidence, without storing private
+  launchd paths, runtime owner names, approval references, runtime output, PHI,
+  secrets, credentials, production claim data, or production document content
+  in source control, and without marking the student runtime supervisor ready.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/PHIplan.md` | Documented the private supervisor evidence renderer and remaining private owner/preflight/health/load/restart/rollback blockers. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/docs/technical-llm-distillation-analysis.md` | Added MLX runtime supervisor private evidence controls to the technical distillation breakdown and tool list. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added deployment guidance for rendering private supervisor evidence outside source control. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for private supervisor evidence rendering and remaining student runtime gates. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | Added validator coverage for private supervisor evidence renderer documentation and marker checks. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual-gate coverage for runtime supervisor private evidence renderer documentation. | Restore backup over the same path. |
+| `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added manual-gate boolean/path evidence for the runtime supervisor private evidence renderer. | Restore backup over the same path. |
+| `llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | Added boolean/path evidence for the private supervisor evidence renderer. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` | Added owner-handoff requirement for private supervisor evidence rendering. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-supervisor-runbook.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/docs/mlx-runtime-supervisor-runbook.md` | Added private renderer operator steps and redacted-output requirements. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-validation-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/docs/mlx-runtime-validation-checklist.md` | Added validation checklist coverage for private supervisor evidence rendering. | Restore backup over the same path. |
+| `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added manual checklist coverage for runtime supervisor private evidence rendering. | Restore backup over the same path. |
+| `llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed supervisor evidence; `safe_to_review=true`, `supervisor_ready=false`, `ready_item_count=8`, and `blocked_item_count=2`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, `ready_item_count=5`, and `blocked_item_count=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added a private evidence renderer requirement and source marker checks without emitting renderer text. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added manual packet evidence for runtime supervisor private renderer documentation. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`:
+  renders private MLX runtime supervisor evidence only to a private path,
+  refuses repository output, requires explicit approved-supervisor attestations
+  before ready mode, reads private launchd and runtime references from approved
+  environment variables, writes `0600`, and prints redacted booleans/counts
+  only.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py`:
+  covers conservative dry-run output, explicit attestation requirements,
+  private launchd path handling, source-control path rejection, redacted
+  approved output, and `0600` file permissions.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer -type f | sort`:
+  passed; 19 existing files were backed up before editing.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...` over the new renderer, modified validators, and focused tests:
+  passed.
+- `python3 -m json.tool` on `llm-distill/data/runtime_supervision/supervisor_evidence.template.json` and `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`:
+  passed.
+- Focused pytest for `test_mlx_runtime_supervisor_private_evidence_renderer.py`:
+  passed, 6 tests.
+- Focused pytest for `test_mlx_runtime_supervisor.py`:
+  passed, 12 tests.
+- Focused pytest for `test_phi_plan_manual_gate_packet.py`:
+  passed, 34 tests.
+- Combined focused pytest over runtime supervisor renderer/evidence, manual
+  gate, and PHIplan production-readiness audit: passed, 64 tests with one
+  pre-existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py --dry-run --output /private/tmp/claimguard-mlx-runtime-supervisor-test.json`:
+  passed and printed only redacted booleans/counts.
+- Synthetic approved-supervisor dry run with a temporary private launchd plist
+  and dummy private reference environment variables set: passed and did not
+  print the dummy values.
+- Conservative renderer write smoke passed, wrote a private evidence file with
+  `0600` permissions, and removed the temporary file.
+- `python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --report llm-distill/evals/reports/mlx_runtime_supervisor_report.json`:
+  passed with `supervisor_ready=False`, `safe_to_review=True`,
+  `ready_item_count=8`, and `blocked_item_count=2`.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`,
+  `ready_item_count=5`, and `blocked_item_count=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`,
+  `blocked_item_count=6`, and `warning_item_count=1`; the local development
+  `ENCRYPTION_KEYS` warning was emitted and no key material was written to
+  reports.
+- `--fail-on-blocked` checks for MLX runtime supervisor evidence, manual gate
+  packet, and PHIplan readiness intentionally returned exit status 2 while
+  staying `safe_to_review=true` or `safe_current_state=true`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, and refreshed reports: passed with no findings.
+- Broader documentation PHI scan over changed docs and both changelogs returned
+  expected metadata-only findings for required Raphael Malikian attribution
+  emails and pre-existing label text such as `dob`, `mrn`, `member_id`, and
+  `claim_number`; manual inspection found no raw PHI/PII values, production
+  claim data, or secrets introduced in this slice.
+- Strict high-confidence token-format secret scan over changed files returned
+  no matches. A broader generic key-name scan matched pre-existing changelog
+  lines that use explicit synthetic placeholder values such as
+  `synthetic-nvidia-key`; manual inspection found no raw environment secret
+  values introduced in this slice.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a checked-in private supervisor evidence file, storing private
+  launchd paths, runtime owner names, approval references, runtime endpoint
+  output, PHI, secrets, credentials, production claim data, or production
+  document content, weakening student-runtime gates, enabling student-default
+  routing, or claiming private runtime owner/health/restart evidence exists.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-150008-mlx-runtime-supervisor-private-evidence-renderer/`,
+  delete `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`
+  and
+  `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py`,
+  then rerun the MLX runtime supervisor, manual-gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice makes the final private MLX runtime supervisor evidence rendering
+  path concrete and testable; it does not complete the full PHIplan objective.
+
 ## 2026-05-31 14:46:12 PDT - Production corpus private evidence renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

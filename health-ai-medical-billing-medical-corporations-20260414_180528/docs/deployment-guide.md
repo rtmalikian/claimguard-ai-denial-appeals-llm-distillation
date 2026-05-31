@@ -219,6 +219,39 @@ The helper refuses source-control output, writes the private env file with
 approval reference in a private shell or approved secret path, not in docs,
 screenshots, logs, or committed files.
 
+Only mark supervised MLX runtime evidence ready after the private launchd copy,
+runtime owner assignment, preflight, status endpoint, runtime health, launchd
+load, supervisor restart, rollback, and no-raw-value reviews are complete
+outside source control. When those gates are complete, render the final private
+supervisor evidence file with the source-controlled helper:
+
+```bash
+# Set MLX_RUNTIME_SUPERVISOR_* reference variables and
+# MLX_RUNTIME_SUPERVISOR_PRIVATE_PLIST_PATH in a private shell first.
+python3 ../llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py \
+  --approved-supervisor \
+  --runtime-owner-attested \
+  --private-launchd-copy-attested \
+  --restart-policy-reviewed \
+  --health-check-reviewed \
+  --manual-start-command-reviewed \
+  --rollback-to-nvidia-reviewed \
+  --environment-file-excluded-attested \
+  --mlx-runtime-preflight-ready \
+  --student-status-endpoint-checked \
+  --student-runtime-health-ok \
+  --supervisor-loaded-in-user-session \
+  --supervisor-restart-test-passed \
+  --no-raw-values-attested \
+  --output /path/to/private-mlx-runtime-supervisor-evidence.json
+```
+
+The helper refuses source-control output, writes the private evidence file with
+`0600` permissions, and prints only redacted booleans/counts. Keep private
+plist paths, owner references, runtime logs, endpoint responses, model output,
+approval references, PHI, and secrets out of docs, screenshots, logs, tests,
+reports, and committed files.
+
 Only point production corpus gates at private approved corpus evidence after at
 least one approved non-synthetic denial/appeal pair exists in a private
 metadata-only manifest and privacy, license, residual-risk, training-scope,

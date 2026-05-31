@@ -117,6 +117,10 @@ def _ready_evidence(plist_path: Path, runbook_path: Path | None = None) -> dict:
             "launchd_private_copy_renderer_path": (
                 "llm-distill/scripts/render_mlx_launchd_private_copy.py"
             ),
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py"
+            ),
             "source_control_runbook_documented": True,
             "source_control_runbook_path": str(runbook_path),
             "source_control_owner_handoff_checklist_documented": True,
@@ -157,6 +161,7 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert "mlx_runtime_supervisor_no_phi_or_secret_values" not in blocked_ids
     assert "mlx_runtime_supervisor_launchd_template" not in blocked_ids
     assert "mlx_runtime_supervisor_private_copy_renderer" not in blocked_ids
+    assert "mlx_runtime_supervisor_private_evidence_renderer" not in blocked_ids
     assert "mlx_runtime_supervisor_operator_runbook" not in blocked_ids
     assert "mlx_runtime_supervisor_owner_handoff_checklist" not in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation_checklist" not in blocked_ids
@@ -172,6 +177,12 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert operator_requirement["evidence"]["restart_policy_reviewed"] is True
     assert operator_requirement["evidence"]["health_check_reviewed"] is True
     assert operator_requirement["evidence"]["manual_start_command_reviewed"] is True
+    assert (
+        operator_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
     assert operator_requirement["evidence"]["source_control_runbook_documented"] is True
     assert (
         operator_requirement["evidence"][
@@ -219,6 +230,29 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert renderer_requirement["evidence"]["renderer_exists"] is True
     assert renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    private_evidence_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_evidence_renderer"
+    )
+    assert private_evidence_renderer_requirement["status"] == "ready"
+    assert (
+        private_evidence_renderer_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert (
+        private_evidence_renderer_requirement["evidence"][
+            "private_evidence_renderer_exists"
+        ]
+        is True
+    )
+    assert private_evidence_renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert (
+        private_evidence_renderer_requirement["evidence"]["raw_renderer_text_included"]
+        is False
+    )
     checklist_requirement = next(
         item
         for item in report["requirements"]
@@ -497,3 +531,35 @@ def test_private_launchd_renderer_refuses_source_control_output(tmp_path):
     finally:
         if repo_output.exists():
             repo_output.unlink()
+
+
+def test_private_evidence_renderer_markers_are_required_without_emitting_text(tmp_path):
+    validator = _load_validator()
+    plist_path = tmp_path / "claimguard.mlx-student.plist"
+    evidence_path = tmp_path / "supervisor_evidence.json"
+    incomplete_renderer = tmp_path / "render_mlx_runtime_supervisor_private_evidence.py"
+    raw_renderer_text = "RenderConfig"
+    _write_plist(plist_path)
+    incomplete_renderer.write_text(raw_renderer_text, encoding="utf-8")
+    evidence = _ready_evidence(plist_path)
+    evidence["operator_controls"]["private_evidence_renderer_path"] = str(
+        incomplete_renderer
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_evidence_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["supervisor_ready"] is False
+    assert (
+        "source_control_private_evidence_renderer_required_markers_missing"
+        in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert raw_renderer_text not in serialized

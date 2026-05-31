@@ -183,6 +183,25 @@ booleans/counts. It does not enable student default routing by itself, validate
 the live runtime, install launchd services, or store approval values in
 checked-in reports.
 
+### MLX Runtime Supervisor Private Evidence Controls
+
+Supervised MLX runtime readiness remains blocked until a private runtime owner,
+private launchd copy, runtime preflight, student status endpoint check, runtime
+health, launchd load, supervisor restart test, rollback review, and no-raw
+evidence review are complete outside source control. The repository now
+includes `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`
+so an operator can render the final boolean-only supervisor evidence file to a
+private path after those gates are complete.
+
+The renderer refuses output inside source control, requires explicit runtime
+owner, launchd copy, restart-policy, health, manual-start, rollback, preflight,
+status, runtime health, load, restart-test, environment-exclusion, and
+no-raw-value attestations before approved mode, reads private launchd plist and
+validation references from environment variables, writes the private evidence
+file with `0600` permissions, and prints only redacted booleans/counts. It does
+not install launchd, start MLX, validate endpoint output, or store private
+runtime values in checked-in reports.
+
 ### Model-Improvement Private Env Controls
 
 User-data model improvement remains disabled until legal approval, BAA
@@ -307,6 +326,10 @@ Safety and validation:
   production-gate separation.
 - `llm-distill/scripts/render_student_cutover_private_env.py` for private
   student-cutover env rendering after external approvals are complete.
+- `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` for
+  private boolean-only MLX runtime supervisor evidence rendering after runtime
+  owner, private launchd, preflight, health, load, restart, rollback, and
+  no-raw-output gates are complete.
 - `llm-distill/scripts/render_model_improvement_private_env.py` for private
   model-improvement env rendering after external legal, BAA, consent, and
   approval gates are complete.
