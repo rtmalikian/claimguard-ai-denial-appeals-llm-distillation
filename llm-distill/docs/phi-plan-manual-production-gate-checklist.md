@@ -14,6 +14,7 @@ identifiers, or credentials.
 ## Required Gate Evidence
 
 - student default cutover approval required
+- student cutover private environment renderer required
 - user-data model improvement legal/BAA/consent approval required
 - approved non-synthetic denial/appeal pair required
 - production semantic vector backend required
@@ -31,8 +32,12 @@ identifiers, or credentials.
 2. Confirm external approval references, consent notice values, BAA evidence,
    legal records, source documents, and production corpus records stay in
    approved runtime or governance systems outside source control.
-3. Confirm production readiness remains blocked until every required gate is
+3. For student default cutover, render any final environment file with
+   `llm-distill/scripts/render_student_cutover_private_env.py` only to a
+   private path outside source control, and confirm its command output includes
+   redacted booleans/counts only.
+4. Confirm production readiness remains blocked until every required gate is
    ready in `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`
    and `llm-distill/evals/reports/phi_plan_production_readiness_report.json`.
-4. Confirm any future document-ingestion surface is registered in the
+5. Confirm any future document-ingestion surface is registered in the
    file-ingestion surface audit before it handles production material.

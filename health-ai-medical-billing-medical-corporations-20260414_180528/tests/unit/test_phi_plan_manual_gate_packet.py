@@ -49,6 +49,8 @@ def _ready_packet() -> dict:
             "supervisor_evidence_report_ready": True,
             "supervised_runtime_owner_configured": True,
             "source_control_runbook_documented": True,
+            "source_control_private_env_renderer_documented": True,
+            "private_env_renderer_path": "llm-distill/scripts/render_student_cutover_private_env.py",
             "source_control_runtime_validation_checklist_documented": True,
             "source_control_runtime_owner_handoff_checklist_documented": True,
             "supervised_runtime_runbook_reviewed": True,
@@ -156,6 +158,7 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert checklist_requirement["evidence"]["manual_gate_checklist_values_included"] is False
     assert "manual_gate_packet_no_phi_or_secret_values" not in blocked_ids
     assert "manual_gate_packet_completion_checklist" not in blocked_ids
+    assert "manual_student_cutover_private_env_renderer" not in blocked_ids
     assert "manual_student_default_cutover_evidence" in blocked_ids
     assert "manual_user_data_model_improvement_evidence" in blocked_ids
     assert "manual_production_corpus_evidence" in blocked_ids
@@ -169,6 +172,10 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert "rollback_to_nvidia_not_reviewed" not in student_requirement["blockers"]
     assert "source_control_runbook_not_documented" not in student_requirement["blockers"]
+    assert (
+        "student_cutover_private_env_renderer_not_documented"
+        not in student_requirement["blockers"]
+    )
     assert "source_control_runtime_validation_checklist_not_documented" not in student_requirement["blockers"]
     assert (
         "source_control_runtime_owner_handoff_checklist_not_documented"
@@ -176,6 +183,12 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert student_requirement["evidence"]["rollback_to_nvidia_reviewed"] is True
     assert student_requirement["evidence"]["source_control_runbook_documented"] is True
+    assert (
+        student_requirement["evidence"][
+            "source_control_private_env_renderer_documented"
+        ]
+        is True
+    )
     assert (
         student_requirement["evidence"]["source_control_runtime_validation_checklist_documented"]
         is True
@@ -185,6 +198,19 @@ def test_template_packet_is_safe_to_review_but_not_ready():
             "source_control_runtime_owner_handoff_checklist_documented"
         ]
         is True
+    )
+    private_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "manual_student_cutover_private_env_renderer"
+    )
+    assert private_renderer_requirement["status"] == "ready"
+    assert private_renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert (
+        private_renderer_requirement["evidence"]["approval_reference_value_included"]
+        is False
     )
     model_requirement = next(
         item
@@ -741,6 +767,36 @@ def test_student_cutover_source_control_runbook_documentation_is_required(tmp_pa
 
     assert report["production_gate_ready"] is False
     assert student_requirement["blockers"] == ["source_control_runbook_not_documented"]
+
+
+def test_student_cutover_private_env_renderer_documentation_is_required(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["student_default_cutover"][
+        "source_control_private_env_renderer_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    student_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_student_default_cutover_evidence"
+    )
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_student_cutover_private_env_renderer"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert student_requirement["blockers"] == [
+        "student_cutover_private_env_renderer_not_documented"
+    ]
+    assert renderer_requirement["blockers"] == [
+        "student_cutover_private_env_renderer_not_documented"
+    ]
 
 
 def test_student_cutover_runtime_validation_checklist_documentation_is_required(tmp_path):

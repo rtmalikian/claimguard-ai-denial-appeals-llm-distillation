@@ -902,6 +902,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] MLX runtime supervisor validator requires the source-controlled owner
   handoff checklist to exist before any private runtime owner assignment can
   clear the student cutover documentation sub-gate
+- [x] Student default cutover now has a source-controlled private env renderer
+  that refuses repository output, requires approval/runtime/distillation/
+  rollback attestations for approved-cutover mode, reads the approval reference
+  from private environment only, writes `0600` output, and reports redacted
+  booleans/counts while preserving private approval/runtime blockers
 - [x] Retrieval source ingestion has an injectable semantic embedding provider
   boundary while keeping the default hash fallback and production vector
   blockers in place until private backend/reindex evidence is ready
@@ -985,7 +990,8 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   production user-data model-improvement use; the startup guard now rejects
   production enablement while the evidence report remains blocked
 - [ ] Configure Raphael-approved production student cutover reference and
-  supervised runtime ownership outside source control before enabling effective
+  supervised runtime ownership outside source control, then render the private
+  student-cutover env file outside source control before enabling effective
   default student use
 - [ ] Keep document-surface inspection and the file-ingestion surface audit
   ready for any additional future automated file-ingestion workflow beyond

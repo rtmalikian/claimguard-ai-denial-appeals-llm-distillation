@@ -16,6 +16,7 @@
         "requested": false,
         "rollback_to_nvidia_reviewed": true,
         "scope_limited_to_denial_workflow_and_appeals": true,
+        "source_control_private_env_renderer_documented": true,
         "source_control_runbook_documented": true,
         "source_control_runtime_owner_handoff_checklist_documented": true,
         "source_control_runtime_validation_checklist_documented": true,
@@ -140,7 +141,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:55:19.505266+00:00",
+  "generated_at": "2026-05-31T18:45:05.040833+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -149,7 +150,7 @@
   "objective": "Validate the manual PHIplan production-gate packet without storing approval reference values, PHI, secrets, or production document content.",
   "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
   "production_gate_ready": false,
-  "ready_item_count": 4,
+  "ready_item_count": 5,
   "requirements": [
     {
       "blockers": [],
@@ -184,13 +185,31 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 11,
-        "manual_gate_checklist_required_marker_count": 11,
+        "manual_gate_checklist_present_marker_count": 12,
+        "manual_gate_checklist_required_marker_count": 12,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
       "name": "Source-controlled PHIplan manual production-gate checklist is documented",
       "requirement_id": "manual_gate_packet_completion_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approval_reference_value_included": false,
+        "missing_marker_count": 0,
+        "present_marker_count": 13,
+        "private_env_renderer_exists": true,
+        "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_student_cutover_private_env.py",
+        "private_output_required": true,
+        "raw_renderer_text_included": false,
+        "required_marker_count": 13,
+        "source_control_private_env_renderer_documented": true
+      },
+      "name": "Source-controlled student cutover private env renderer is available",
+      "requirement_id": "manual_student_cutover_private_env_renderer",
       "status": "ready",
       "warnings": []
     },
@@ -209,6 +228,7 @@
         "requested": false,
         "rollback_to_nvidia_reviewed": true,
         "scope_limited_to_denial_workflow_and_appeals": true,
+        "source_control_private_env_renderer_documented": true,
         "source_control_runbook_documented": true,
         "source_control_runtime_owner_handoff_checklist_documented": true,
         "source_control_runtime_validation_checklist_documented": true,

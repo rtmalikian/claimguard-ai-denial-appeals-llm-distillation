@@ -13,6 +13,8 @@
     "supervisor_evidence_report_ready": false,
     "supervised_runtime_owner_configured": false,
     "source_control_runbook_documented": true,
+    "source_control_private_env_renderer_documented": true,
+    "private_env_renderer_path": "llm-distill/scripts/render_student_cutover_private_env.py",
     "source_control_runtime_validation_checklist_documented": true,
     "source_control_runtime_owner_handoff_checklist_documented": true,
     "supervised_runtime_runbook_reviewed": false,

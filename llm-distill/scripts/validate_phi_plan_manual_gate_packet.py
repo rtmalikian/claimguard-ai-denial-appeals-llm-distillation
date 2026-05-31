@@ -19,9 +19,13 @@ DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "phi_plan_manual_gate_packe
 DEFAULT_MANUAL_GATE_CHECKLIST = (
     DISTILL_DIR / "docs" / "phi-plan-manual-production-gate-checklist.md"
 )
+DEFAULT_STUDENT_CUTOVER_PRIVATE_ENV_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_student_cutover_private_env.py"
+)
 MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "Current status: manual production gate not ready.",
     "student default cutover approval required",
+    "student cutover private environment renderer required",
     "user-data model improvement legal/BAA/consent approval required",
     "approved non-synthetic denial/appeal pair required",
     "production semantic vector backend required",
@@ -31,6 +35,21 @@ MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "approval references must stay outside source control",
     "no PHI or production document content",
     "production_gate_ready=false",
+]
+STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS = [
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "CLAIMGUARD_STUDENT_USE_BY_DEFAULT",
+    "CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED",
+    "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE",
+    "CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED",
+    "CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA",
+    "CLAIMGUARD_RUNTIME_PROFILE",
+    "student_denial_workflow_local_only",
+    "approval_reference_value_included",
+    "raw_env_values_included",
+    "0600",
+    "values_redacted",
 ]
 ACCEPTED_PRODUCTION_SOURCE_TYPES = {
     "real_deidentified_pair",
@@ -243,6 +262,57 @@ def manual_gate_checklist_requirement(packet: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def student_cutover_private_env_renderer_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    section = packet.get("student_default_cutover", {})
+    documented = bool_value(section, "source_control_private_env_renderer_documented")
+    renderer_path = resolve_repo_path(
+        section.get("private_env_renderer_path"),
+        DEFAULT_STUDENT_CUTOVER_PRIVATE_ENV_RENDERER,
+    )
+    renderer_exists = renderer_path.exists()
+    marker_count = 0
+    missing_markers: list[str] = []
+    blockers: list[str] = []
+    if not documented:
+        blockers.append("student_cutover_private_env_renderer_not_documented")
+    if documented:
+        if not renderer_exists:
+            blockers.append("student_cutover_private_env_renderer_missing")
+        else:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+            missing_markers = [
+                marker
+                for marker in STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS
+                if marker not in renderer_text
+            ]
+            marker_count = (
+                len(STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
+                - len(missing_markers)
+            )
+            if missing_markers:
+                blockers.append("student_cutover_private_env_renderer_markers_missing")
+
+    return requirement(
+        requirement_id="manual_student_cutover_private_env_renderer",
+        name="Source-controlled student cutover private env renderer is available",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_env_renderer_documented": documented,
+            "private_env_renderer_path": str(renderer_path),
+            "private_env_renderer_exists": renderer_exists,
+            "required_marker_count": len(
+                STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS
+            ),
+            "present_marker_count": marker_count,
+            "missing_marker_count": len(missing_markers),
+            "raw_renderer_text_included": False,
+            "approval_reference_value_included": False,
+            "private_output_required": True,
+        },
+    )
+
+
 def student_cutover_requirement(packet: dict[str, Any]) -> dict[str, Any]:
     section = packet.get("student_default_cutover", {})
     blockers: list[str] = []
@@ -253,6 +323,7 @@ def student_cutover_requirement(packet: dict[str, Any]) -> dict[str, Any]:
         "supervisor_evidence_report_ready": "supervisor_evidence_report_not_ready",
         "supervised_runtime_owner_configured": "supervised_runtime_owner_not_configured",
         "source_control_runbook_documented": "source_control_runbook_not_documented",
+        "source_control_private_env_renderer_documented": "student_cutover_private_env_renderer_not_documented",
         "source_control_runtime_validation_checklist_documented": "source_control_runtime_validation_checklist_not_documented",
         "source_control_runtime_owner_handoff_checklist_documented": "source_control_runtime_owner_handoff_checklist_not_documented",
         "supervised_runtime_runbook_reviewed": "supervised_runtime_runbook_not_reviewed",
@@ -465,6 +536,7 @@ def build_report(packet_path: Path) -> dict[str, Any]:
         packet_format_requirement(packet),
         no_phi_or_secret_values_requirement(packet_path, packet),
         manual_gate_checklist_requirement(packet if isinstance(packet, dict) else {}),
+        student_cutover_private_env_renderer_requirement(packet if isinstance(packet, dict) else {}),
         student_cutover_requirement(packet if isinstance(packet, dict) else {}),
         model_improvement_requirement(packet if isinstance(packet, dict) else {}),
         production_corpus_requirement(packet if isinstance(packet, dict) else {}),

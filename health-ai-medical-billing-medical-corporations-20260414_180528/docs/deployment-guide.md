@@ -121,6 +121,26 @@ Only enable effective student default use or student runtime auto-launch after:
 - Runtime health and rollback-to-NVIDIA evidence pass.
 - PHIplan production-readiness audit reports no blockers.
 
+When those private gates are complete, render the final student cutover
+environment file with the source-controlled helper, writing only to a private
+path:
+
+```bash
+# Set CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE in a private shell first.
+python3 ../llm-distill/scripts/render_student_cutover_private_env.py \
+  --approved-cutover \
+  --raphael-approval-attested \
+  --runtime-supervised-attested \
+  --distillation-release-attested \
+  --rollback-reviewed \
+  --output /path/to/private-student-cutover.env
+```
+
+The helper refuses source-control output, writes the private env file with
+`0600` permissions, and prints only redacted booleans/counts. Keep the real
+approval reference in a private shell or approved secret path, not in docs,
+screenshots, logs, or committed files.
+
 ## Pre-Deployment Validation
 
 Run these checks in a sandbox or approved staging environment:

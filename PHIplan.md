@@ -954,6 +954,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   and rejects production auto-launch requests before release evidence, Raphael
   approval, approval-reference configuration, supervised runtime, runtime
   health, and rollback-off status are ready.
+  The manual production-gate path now also includes
+  `llm-distill/scripts/render_student_cutover_private_env.py`, a renderer for
+  the final private student-cutover environment file. It refuses output inside
+  source control, requires explicit Raphael approval/runtime/distillation/
+  rollback attestations before approved-cutover mode, reads the approval
+  reference from a private environment variable, writes private output with
+  `0600` permissions, and prints only redacted booleans/counts. This closes a
+  source-controlled operator-preparation gap, but it does not provide the
+  private approval reference, supervised runtime ownership, runtime health
+  evidence, or PHIplan production readiness needed to enable default student
+  routing.
 - Add local healthcare code format validation utilities at
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/healthcare_codes.py`
   for NPI check-digit validation, ICD-10-CM, CPT/HCPCS, CARC group/reason, and

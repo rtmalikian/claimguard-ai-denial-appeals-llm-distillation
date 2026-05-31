@@ -2,6 +2,113 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 11:45:24 PDT - Student cutover private env renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan student-default cutover path by adding a safe
+  renderer for the final private runtime env file, without enabling
+  `CLAIMGUARD_STUDENT_USE_BY_DEFAULT`, storing approval-reference values,
+  changing production defaults, calling model endpoints, installing launchd
+  services, or introducing PHI, secrets, raw runtime output, or production
+  document content.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/PHIplan.md` | Documented the student cutover private env renderer and remaining private approval/runtime blockers. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/docs/technical-llm-distillation-analysis.md` | Added the private env renderer to the technical distillation controls and tool list. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added private-renderer deployment guidance without recording approval values. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the private env renderer and remaining student-cutover work. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual-gate coverage for the source-controlled private env renderer evidence. | Restore backup over the same path. |
+| `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added boolean/path evidence that the private env renderer is documented. | Restore backup over the same path. |
+| `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added reviewer instructions for rendering student cutover env only outside source control. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added a manual-gate requirement that verifies the renderer exists and has required safety markers without emitting script text. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/scripts/render_student_cutover_private_env.py`: renders the
+  final student-cutover env file only to a private path, refuses repository
+  output, requires explicit approval/runtime/distillation/rollback
+  attestations before approved-cutover mode, reads the approval reference from
+  a private environment variable, writes `0600`, and prints redacted
+  booleans/counts only.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_student_cutover_private_env_renderer.py`:
+  covers conservative dry-run output, source-control output refusal, explicit
+  attestation requirements, private approval-reference handling, redacted
+  summary output, and `0600` file permissions.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/render_student_cutover_private_env.py ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_student_cutover_private_env_renderer.py`
+  from the application directory: passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_student_cutover_private_env_renderer.py -q -p no:cacheprovider`:
+  passed, 5 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py -q -p no:cacheprovider`:
+  passed, 29 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_student_cutover_private_env_renderer.py -q -p no:cacheprovider`:
+  passed, 46 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`, and
+  `blocked=5`.
+- `python3 llm-distill/scripts/render_student_cutover_private_env.py --dry-run --output /private/tmp/claimguard-student-cutover-test.env`:
+  passed and printed only redacted booleans/counts.
+- Synthetic approved-cutover dry-run with a dummy approval-reference
+  environment variable set: passed and did not print the dummy value.
+- `python3 llm-distill/scripts/render_student_cutover_private_env.py --output /private/tmp/claimguard-student-cutover-test.env`:
+  passed, wrote a conservative private env file with `0600` permissions, and
+  the temporary file was removed.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the local development `ENCRYPTION_KEYS` warning
+  was emitted and no key material was written to reports.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report /private/tmp/claimguard-student-cutover-private-env-manual-gate-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because external manual gates remain
+  blocked; report stayed `safe_to_review=true`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-student-cutover-private-env-phi-plan-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because PHIplan production readiness
+  remains blocked; report stayed `safe_current_state=true`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, refreshed reports, and temporary reports: passed with
+  no findings.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed public
+  docs and changelogs: returned required Raphael attribution emails plus
+  pre-existing label-style findings in historical implementation/changelog
+  text; no matched values were printed and this slice added no raw PHI/PII
+  values.
+- High-confidence secret-pattern scan over changed non-changelog files returned
+  no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a checked-in private env file, committing an approval
+  reference, using a shell wrapper for the renderer, enabling student default
+  routing, changing Docker defaults, or claiming the student cutover gate is
+  production-ready.
+- Used a conservative default render mode so accidental use of the helper keeps
+  `CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false`,
+  `CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=false`, and
+  `CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=true`.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-114052-student-cutover-private-env-renderer/`,
+  delete `llm-distill/scripts/render_student_cutover_private_env.py` and
+  `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_student_cutover_private_env_renderer.py`,
+  then rerun the manual-gate and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice makes the final private env rendering path concrete and testable;
+  it does not complete the full PHIplan objective.
+
 ## 2026-05-31 11:32:39 PDT - MLX launchd private renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
