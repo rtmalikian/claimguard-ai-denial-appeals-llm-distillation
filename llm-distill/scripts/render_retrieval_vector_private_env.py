@@ -18,6 +18,7 @@ DEFAULT_OUTPUT = Path("/private/tmp/claimguard-retrieval-vector.private.env")
 DEFAULT_EMBEDDING_BACKEND_ENV = "RETRIEVAL_PRODUCTION_EMBEDDING_BACKEND"
 DEFAULT_EMBEDDING_MODEL_ENV = "RETRIEVAL_PRODUCTION_EMBEDDING_MODEL"
 DEFAULT_VECTOR_BACKEND_ENV = "RETRIEVAL_PRODUCTION_VECTOR_BACKEND"
+DEFAULT_EVIDENCE_REPORT = "llm-distill/evals/reports/retrieval_vector_backend_report.json"
 HASH_EMBEDDING_MODEL = "claimguard-hash-embedding-v1"
 HASH_BACKENDS = {"hash", "local_hash", "deterministic_hash"}
 LOCAL_VECTOR_BACKENDS = {
@@ -73,6 +74,7 @@ class RenderConfig:
     embedding_backend_env: str = DEFAULT_EMBEDDING_BACKEND_ENV
     embedding_model_env: str = DEFAULT_EMBEDDING_MODEL_ENV
     vector_backend_env: str = DEFAULT_VECTOR_BACKEND_ENV
+    evidence_report: str = DEFAULT_EVIDENCE_REPORT
     semantic_backend_attested: bool = False
     embedding_model_approved_attested: bool = False
     production_vector_backend_attested: bool = False
@@ -127,6 +129,20 @@ def _load_private_value(env_name: str, label: str) -> str:
     return value
 
 
+def _validate_evidence_report(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise RenderError("evidence report path is required")
+    if "\n" in cleaned or "\r" in cleaned or "\t" in cleaned or "#" in cleaned:
+        raise RenderError("evidence report path contains unsupported characters")
+    if Path(cleaned).is_absolute():
+        raise RenderError("evidence report path must be repository-relative")
+    report_path = (REPO_ROOT / cleaned).resolve()
+    if not path_is_within(report_path, REPO_ROOT):
+        raise RenderError("evidence report path must stay inside source control")
+    return cleaned
+
+
 def _validate_approved_attestations(config: RenderConfig) -> None:
     missing = [
         message
@@ -137,9 +153,40 @@ def _validate_approved_attestations(config: RenderConfig) -> None:
         raise RenderError("approved vector backend requires explicit attestations")
 
 
+def _load_evidence_report(report_path: Path) -> dict[str, Any]:
+    if not report_path.exists():
+        raise RenderError("retrieval vector evidence report is unavailable")
+    if not report_path.is_file():
+        raise RenderError("retrieval vector evidence report path must be a file")
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RenderError("retrieval vector evidence report is unreadable") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("retrieval vector evidence report must be a JSON object")
+    return payload
+
+
+def _validate_evidence_report_ready(evidence_report: str) -> None:
+    report_path = (REPO_ROOT / evidence_report).resolve()
+    report = _load_evidence_report(report_path)
+    blocked_items = report.get("blocked_items")
+    blocked_item_count = report.get("blocked_item_count")
+    if report.get("safe_to_review") is not True:
+        raise RenderError("retrieval vector evidence report is not safe to review")
+    if report.get("vector_backend_ready") is not True:
+        raise RenderError("retrieval vector evidence report is not ready")
+    if blocked_item_count not in (0, None):
+        raise RenderError("retrieval vector evidence report has blocked requirements")
+    if isinstance(blocked_items, list) and blocked_items:
+        raise RenderError("retrieval vector evidence report has blocked requirements")
+
+
 def _build_environment(config: RenderConfig) -> dict[str, str]:
+    evidence_report = _validate_evidence_report(config.evidence_report)
     if config.approved_vector_backend:
         _validate_approved_attestations(config)
+        _validate_evidence_report_ready(evidence_report)
         embedding_backend = _load_private_value(
             config.embedding_backend_env,
             "embedding backend",
@@ -219,6 +266,9 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         "hash_embedding_model_active": (
             env["RETRIEVAL_EMBEDDING_MODEL"] == HASH_EMBEDDING_MODEL
         ),
+        "evidence_report_configured": bool(config.evidence_report),
+        "evidence_report_checked": config.approved_vector_backend,
+        "evidence_report_ready": config.approved_vector_backend,
         "environment_variable_count": len(env),
         "output_path_in_source_control": False,
         "raw_env_values_included": False,
@@ -247,6 +297,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         embedding_backend_env=args.embedding_backend_env,
         embedding_model_env=args.embedding_model_env,
         vector_backend_env=args.vector_backend_env,
+        evidence_report=args.evidence_report,
         semantic_backend_attested=args.semantic_backend_attested,
         embedding_model_approved_attested=args.embedding_model_approved_attested,
         production_vector_backend_attested=args.production_vector_backend_attested,
@@ -267,6 +318,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--embedding-backend-env", default=DEFAULT_EMBEDDING_BACKEND_ENV)
     parser.add_argument("--embedding-model-env", default=DEFAULT_EMBEDDING_MODEL_ENV)
     parser.add_argument("--vector-backend-env", default=DEFAULT_VECTOR_BACKEND_ENV)
+    parser.add_argument("--evidence-report", default=DEFAULT_EVIDENCE_REPORT)
     parser.add_argument("--semantic-backend-attested", action="store_true")
     parser.add_argument("--embedding-model-approved-attested", action="store_true")
     parser.add_argument("--production-vector-backend-attested", action="store_true")

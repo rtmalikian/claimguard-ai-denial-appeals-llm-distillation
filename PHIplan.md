@@ -307,8 +307,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   model approval, production vector backend, hash-fallback disablement,
   reindex completion, vector health, retrieval quality smoke, rollback, and
   no-raw-value attestations before approved mode, reads private backend/model/
-  vector labels from environment variables, writes private output with `0600`
-  permissions, and prints only redacted booleans/counts. This prepares the
+  vector labels from environment variables, verifies the configured
+  retrieval/vector backend evidence report is safe, ready, and unblocked before
+  writing enabled settings, writes private output with `0600` permissions, and
+  prints only redacted booleans/counts. This prepares the
   private semantic retrieval configuration handoff without storing provider
   labels, model names, vector-store labels, service URLs, credentials, source
   text, vector values, PHI, or production document content in source control.
@@ -1217,7 +1219,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   reindex operation in dry-run mode, reindex retrieval/corpus chunks with the
   approved private provider, run health and retrieval quality smoke checks, and rerun
   `llm-distill/scripts/validate_retrieval_vector_backend.py` before treating
-  retrieval as production semantic search. Keep the local governance,
+  retrieval as production semantic search. The private retrieval/vector env
+  renderer now refuses enabled output if the configured evidence report is
+  missing, unsafe, blocked, or not ready. Keep the local governance,
   source-controlled retrieval-vector runbook and reindex-checklist
   documentation, backup/restore, and rollback/disable-path review evidence
   ready.

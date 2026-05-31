@@ -11,6 +11,10 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = REPO_ROOT / "llm-distill" / "scripts"
 RENDERER_SCRIPT = SCRIPT_DIR / "render_retrieval_vector_private_env.py"
+READY_EVIDENCE_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/retrieval_vector_backend_ready_report.json"
+)
 
 
 def _load_renderer() -> ModuleType:
@@ -41,6 +45,7 @@ def _approved_config(renderer: ModuleType, output_path: Path):
         retrieval_quality_smoke_attested=True,
         rollback_reviewed=True,
         no_raw_values_attested=True,
+        evidence_report=READY_EVIDENCE_REPORT_FIXTURE,
     )
 
 
@@ -72,6 +77,8 @@ def test_conservative_dry_run_redacts_values(tmp_path):
     assert summary["production_vector_backend_configured"] is False
     assert summary["hash_fallback_disabled_for_production"] is False
     assert summary["hash_embedding_backend_active"] is True
+    assert summary["evidence_report_checked"] is False
+    assert summary["evidence_report_ready"] is False
     assert summary["raw_env_values_included"] is False
     assert summary["embedding_backend_value_included"] is False
     assert summary["embedding_model_value_included"] is False
@@ -101,6 +108,28 @@ def test_approved_mode_requires_private_backend_values(tmp_path):
             _approved_config(
                 renderer,
                 tmp_path / "retrieval-vector.private.env",
+            )
+        )
+
+
+def test_approved_mode_requires_ready_evidence_report(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+
+    with pytest.raises(renderer.RenderError, match="retrieval vector evidence report is not ready"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "retrieval-vector.private.env",
+                approved_vector_backend=True,
+                semantic_backend_attested=True,
+                embedding_model_approved_attested=True,
+                production_vector_backend_attested=True,
+                hash_fallback_disabled_attested=True,
+                reindex_completed_attested=True,
+                vector_health_attested=True,
+                retrieval_quality_smoke_attested=True,
+                rollback_reviewed=True,
+                no_raw_values_attested=True,
             )
         )
 
@@ -149,6 +178,8 @@ def test_approved_mode_writes_private_env_and_redacts_summary(monkeypatch, tmp_p
     assert summary["hash_fallback_disabled_for_production"] is True
     assert summary["hash_embedding_backend_active"] is False
     assert summary["hash_embedding_model_active"] is False
+    assert summary["evidence_report_checked"] is True
+    assert summary["evidence_report_ready"] is True
     assert summary["values_redacted"] is True
     assert "RETRIEVAL_EMBEDDING_MODEL_APPROVED=true" in output_text
     assert "RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=true" in output_text
@@ -156,6 +187,18 @@ def test_approved_mode_writes_private_env_and_redacts_summary(monkeypatch, tmp_p
     for private_value in private_values.values():
         assert private_value in output_text
         assert private_value not in serialized
+
+
+def test_evidence_report_path_must_stay_inside_source_control(tmp_path):
+    renderer = _load_renderer()
+
+    with pytest.raises(renderer.RenderError, match="inside source control"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "retrieval-vector.private.env",
+                evidence_report="../private-retrieval-vector-report.json",
+            )
+        )
 
 
 def test_renderer_refuses_source_control_output():

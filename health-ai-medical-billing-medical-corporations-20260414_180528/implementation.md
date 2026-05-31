@@ -237,10 +237,12 @@ source-controlled private env renderer that refuses source-control output,
 requires semantic backend, approved embedding model, production vector backend,
 hash-fallback disablement, reindex completion, vector health, retrieval quality
 smoke, rollback, and no-raw-value attestations before approved mode, reads
-private backend/model/vector labels from environment variables only, writes
-`0600` private output, and reports redacted booleans/counts without storing
-provider labels, model names, vector-store labels, service URLs, credentials,
-source text, vector values, PHI, or production document content.
+private backend/model/vector labels from environment variables only, verifies
+the configured retrieval/vector backend evidence report is safe, ready, and
+unblocked before writing enabled settings, writes `0600` private output, and
+reports redacted booleans/counts without storing provider labels, model names,
+vector-store labels, service URLs, credentials, source text, vector values,
+PHI, or production document content.
 Local governance checks, source-controlled retrieval-vector runbook
 documentation, source-controlled retrieval reindex-checklist documentation,
 backup/restore review, and rollback/disable-path review are now attested
@@ -940,6 +942,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   backup/restore review, and rollback/disable-path review ready while keeping
   semantic backend, production vector store, reindexing, health, and quality
   smoke checks blocked
+- [x] Retrieval vector private env renderer approved mode now refuses enabled
+  production vector settings unless the configured retrieval/vector backend
+  evidence report is safe, ready, and unblocked
 - [x] Production corpus evidence marks current checked-in manifest review
   attestations and source-controlled review runbook documentation ready while
   keeping approved non-synthetic paired denial/appeal source and
@@ -1544,9 +1549,11 @@ query indexes.
   checklist at
   `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` while keeping
   the injectable semantic embedding provider boundary and metadata-only reindex
-  operation ready in code, and private semantic backend configuration, chunk
-  reindexing, health, and quality checks blocked until real production
-  evidence exists.
+  operation ready in code. The private env renderer now also verifies the
+  configured evidence report is safe, ready, and unblocked before writing
+  enabled production vector settings, while private semantic backend
+  configuration, chunk reindexing, health, and quality checks remain blocked
+  until real production evidence exists.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through
   the production corpus review workflow. Local progress: production corpus
   evidence now requires the checked-in operator runbook at

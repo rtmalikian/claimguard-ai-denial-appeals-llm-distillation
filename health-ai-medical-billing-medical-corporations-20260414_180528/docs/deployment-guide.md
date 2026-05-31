@@ -149,9 +149,12 @@ python3 ../llm-distill/scripts/render_retrieval_vector_private_env.py \
 ```
 
 The helper refuses source-control output, writes the private env file with
-`0600` permissions, and prints only redacted booleans/counts. Keep backend
-labels, model names, vector-store labels, service URLs, credentials, source
-text, and vector values out of docs, screenshots, logs, and committed files.
+`0600` permissions, and prints only redacted booleans/counts. Approved mode
+also reads the configured retrieval/vector backend evidence report before
+writing and refuses to enable production vector settings if that report is
+missing, unsafe, blocked, or not ready. Keep backend labels, model names,
+vector-store labels, service URLs, credentials, source text, and vector values
+out of docs, screenshots, logs, and committed files.
 
 After private reindexing, vector health, quality smoke, backup review, and
 rollback review are complete, render the private retrieval runtime evidence
