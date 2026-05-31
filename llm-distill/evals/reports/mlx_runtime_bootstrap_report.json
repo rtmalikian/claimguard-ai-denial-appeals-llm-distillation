@@ -1,0 +1,104 @@
+{
+  "audit_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+  "audit_summary": {
+    "blocked_count": 7,
+    "blocked_requirement_ids": [
+      "phase6_reviewed_teacher_labels",
+      "phase6_reviewed_sft_export",
+      "phase5_7_mlx_runtime_preflight",
+      "phase7_student_fine_tune_run",
+      "phase7_student_live_benchmark",
+      "phase7_student_acceptance",
+      "phase8_quantization_promotion"
+    ],
+    "distillation_ready": false,
+    "ready_count": 8,
+    "release_ready": false,
+    "requirement_count": 17,
+    "warning_count": 2
+  },
+  "blocked_reasons": [],
+  "bootstrap_ready": true,
+  "command_results": [
+    {
+      "command": [
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_mlx_runtime_preflight.py",
+        "--output",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json"
+      ],
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "wrote MLX runtime preflight report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json\n",
+      "timed_out": false,
+      "timeout_seconds": 120
+    },
+    {
+      "command": [
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_mlx_finetune.py",
+        "--output",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+      ],
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "wrote MLX fine-tune preflight report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json\n",
+      "timed_out": false,
+      "timeout_seconds": 120
+    },
+    {
+      "command": [
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_distillation_readiness_audit.py",
+        "--output",
+        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json"
+      ],
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "wrote distillation readiness audit report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json\n",
+      "timed_out": false,
+      "timeout_seconds": 120
+    }
+  ],
+  "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+  "fine_tune_summary": {
+    "blocked_reasons": [
+      "manifest training_allowed is not true",
+      "One or more records are pending large-teacher or human review."
+    ],
+    "data_ready": true,
+    "manifest_training_allowed": false,
+    "mlx_lm_lora_available": true,
+    "mode": "preflight",
+    "ready": false
+  },
+  "generated_at": "2026-05-30T03:18:31.696826+00:00",
+  "next_actions": [
+    "Start mlx_lm.server from the local virtual environment before live benchmarks.",
+    "Complete large-teacher or human review approvals before reviewed SFT export and LoRA training.",
+    "Rerun this bootstrap or the individual preflight reports after changing the local MLX environment."
+  ],
+  "notes": [
+    "This bootstrap installs MLX-LM tooling into a local virtual environment only.",
+    "It does not download model weights, start mlx_lm.server, call teacher endpoints, run LoRA training, benchmark, quantize, or write adapter weights.",
+    "A bootstrap_ready=true report proves local package and CLI tooling only; the model server and reviewed-label training gates must still pass separately."
+  ],
+  "package": "mlx-lm",
+  "runtime_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json",
+  "runtime_summary": {
+    "blocked_reasons": [
+      "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
+    ],
+    "commands_available": {
+      "mlx_lm.generate": true,
+      "mlx_lm.lora": true,
+      "mlx_lm.server": true
+    },
+    "package_installed": true,
+    "package_version": "0.31.3",
+    "ready": false,
+    "server_available": false
+  },
+  "venv_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx",
+  "venv_python": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python"
+}

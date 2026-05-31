@@ -1,0 +1,38 @@
+Commercial Source-Available License
+
+Copyright (c) 2026 Raphael Malikian.
+
+ClaimGuard AI is architected by Raphael Malikian <rtmalikian@gmail.com>.
+
+This repository is made available for evaluation, education, and discussion.
+It is not open source for commercial use.
+
+You may:
+
+- View the source code and documentation.
+- Evaluate the project for possible collaboration or licensing.
+- Reference the public documentation in non-commercial discussion with
+  attribution to Raphael Malikian.
+
+You may not, without prior written permission from Raphael Malikian:
+
+- Use this project, its code, prompts, schemas, datasets, documentation,
+  screenshots, or generated artifacts in a commercial product or service.
+- Fork, copy, redistribute, sublicense, sell, rent, host, deploy, or provide
+  this project to third parties.
+- Use this project in production clinical, billing, reimbursement, payer,
+  clearinghouse, EHR, RCM, or insurance workflows.
+- Train, fine-tune, distill, benchmark, or evaluate a commercial model using
+  this project's code, datasets, prompts, schemas, outputs, or generated
+  artifacts.
+- Remove or obscure attribution to Raphael Malikian.
+
+Healthcare, billing, clinical, legal, payer-policy, reimbursement, and privacy
+use requires separate written permission and appropriate professional review.
+This project is provided as-is, without warranty, and does not provide medical,
+legal, billing, coding, payer-policy, or reimbursement advice.
+
+To request permission, commercial licensing, collaboration, or support, contact:
+
+Raphael Malikian
+Email: rtmalikian@gmail.com

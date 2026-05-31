@@ -1,0 +1,19 @@
+Public government corpus source note: HHS HIPAA minimum necessary requirement.
+
+Source URL:
+https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/minimum-necessary-requirement/index.html
+
+Corpus role:
+Privacy-rule reference for minimum-necessary PHI handling checks in denial,
+appeal, corpus intake, retrieval, and model-improvement workflows.
+
+Safety notes:
+This checked-in source note contains no user documents, no patient facts, no
+claim identifiers, no contact details, and no credentials. It is not a denial
+letter or appeal letter pair and is not exported to MLX SFT training splits.
+
+Use constraints:
+Use this record as public source coverage and retrieval/governance context only.
+Any privacy workflow, disclosure scope, role-based access rule, or production
+data-use decision must be verified against the current source and controlling
+organizational policy before use.

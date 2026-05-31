@@ -1,0 +1,37 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0849.
+
+Aster Health Plan
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0849
+Coverage reference SYN-COVERAGE-4433
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: dense_utilization_review_notice
+- Typography profile: plain_text_eob_export
+- Length profile: long_review_packet
+- Format family: utilization_review_notice
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Utilization review outcome
+
+Clinical/service topic: home health skilled nursing visit.
+Administrative context: Synthetic member placeholder [PATIENT_0849]; provider group Summit Neurology Clinic; service window 2026-Q1; service reviewed home health skilled nursing visit; procedure code G0299; billed amount $8,988.00.
+Review finding: Determination rationale: the payer system marked the submission window as unresolved. This synthetic notice is for model training only and is not connected to any real person.
+A reviewer should compare the submitted packet against current plan criteria.
+
+Service-line table
+| Field | Synthetic value |
+|---|---|
+| Service category | home_health |
+| Procedure code | G0299 |
+| Review amount | $8,988.00 |
+| Route metadata | formal_internal_appeal |
+
+Document consistency note
+This synthetic notice contains no personal identifiers, contact routes, account references, addresses, exact calendar details, or raw document metadata. It is designed to test whether the model keeps denial facts separate from appeal recommendations.
+
+Reviewer action list
+- Verify the current payer rule before citing it.
+- Confirm the appeal channel and representative authority.
+- Use only minimum necessary placeholders in any training response.
+- Keep any generated appeal draft marked for human review.

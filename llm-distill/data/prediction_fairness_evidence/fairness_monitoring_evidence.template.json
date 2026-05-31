@@ -1,0 +1,41 @@
+{
+  "artifact": "claimguard_prediction_fairness_monitoring_evidence",
+  "version": "1.0",
+  "evidence_status": "local_metric_controls_ready_production_outcome_data_blocked",
+  "prepared_at": null,
+  "no_phi_or_secret_values_attested": true,
+  "no_raw_demographic_values_attested": true,
+  "no_production_outcome_rows_attested": true,
+  "calibrated_threshold": {
+    "source_control_calibration_checklist_documented": true,
+    "calibration_checklist_path": "llm-distill/docs/prediction-fairness-calibration-checklist.md",
+    "approved_outcome_dataset_available": false,
+    "minimum_sample_size_met": false,
+    "calibration_run_completed": false,
+    "threshold_review_completed": false,
+    "human_review_policy_confirmed": true
+  },
+    "fairness_monitoring": {
+        "source_control_monitoring_validation_checklist_documented": true,
+        "monitoring_validation_checklist_path": "llm-distill/docs/prediction-fairness-monitoring-validation-checklist.md",
+        "approved_demographic_grouping_reviewed": false,
+        "continuous_monitoring_configured": false,
+        "disparity_thresholds_documented": false,
+    "alerting_and_review_owner_configured": false,
+    "latest_monitoring_run_passed": false
+  },
+  "governance_controls": {
+    "legal_privacy_review_completed": false,
+    "source_control_monitoring_runbook_documented": true,
+    "monitoring_runbook_path": "llm-distill/docs/prediction-fairness-monitoring-runbook.md",
+    "model_card_updated": true,
+    "model_card_path": "llm-distill/docs/prediction-fairness-model-card.md",
+    "rollback_or_threshold_reversion_reviewed": true,
+    "audit_log_metadata_only_verified": true
+  },
+  "operator_notes": [
+    "Do not store raw demographic values, individual identifiers, approval references, PHI, secrets, or production outcome rows in this evidence file.",
+    "Set production readiness booleans only after approved real-world outcome data, calibration review, fairness monitoring, and governance review are complete outside source control.",
+    "Local synthetic fairness utilities are not evidence that production threshold calibration or continuous fairness monitoring are ready."
+  ]
+}

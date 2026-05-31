@@ -1,0 +1,98 @@
+{
+  "artifact": "claimguard_phi_plan_manual_gate_packet",
+  "version": "1.0",
+  "packet_status": "template_pending",
+  "prepared_at": null,
+  "no_phi_or_secret_values_attested": true,
+  "source_control_manual_gate_checklist_documented": true,
+  "manual_gate_checklist_path": "llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
+  "student_default_cutover": {
+    "requested": false,
+    "raphael_approval_attested": false,
+    "approval_reference_configured": false,
+    "supervisor_evidence_report_ready": false,
+    "supervised_runtime_owner_configured": false,
+    "source_control_runbook_documented": true,
+    "source_control_runtime_validation_checklist_documented": true,
+    "supervised_runtime_runbook_reviewed": false,
+    "rollback_to_nvidia_reviewed": true,
+    "scope_limited_to_denial_workflow_and_appeals": true,
+    "required_runtime_flags": [
+      "CLAIMGUARD_STUDENT_USE_BY_DEFAULT",
+      "CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED",
+      "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE",
+      "CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED",
+      "CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA"
+    ]
+  },
+  "user_data_model_improvement": {
+    "requested": false,
+    "source_control_approval_runbook_documented": true,
+    "legal_approval_attested": false,
+    "baa_confirmed": false,
+    "consent_notice_version_configured": false,
+    "approval_reference_configured": false,
+    "model_improvement_evidence_report_ready": false,
+    "data_use_scope_documented": true,
+    "per_request_attestations_required": true,
+    "required_runtime_flags": [
+      "USER_DATA_MODEL_IMPROVEMENT_ENABLED",
+      "USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED",
+      "USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED",
+      "USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION",
+      "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE"
+    ]
+  },
+  "production_corpus": {
+    "approved_non_synthetic_pair_count": 0,
+    "approved_source_types": [],
+    "manifest_record_ids": [],
+    "production_corpus_evidence_report_ready": false,
+    "source_control_review_runbook_documented": true,
+    "privacy_review_attested": true,
+    "license_review_attested": true,
+    "residual_risk_review_attested": true,
+    "training_scope_reviewed": true
+  },
+  "retrieval_vector_backend": {
+    "vector_backend_evidence_report_ready": false,
+    "source_control_runbook_documented": true,
+    "source_control_reindex_checklist_documented": true,
+    "semantic_backend_configured": false,
+    "production_vector_backend_configured": false,
+    "retrieval_chunks_reindexed": false,
+    "governance_controls_reviewed": true,
+    "runtime_validation_reviewed": false
+  },
+  "prediction_fairness_monitoring": {
+    "prediction_fairness_evidence_report_ready": false,
+    "approved_outcome_dataset_available": false,
+    "minimum_sample_size_met": false,
+    "threshold_review_completed": false,
+    "source_control_calibration_checklist_documented": true,
+    "approved_demographic_grouping_reviewed": false,
+    "continuous_monitoring_configured": false,
+    "disparity_thresholds_documented": false,
+    "alerting_and_review_owner_configured": false,
+    "latest_monitoring_run_passed": false,
+        "legal_privacy_review_completed": false,
+        "source_control_monitoring_runbook_documented": true,
+        "source_control_monitoring_validation_checklist_documented": true,
+        "model_card_updated": true,
+    "model_card_required_markers_verified": true,
+    "rollback_or_threshold_reversion_reviewed": true,
+    "audit_log_metadata_only_verified": true
+  },
+  "file_ingestion_surface_audit": {
+    "file_ingestion_surface_report_ready": true,
+    "expected_upload_surface_count": 2,
+    "registered_upload_surface_count": 2,
+    "unregistered_upload_surface_count": 0,
+    "metadata_only_surface_inspection_attested": true,
+    "safe_audit_marker_coverage_attested": true
+  },
+  "operator_notes": [
+    "Do not store approval reference values, consent notice text, PHI, credentials, tokens, or production document content in this packet.",
+    "Store approval references in approved runtime configuration only; this packet records configured/not-configured booleans."
+  ]
+}

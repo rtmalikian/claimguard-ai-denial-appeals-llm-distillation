@@ -1,0 +1,18 @@
+Public government corpus source note: HealthCare.gov internal appeals.
+
+Source URL:
+https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/
+
+Corpus role:
+Appeal-process reference for commercial marketplace and private-plan internal
+appeal workflow examples.
+
+Safety notes:
+This checked-in source note contains no user documents, no patient facts, no
+claim identifiers, no contact details, and no credentials. It is not a denial
+letter or appeal letter pair and is not exported to MLX SFT training splits.
+
+Use constraints:
+Use this record as public source coverage and retrieval/governance context only.
+Any filing deadline, address, form, or plan-specific instruction must be
+verified against the current source and controlling plan documents before use.

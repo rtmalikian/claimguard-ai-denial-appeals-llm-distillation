@@ -1,0 +1,153 @@
+{
+  "blocked_item_count": 1,
+  "blocked_items": [
+    {
+      "blockers": [
+        "model_improvement_not_requested",
+        "legal_approval_not_attested",
+        "baa_not_confirmed",
+        "consent_notice_version_not_configured",
+        "approval_reference_not_configured"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "data_use_scope_documented": true,
+        "legal_approval_attested": false,
+        "model_improvement_requested": false,
+        "retention_policy_reviewed": true,
+        "revocation_path_reviewed": true,
+        "source_control_approval_runbook_documented": true
+      },
+      "name": "Legal, BAA, consent, approval, scope, retention, and revocation controls are attested",
+      "requirement_id": "model_improvement_legal_controls",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json",
+  "generated_at": "2026-05-31T13:54:52.053248+00:00",
+  "model_improvement_ready": false,
+  "notes": [
+    "This validator reads a local JSON evidence packet only and does not call external legal, BAA, consent, or approval systems.",
+    "Approval references, consent notices, legal documents, user data, PHI, secrets, and production document details must remain outside source control.",
+    "A template evidence file is expected to be safe_to_review=true but model_improvement_ready=false until approval, runtime controls, and safety-boundary attestations are complete."
+  ],
+  "objective": "Validate user-data model-improvement approval evidence without storing PHI, secrets, approval references, legal documents, consent documents, raw user data, or production document content.",
+  "ready_item_count": 6,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_model_improvement_evidence",
+        "evidence_status": "local_governance_controls_ready_external_approval_blocked",
+        "version_configured": true
+      },
+      "name": "Model-improvement evidence has the required structure",
+      "requirement_id": "model_improvement_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_approval_reference_values_attested": true,
+        "no_phi_or_secret_values_attested": true,
+        "no_user_data_content_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "values_redacted": true
+      },
+      "name": "Model-improvement evidence contains no PHI, secrets, approval references, or user data",
+      "requirement_id": "model_improvement_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "model_improvement_not_requested",
+        "legal_approval_not_attested",
+        "baa_not_confirmed",
+        "consent_notice_version_not_configured",
+        "approval_reference_not_configured"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "data_use_scope_documented": true,
+        "legal_approval_attested": false,
+        "model_improvement_requested": false,
+        "retention_policy_reviewed": true,
+        "revocation_path_reviewed": true,
+        "source_control_approval_runbook_documented": true
+      },
+      "name": "Legal, BAA, consent, approval, scope, retention, and revocation controls are attested",
+      "requirement_id": "model_improvement_legal_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 10,
+        "raw_runbook_text_included": false,
+        "required_marker_count": 10,
+        "runbook_exists": true,
+        "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/model-improvement-approval-runbook.md",
+        "source_control_approval_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled model-improvement approval runbook is documented",
+      "requirement_id": "model_improvement_approval_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approved_corpus_import_does_not_auto_opt_in": true,
+        "audit_logging_reviewed": true,
+        "frontend_readiness_blockers_visible": true,
+        "model_improvement_disabled_by_default": true,
+        "per_request_attestations_required": true
+      },
+      "name": "Runtime controls keep model improvement explicit, attested, audited, and visible",
+      "requirement_id": "model_improvement_runtime_controls",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "external_phi_deidentification_disabled_by_default": true,
+        "production_user_data_excluded_until_approval": true,
+        "raw_phi_training_disabled": true,
+        "revocation_blocks_future_training_use": true,
+        "training_jobs_require_ready_evidence_packet": true
+      },
+      "name": "Model-improvement safety boundaries keep PHI and user data excluded until approvals are ready",
+      "requirement_id": "model_improvement_safety_boundaries",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approval_reference_values_absent": true,
+        "credentials_or_tokens_absent": true,
+        "raw_legal_or_baa_documents_absent": true,
+        "user_data_content_absent": true
+      },
+      "name": "Evidence packet stores no approval values, user data, raw legal documents, or credentials",
+      "requirement_id": "model_improvement_review_boundaries",
+      "status": "ready",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

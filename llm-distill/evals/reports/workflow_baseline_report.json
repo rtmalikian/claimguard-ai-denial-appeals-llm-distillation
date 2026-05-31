@@ -1,0 +1,418 @@
+{
+  "summary": {
+    "scenario_count": 10,
+    "passed_count": 10,
+    "total_score": 104.0,
+    "max_score": 104.0,
+    "score_ratio": 1.0
+  },
+  "results": [
+    {
+      "scenario_id": "VS01",
+      "passed": true,
+      "score": 11.5,
+      "max_score": 11.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "payer policy",
+          "clinician_lmn",
+          "draft_for_human_review"
+        ],
+        "must_not_include": [
+          "ready to file",
+          "guaranteed coverage"
+        ]
+      },
+      "actual": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 4,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 3
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS02",
+      "passed": true,
+      "score": 10.0,
+      "max_score": 10.0,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "recommended_route": "expedited_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "urgency",
+          "clinician",
+          "human review"
+        ],
+        "must_not_include": [
+          "independent medical judgment",
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "expedited_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 1,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 5,
+        "warning_count": 3
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS03",
+      "passed": true,
+      "score": 11.5,
+      "max_score": 11.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "SPD",
+          "payer_policy",
+          "deadline"
+        ],
+        "must_not_include": [
+          "attorney-client relationship",
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 2,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 2
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS04",
+      "passed": true,
+      "score": 9.0,
+      "max_score": 9.0,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "recommended_route": "medicare_ffs_redetermination",
+        "human_review_required": true,
+        "must_include": [
+          "120",
+          "redetermination",
+          "reopening"
+        ],
+        "must_not_include": [
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "unknown",
+        "recommended_route": "medicare_ffs_redetermination",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 2,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 2
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS05",
+      "passed": true,
+      "score": 9.0,
+      "max_score": 9.0,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "recommended_route": "expedited_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "expedited",
+          "clinician",
+          "Medicare Advantage"
+        ],
+        "must_not_include": [
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "unknown",
+        "recommended_route": "expedited_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 1,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 5,
+        "warning_count": 2
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS06",
+      "passed": true,
+      "score": 9.0,
+      "max_score": 9.0,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "recommended_route": "medicaid_continuation_and_mco_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "continuation",
+          "state fair",
+          "verification"
+        ],
+        "must_not_include": [
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "unknown",
+        "recommended_route": "medicaid_continuation_and_mco_appeal",
+        "human_review_required": true,
+        "route_confidence": "high",
+        "known_fact_count": 0,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 5,
+        "warning_count": 2
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS07",
+      "passed": true,
+      "score": 11.5,
+      "max_score": 11.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "out_of_network",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "network",
+          "external review",
+          "human"
+        ],
+        "must_not_include": [
+          "guaranteed coverage",
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "out_of_network",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 2,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 3
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS08",
+      "passed": true,
+      "score": 10.5,
+      "max_score": 10.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "coding_billing",
+        "recommended_route": "corrected_claim_or_reopening",
+        "human_review_required": true,
+        "must_include": [
+          "preserve",
+          "corrected_claim_packet",
+          "proof"
+        ],
+        "must_not_include": [
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "coding_billing",
+        "recommended_route": "corrected_claim_or_reopening",
+        "human_review_required": true,
+        "route_confidence": "high",
+        "known_fact_count": 4,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 4
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS09",
+      "passed": true,
+      "score": 10.5,
+      "max_score": 10.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "missing_documentation",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "must_include": [
+          "AOB",
+          "authorized representative",
+          "representative_authority"
+        ],
+        "must_not_include": [
+          "ready to file"
+        ]
+      },
+      "actual": {
+        "denial_type": "missing_documentation",
+        "recommended_route": "formal_internal_appeal",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 3,
+        "retrieval_citation_count": 5,
+        "quality_check_count": 4,
+        "warning_count": 3
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    },
+    {
+      "scenario_id": "VS10",
+      "passed": true,
+      "score": 11.5,
+      "max_score": 11.5,
+      "score_ratio": 1.0,
+      "checks": {
+        "route_match": true,
+        "denial_type_match": true,
+        "human_review_required": true,
+        "required_terms_present": true,
+        "forbidden_terms_absent": true,
+        "draft_marked_for_review": true,
+        "quality_checks_present": true
+      },
+      "expected": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "external_review_or_next_level",
+        "human_review_required": true,
+        "must_include": [
+          "final adverse",
+          "next-level",
+          "external review"
+        ],
+        "must_not_include": [
+          "ready to file",
+          "guaranteed coverage"
+        ]
+      },
+      "actual": {
+        "denial_type": "medical_necessity",
+        "recommended_route": "external_review_or_next_level",
+        "human_review_required": true,
+        "route_confidence": "medium",
+        "known_fact_count": 1,
+        "retrieval_citation_count": 4,
+        "quality_check_count": 5,
+        "warning_count": 4
+      },
+      "missing_terms": [],
+      "forbidden_terms_found": []
+    }
+  ]
+}

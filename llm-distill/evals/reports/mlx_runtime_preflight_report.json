@@ -1,0 +1,81 @@
+{
+  "base_url": "http://localhost:8080/v1",
+  "blocked_reasons": [],
+  "checks": {
+    "commands": {
+      "mlx_lm.generate": {
+        "available": true,
+        "command": "mlx_lm.generate",
+        "error": null,
+        "help_returncode": 0,
+        "help_stderr_tail": "",
+        "help_stdout_tail": "                       JSON decodable string.\n  --verbose VERBOSE     Log verbose output when 'True' or 'T' or only print\n                        the response when 'False' or 'F'\n  --max-kv-size MAX_KV_SIZE\n                        Set the maximum key-value cache size\n  --prompt-cache-file PROMPT_CACHE_FILE\n                        A file containing saved KV caches to avoid recomputing\n                        them\n  --quantize-activations, -qa\n                        Quantize activations using the same quantization\n                        config as the corresponding layer.\n  --kv-bits KV_BITS     Number of bits for KV cache quantization. Defaults to\n                        no quantization.\n  --kv-group-size KV_GROUP_SIZE\n                        Group size for KV cache quantization.\n  --quantized-kv-start QUANTIZED_KV_START\n                        When --kv-bits is set, start quantizing the KV cache\n                        from this step onwards.\n  --draft-model DRAFT_MODEL\n                        A model to be used for speculative decoding.\n  --num-draft-tokens NUM_DRAFT_TOKENS\n                        Number of tokens to draft when using speculative\n                        decoding.\n",
+        "path": ".venv-mlx/bin/mlx_lm.generate"
+      },
+      "mlx_lm.lora": {
+        "available": true,
+        "command": "mlx_lm.lora",
+        "error": null,
+        "help_returncode": 0,
+        "help_stderr_tail": "",
+        "help_stdout_tail": "             Load path to resume training from the given fine-tuned\n                        weights.\n  --adapter-path ADAPTER_PATH\n                        Save/load path for the fine-tuned weights.\n  --save-every SAVE_EVERY\n                        Save the model every N iterations.\n  --test                Evaluate on the test set after training\n  --test-batches TEST_BATCHES\n                        Number of test set batches, -1 uses the entire test\n                        set.\n  --max-seq-length MAX_SEQ_LENGTH\n                        Maximum sequence length.\n  -c, --config CONFIG   A YAML configuration file with the training options\n  --grad-checkpoint     Use gradient checkpointing to reduce memory use.\n  --clear-cache-threshold CLEAR_CACHE_THRESHOLD\n                        Clear the allocator cache between steps if it grows\n                        too large.\n  --report-to REPORT_TO\n                        Services to report logs to ('wandb', 'swanlab', or\n                        'wandb,swanlab').\n  --project-name PROJECT_NAME\n                        Project name for logging. Defaults to the name of the\n                        root directory.\n  --seed SEED           The PRNG seed\n",
+        "path": ".venv-mlx/bin/mlx_lm.lora"
+      },
+      "mlx_lm.server": {
+        "available": true,
+        "command": "mlx_lm.server",
+        "error": null,
+        "help_returncode": 0,
+        "help_stderr_tail": "",
+        "help_stdout_tail": "\n  --min-p MIN_P         Default min-p sampling (default: 0.0, disables min-p)\n  --max-tokens MAX_TOKENS\n                        Default maximum number of tokens to generate (default:\n                        512)\n  --chat-template-args CHAT_TEMPLATE_ARGS\n                        A JSON formatted string of arguments for the\n                        tokenizer's apply_chat_template, e.g.\n                        '{\"enable_thinking\":false}'\n  --decode-concurrency DECODE_CONCURRENCY\n                        When a request is batchable then decode that many\n                        requests in parallel\n  --prompt-concurrency PROMPT_CONCURRENCY\n                        When a request is batchable then process that many\n                        prompts in parallel\n  --prefill-step-size PREFILL_STEP_SIZE\n                        Step size for prefill processing (default: 2048)\n  --prompt-cache-size PROMPT_CACHE_SIZE\n                        Maximum number of distinct KV caches to hold in the\n                        prompt cache\n  --prompt-cache-bytes PROMPT_CACHE_BYTES\n                        Maximum size in bytes of the KV caches\n  --pipeline            Use pipelining instead of tensor parallelism\n",
+        "path": ".venv-mlx/bin/mlx_lm.server"
+      }
+    },
+    "python_package": {
+      "distribution": "mlx-lm",
+      "error": null,
+      "installed": true,
+      "version": "0.31.3"
+    },
+    "server": {
+      "available": true,
+      "base_url": "http://localhost:8080/v1",
+      "body_summary": {
+        "json_valid": true,
+        "keys": [
+          "data",
+          "object"
+        ],
+        "model_count": 1,
+        "model_ids": [
+          "Qwen/Qwen3-4B-MLX-4bit"
+        ]
+      },
+      "duration_seconds": 0.0244,
+      "error": null,
+      "models_url": "http://localhost:8080/v1/models",
+      "status_code": 200
+    }
+  },
+  "fallback_model": "Qwen/Qwen3-1.7B",
+  "generated_at": "2026-05-30T04:59:50.083000+00:00",
+  "host": {
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.14.5",
+    "system": "Darwin"
+  },
+  "model": "Qwen/Qwen3-4B-MLX-4bit",
+  "next_actions": [
+    "Install MLX-LM in a local virtual environment if the package or CLI commands are missing.",
+    "Start mlx_lm.server with the primary model before running live base benchmarks.",
+    "Install the MLX-LM training extras and verify mlx_lm.lora before reviewed-label LoRA training.",
+    "Rerun the full 10-record base benchmark only after this runtime preflight is ready."
+  ],
+  "notes": [
+    "This preflight does not install packages, download models, start servers, call teacher endpoints, train, quantize, or write adapter weights.",
+    "A reachable /v1/models endpoint is runtime availability evidence, not model-quality or training evidence."
+  ],
+  "ready": true,
+  "warnings": []
+}

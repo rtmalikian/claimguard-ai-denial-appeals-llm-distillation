@@ -1,0 +1,19 @@
+Public government corpus source note: CMS FFS redetermination.
+
+Source URL:
+https://www.cms.gov/medicare/appeals-grievances/fee-for-service/first-level-appeal-redetermination-medicare-contractor
+
+Corpus role:
+Appeal-process reference for Medicare fee-for-service redetermination workflow
+examples and route-verification checks.
+
+Safety notes:
+This checked-in source note contains no user documents, no patient facts, no
+claim identifiers, no contact details, and no credentials. It is not a denial
+letter or appeal letter pair and is not exported to MLX SFT training splits.
+
+Use constraints:
+Use this record as public source coverage and retrieval/governance context only.
+Any contractor route, appeal level, deadline, representative authority, or
+submission instruction must be verified against the current source and
+applicable Medicare records before use.

@@ -1,0 +1,79 @@
+{
+  "approved_count": 10,
+  "error_count": 0,
+  "errors": [],
+  "generated_at": "2026-05-30T03:25:27.574964+00:00",
+  "notes": [
+    "This helper approves synthetic/no-PHI review-packet records only after local schema, source-status, citation, draft-label, and PHI checks pass.",
+    "It does not call external teacher endpoints, read user documents, approve PHI, train a model, benchmark a model, or provide human review.",
+    "The resulting labels are approved for local ClaimGuard SFT experiments, not production release."
+  ],
+  "packet_input": "llm-distill/data/distillation/teacher_review_packet.jsonl",
+  "packet_output": "llm-distill/data/distillation/teacher_review_packet.jsonl",
+  "record_count": 10,
+  "record_summaries": [
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs01",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs02",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs03",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs04",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs05",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs06",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs07",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs08",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs09",
+      "errors": []
+    },
+    {
+      "approved": true,
+      "custom_id": "teacher-label-vs10",
+      "errors": []
+    }
+  ],
+  "required_review_checks": [
+    "citations_supported",
+    "draft_marked_for_human_review",
+    "human_review_gate_preserved",
+    "minimum_necessary",
+    "no_phi_pii",
+    "output_schema_valid",
+    "source_grounded",
+    "unsafe_claims_absent"
+  ],
+  "review_ready": true,
+  "reviewer_id": "codex-synthetic-large-teacher",
+  "teacher_model": "codex_gpt5_synthetic_review"
+}

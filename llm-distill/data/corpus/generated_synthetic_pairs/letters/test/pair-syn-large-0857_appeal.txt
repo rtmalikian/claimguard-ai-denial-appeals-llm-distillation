@@ -1,0 +1,31 @@
+Draft for human review.
+draft_for_human_review
+Synthetic corpus pair PAIR-SYN-LARGE-0857.
+
+Lakeside Imaging Associates
+Synthetic appeal draft for case reference SYN-CASE-0857
+Route metadata formal_internal_appeal; appeal level first_level
+Synthetic formatting profile
+- Corpus role: appeal_letter
+- Layout profile: corrected_claim_cover_layout
+- Typography profile: plain_text_eob_export
+- Length profile: standard
+- Format family: timely_filing_rebuttal
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Timely filing rebuttal draft
+
+This supervised training draft responds to Aster Health Plan's synthetic denial for home health skilled nursing visit in service window 2026-Q1.
+
+The reviewer should verify receipt proof, payer portal status, and allowed submission window.
+The provider staff reviewer should request reconsideration because the payer system detected a potentially duplicate service line. The packet should connect each assertion to the denial notice, source record, or coding rationale.
+
+- Verify the denial rationale for duplicate_service.
+- Attach source-grounded records for home health skilled nursing visit.
+- Confirm code G0299 and any modifier logic before submission.
+- Keep placeholders [PATIENT_0857], [AUTH_0857], and SYN-COVERAGE-4569 synthetic.
+
+Before any real-world use, verify payer channel, current deadline, authority, attachments, clinical statements, coding facts, and minimum necessary PHI scope. This synthetic draft is not filing-ready.
+
+Alternative short portal wording
+Please reconsider synthetic case SYN-CASE-0857. The provider staff reviewer will attach support for home health skilled nursing visit after validating payer-specific requirements. This portal wording is not filing-ready until the record is verified.

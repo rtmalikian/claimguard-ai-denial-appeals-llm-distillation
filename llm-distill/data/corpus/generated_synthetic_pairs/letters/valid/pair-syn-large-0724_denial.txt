@@ -1,0 +1,31 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0724.
+
+Summit Benefit Administrators
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0724
+Coverage reference SYN-COVERAGE-2308
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: fax_cover_plus_body
+- Typography profile: large_print_accessible_notice
+- Length profile: expanded
+- Format family: fax_cover_summary
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Fax-style synthetic summary
+
+Line 1: Synthetic member placeholder [PATIENT_0724]; provider group Cedar Valley Therapy; service window 2026-Q4; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $1,663.00.
+Line 2: Denial type out_of_network.
+Line 3: Determination rationale: network status was not supported by the submitted materials. This synthetic notice is for model training only and is not connected to any real person.
+Line 4: Attach verified records only; do not add real identifiers.
+
+Source packet review
+The review queue could not confirm that Cedar Valley Therapy supplied all plan-required support for outpatient MRI lumbar spine. Staff should compare the service category, code, and submitted record summary before preparing any appeal response.
+
+Service-line table
+| Field | Synthetic value |
+|---|---|
+| Service category | radiology |
+| Procedure code | 72148 |
+| Review amount | $1,663.00 |
+| Route metadata | erisa_internal_appeal |

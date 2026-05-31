@@ -1,0 +1,97 @@
+{
+  "api_key_env": "TEACHER_API_KEY",
+  "api_key_present": false,
+  "base_url_configured": false,
+  "base_url_is_local": null,
+  "existing_response_count": 0,
+  "generated_at": "2026-05-30T01:48:40.716449+00:00",
+  "mode": "preflight",
+  "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+  "notes": [
+    "Preflight mode validates request shape and safety without sending data.",
+    "Run mode writes teacher responses to an ignored JSONL path for ingestion.",
+    "Secrets are read only from the named environment variable and are not written to reports."
+  ],
+  "phi_scan": {
+    "finding_count": 0,
+    "findings": []
+  },
+  "planned_request_count": 10,
+  "request_count": 10,
+  "request_summaries": [
+    {
+      "custom_id": "teacher-label-vs01",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5310
+    },
+    {
+      "custom_id": "teacher-label-vs02",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5303
+    },
+    {
+      "custom_id": "teacher-label-vs03",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5275
+    },
+    {
+      "custom_id": "teacher-label-vs04",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5247
+    },
+    {
+      "custom_id": "teacher-label-vs05",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5245
+    },
+    {
+      "custom_id": "teacher-label-vs06",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5148
+    },
+    {
+      "custom_id": "teacher-label-vs07",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5294
+    },
+    {
+      "custom_id": "teacher-label-vs08",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5212
+    },
+    {
+      "custom_id": "teacher-label-vs09",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 5274
+    },
+    {
+      "custom_id": "teacher-label-vs10",
+      "message_count": 2,
+      "model": "TEACHER_MODEL_TO_BE_SET_BY_OPERATOR",
+      "prompt_chars": 4592
+    }
+  ],
+  "requests": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_requests.jsonl",
+  "response_error_count": 0,
+  "response_output": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_responses_pending.jsonl",
+  "response_success_count": 0,
+  "resume": false,
+  "run_attempted": false,
+  "run_blocked": true,
+  "run_blockers": [
+    "teacher base URL is required for --run",
+    "teacher model must be set before --run"
+  ],
+  "run_results": [],
+  "validation_error_count": 0,
+  "validation_errors": []
+}

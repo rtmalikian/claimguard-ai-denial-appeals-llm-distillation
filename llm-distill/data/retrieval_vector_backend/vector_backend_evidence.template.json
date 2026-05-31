@@ -1,0 +1,44 @@
+{
+  "artifact": "claimguard_retrieval_vector_backend_evidence",
+  "version": "1.0",
+  "evidence_status": "local_governance_and_rollback_controls_ready_infrastructure_blocked",
+  "prepared_at": null,
+  "no_phi_or_secret_values_attested": true,
+  "no_source_text_or_vector_values_attested": true,
+  "backend_configuration": {
+    "semantic_backend_configured": false,
+    "embedding_model_configured": false,
+    "embedding_model_approved": false,
+    "production_vector_backend_configured": false,
+    "hash_fallback_disabled_for_production": false,
+    "contains_secrets": false
+  },
+  "index_state": {
+    "source_control_reindex_checklist_documented": true,
+    "source_control_reindex_checklist_path": "llm-distill/docs/retrieval-vector-reindex-checklist.md",
+    "active_retrieval_chunks_indexed": false,
+    "stored_hash_embeddings_absent": false,
+    "reindex_job_completed": false,
+    "reindex_audit_checked": false
+  },
+  "governance_controls": {
+    "source_control_runbook_documented": true,
+    "source_control_runbook_path": "llm-distill/docs/retrieval-vector-backend-runbook.md",
+    "role_scoped_access_verified": true,
+    "retention_delete_verified": true,
+    "audit_dashboard_verified": true,
+    "encrypted_storage_verified": true,
+    "source_text_redaction_verified": true
+  },
+  "runtime_validation": {
+    "vector_backend_health_checked": false,
+    "retrieval_quality_smoke_passed": false,
+    "backup_restore_reviewed": true,
+    "disable_or_rollback_path_reviewed": true
+  },
+  "operator_notes": [
+    "Do not store embedding service URLs, credentials, tokens, raw vector values, source text, PHI, or production document details in this evidence file.",
+    "Set production readiness booleans only after private runtime configuration, chunk reindexing, metadata-only audit review, and retrieval quality smoke checks are complete.",
+    "Keep the local hash embedding fallback marked as development-only until the semantic backend and production vector store are configured outside source control."
+  ]
+}

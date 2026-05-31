@@ -1,0 +1,342 @@
+{
+  "blocked_item_count": 5,
+  "blocked_items": [
+    {
+      "blockers": [
+        "student_default_cutover_not_requested",
+        "raphael_cutover_approval_not_attested",
+        "student_cutover_approval_reference_not_configured",
+        "supervisor_evidence_report_not_ready",
+        "supervised_runtime_owner_not_configured",
+        "supervised_runtime_runbook_not_reviewed"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "raphael_approval_attested": false,
+        "requested": false,
+        "rollback_to_nvidia_reviewed": true,
+        "scope_limited_to_denial_workflow_and_appeals": true,
+        "source_control_runbook_documented": true,
+        "source_control_runtime_validation_checklist_documented": true,
+        "supervised_runtime_owner_configured": false,
+        "supervised_runtime_runbook_reviewed": false,
+        "supervisor_evidence_report_ready": false
+      },
+      "name": "Manual packet attests student default cutover approval and supervised runtime ownership",
+      "requirement_id": "manual_student_default_cutover_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "model_improvement_not_requested",
+        "legal_approval_not_attested",
+        "baa_not_confirmed",
+        "consent_notice_version_not_configured",
+        "model_improvement_approval_reference_not_configured",
+        "model_improvement_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "data_use_scope_documented": true,
+        "legal_approval_attested": false,
+        "model_improvement_evidence_report_ready": false,
+        "per_request_attestations_required": true,
+        "requested": false,
+        "source_control_approval_runbook_documented": true
+      },
+      "name": "Manual packet attests user-data model-improvement legal, BAA, and consent gates",
+      "requirement_id": "manual_user_data_model_improvement_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_non_synthetic_pair_count_must_be_at_least_1",
+        "approved_source_types_missing",
+        "production_corpus_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approved_non_synthetic_pair_count": 0,
+        "approved_source_types": [],
+        "license_review_attested": true,
+        "manifest_record_id_count": 0,
+        "privacy_review_attested": true,
+        "production_corpus_evidence_report_ready": false,
+        "residual_risk_review_attested": true,
+        "source_control_review_runbook_documented": true,
+        "training_scope_reviewed": true
+      },
+      "name": "Manual packet attests approved non-synthetic paired corpus evidence",
+      "requirement_id": "manual_production_corpus_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "retrieval_vector_backend_evidence_report_not_ready",
+        "semantic_backend_not_attested",
+        "production_vector_backend_not_attested",
+        "retrieval_chunks_not_reindexed",
+        "retrieval_runtime_validation_not_reviewed"
+      ],
+      "evidence": {
+        "governance_controls_reviewed": true,
+        "production_vector_backend_configured": false,
+        "retrieval_chunks_reindexed": false,
+        "runtime_validation_reviewed": false,
+        "semantic_backend_configured": false,
+        "source_control_reindex_checklist_documented": true,
+        "source_control_runbook_documented": true,
+        "vector_backend_evidence_report_ready": false
+      },
+      "name": "Manual packet attests retrieval vector backend evidence and production readiness",
+      "requirement_id": "manual_retrieval_vector_backend_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "prediction_fairness_evidence_report_not_ready",
+        "approved_outcome_dataset_not_attested",
+        "minimum_sample_size_not_attested",
+        "threshold_review_not_attested",
+        "approved_demographic_grouping_not_reviewed",
+        "continuous_monitoring_not_attested",
+        "disparity_thresholds_not_documented",
+        "alerting_and_review_owner_not_configured",
+        "latest_monitoring_run_not_passed",
+        "legal_privacy_review_not_attested"
+      ],
+      "evidence": {
+        "alerting_and_review_owner_configured": false,
+        "approved_demographic_grouping_reviewed": false,
+        "approved_outcome_dataset_available": false,
+        "audit_log_metadata_only_verified": true,
+        "continuous_monitoring_configured": false,
+        "disparity_thresholds_documented": false,
+        "latest_monitoring_run_passed": false,
+        "legal_privacy_review_completed": false,
+        "minimum_sample_size_met": false,
+        "model_card_required_markers_verified": true,
+        "model_card_updated": true,
+        "prediction_fairness_evidence_report_ready": false,
+        "rollback_or_threshold_reversion_reviewed": true,
+        "source_control_calibration_checklist_documented": true,
+        "source_control_monitoring_runbook_documented": true,
+        "source_control_monitoring_validation_checklist_documented": true,
+        "threshold_review_completed": false
+      },
+      "name": "Manual packet attests production threshold calibration and continuous fairness monitoring evidence",
+      "requirement_id": "manual_prediction_fairness_monitoring_evidence",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "generated_at": "2026-05-31T16:45:00.715011+00:00",
+  "notes": [
+    "This validator reads a local JSON packet only and does not call external services.",
+    "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
+    "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, and runtime-supervisor gates are complete."
+  ],
+  "objective": "Validate the manual PHIplan production-gate packet without storing approval reference values, PHI, secrets, or production document content.",
+  "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
+  "production_gate_ready": false,
+  "ready_item_count": 4,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_phi_plan_manual_gate_packet",
+        "packet_status": "template_pending",
+        "version_configured": true
+      },
+      "name": "Manual production-gate packet has the required structure",
+      "requirement_id": "manual_gate_packet_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "forbidden_value_key_count": 0,
+        "no_phi_or_secret_values_attested": true,
+        "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "values_redacted": true
+      },
+      "name": "Manual gate packet contains no PHI, secrets, or raw approval values",
+      "requirement_id": "manual_gate_packet_no_phi_or_secret_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "manual_gate_checklist_exists": true,
+        "manual_gate_checklist_missing_marker_count": 0,
+        "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
+        "manual_gate_checklist_present_marker_count": 11,
+        "manual_gate_checklist_required_marker_count": 11,
+        "manual_gate_checklist_values_included": false,
+        "source_control_manual_gate_checklist_documented": true
+      },
+      "name": "Source-controlled PHIplan manual production-gate checklist is documented",
+      "requirement_id": "manual_gate_packet_completion_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "student_default_cutover_not_requested",
+        "raphael_cutover_approval_not_attested",
+        "student_cutover_approval_reference_not_configured",
+        "supervisor_evidence_report_not_ready",
+        "supervised_runtime_owner_not_configured",
+        "supervised_runtime_runbook_not_reviewed"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "raphael_approval_attested": false,
+        "requested": false,
+        "rollback_to_nvidia_reviewed": true,
+        "scope_limited_to_denial_workflow_and_appeals": true,
+        "source_control_runbook_documented": true,
+        "source_control_runtime_validation_checklist_documented": true,
+        "supervised_runtime_owner_configured": false,
+        "supervised_runtime_runbook_reviewed": false,
+        "supervisor_evidence_report_ready": false
+      },
+      "name": "Manual packet attests student default cutover approval and supervised runtime ownership",
+      "requirement_id": "manual_student_default_cutover_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "model_improvement_not_requested",
+        "legal_approval_not_attested",
+        "baa_not_confirmed",
+        "consent_notice_version_not_configured",
+        "model_improvement_approval_reference_not_configured",
+        "model_improvement_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "data_use_scope_documented": true,
+        "legal_approval_attested": false,
+        "model_improvement_evidence_report_ready": false,
+        "per_request_attestations_required": true,
+        "requested": false,
+        "source_control_approval_runbook_documented": true
+      },
+      "name": "Manual packet attests user-data model-improvement legal, BAA, and consent gates",
+      "requirement_id": "manual_user_data_model_improvement_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_non_synthetic_pair_count_must_be_at_least_1",
+        "approved_source_types_missing",
+        "production_corpus_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approved_non_synthetic_pair_count": 0,
+        "approved_source_types": [],
+        "license_review_attested": true,
+        "manifest_record_id_count": 0,
+        "privacy_review_attested": true,
+        "production_corpus_evidence_report_ready": false,
+        "residual_risk_review_attested": true,
+        "source_control_review_runbook_documented": true,
+        "training_scope_reviewed": true
+      },
+      "name": "Manual packet attests approved non-synthetic paired corpus evidence",
+      "requirement_id": "manual_production_corpus_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "retrieval_vector_backend_evidence_report_not_ready",
+        "semantic_backend_not_attested",
+        "production_vector_backend_not_attested",
+        "retrieval_chunks_not_reindexed",
+        "retrieval_runtime_validation_not_reviewed"
+      ],
+      "evidence": {
+        "governance_controls_reviewed": true,
+        "production_vector_backend_configured": false,
+        "retrieval_chunks_reindexed": false,
+        "runtime_validation_reviewed": false,
+        "semantic_backend_configured": false,
+        "source_control_reindex_checklist_documented": true,
+        "source_control_runbook_documented": true,
+        "vector_backend_evidence_report_ready": false
+      },
+      "name": "Manual packet attests retrieval vector backend evidence and production readiness",
+      "requirement_id": "manual_retrieval_vector_backend_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "prediction_fairness_evidence_report_not_ready",
+        "approved_outcome_dataset_not_attested",
+        "minimum_sample_size_not_attested",
+        "threshold_review_not_attested",
+        "approved_demographic_grouping_not_reviewed",
+        "continuous_monitoring_not_attested",
+        "disparity_thresholds_not_documented",
+        "alerting_and_review_owner_not_configured",
+        "latest_monitoring_run_not_passed",
+        "legal_privacy_review_not_attested"
+      ],
+      "evidence": {
+        "alerting_and_review_owner_configured": false,
+        "approved_demographic_grouping_reviewed": false,
+        "approved_outcome_dataset_available": false,
+        "audit_log_metadata_only_verified": true,
+        "continuous_monitoring_configured": false,
+        "disparity_thresholds_documented": false,
+        "latest_monitoring_run_passed": false,
+        "legal_privacy_review_completed": false,
+        "minimum_sample_size_met": false,
+        "model_card_required_markers_verified": true,
+        "model_card_updated": true,
+        "prediction_fairness_evidence_report_ready": false,
+        "rollback_or_threshold_reversion_reviewed": true,
+        "source_control_calibration_checklist_documented": true,
+        "source_control_monitoring_runbook_documented": true,
+        "source_control_monitoring_validation_checklist_documented": true,
+        "threshold_review_completed": false
+      },
+      "name": "Manual packet attests production threshold calibration and continuous fairness monitoring evidence",
+      "requirement_id": "manual_prediction_fairness_monitoring_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "expected_upload_surface_count": 2,
+        "file_ingestion_surface_report_ready": true,
+        "metadata_only_surface_inspection_attested": true,
+        "registered_upload_surface_count": 2,
+        "safe_audit_marker_coverage_attested": true,
+        "unregistered_upload_surface_count": 0
+      },
+      "name": "Manual packet attests automated file-ingestion PHI surface audit coverage",
+      "requirement_id": "manual_file_ingestion_surface_evidence",
+      "status": "ready",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

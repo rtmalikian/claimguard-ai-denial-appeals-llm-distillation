@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+.coverage
+backups/
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+tests/

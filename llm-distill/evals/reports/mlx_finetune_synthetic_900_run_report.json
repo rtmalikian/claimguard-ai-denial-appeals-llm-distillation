@@ -1,0 +1,115 @@
+{
+  "blocked_reasons": [
+    "mlx_lm.lora cannot access a Metal device in this session"
+  ],
+  "checks": {
+    "adapter_output": {
+      "exists_after_run": null,
+      "exists_before_run": false,
+      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
+    },
+    "data": {
+      "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900",
+      "errors": [],
+      "ready": true,
+      "split_reports": {
+        "test": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 90,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/test.jsonl",
+          "phi_findings": [],
+          "record_count": 90
+        },
+        "train": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 720,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/train.jsonl",
+          "phi_findings": [],
+          "record_count": 720
+        },
+        "valid": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 90,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/valid.jsonl",
+          "phi_findings": [],
+          "record_count": 90
+        }
+      },
+      "total_phi_findings": 0
+    },
+    "host": {
+      "machine": "arm64",
+      "processor": "arm",
+      "python": "3.14.5",
+      "system": "Darwin"
+    },
+    "manifest": {
+      "artifact": "claimguard_mlx_sft_corpus",
+      "data_safety": {
+        "data_tier": "approved_deidentified_corpus",
+        "external_model_calls_made": false,
+        "local_model_weights_written": false,
+        "phi_status": "no_phi",
+        "requires_checksum_match": true,
+        "requires_privacy_review": true,
+        "requires_training_eligible_manifest_records": true,
+        "requires_zero_phi_scan_findings": true,
+        "user_phi_allowed": false
+      },
+      "errors": [],
+      "manifest_blocked_reasons": [],
+      "model": "Qwen/Qwen3-4B-MLX-4bit",
+      "ready": true,
+      "training_allowed": true,
+      "warnings": []
+    },
+    "mlx_lm_lora": {
+      "available": true,
+      "error": "mlx_lm.lora cannot access a Metal device in this session",
+      "help_returncode": 1,
+      "path": ".venv-mlx/bin/mlx_lm.lora",
+      "runtime_ready": false,
+      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/mlx_lm.lora\", line 4, in <module>\n    from mlx_lm.lora import main\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx_lm/__init__.py\", line 9, in <module>\n    from .convert import convert\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx_lm/convert.py\", line 8, in <module>\n    import mlx.nn as nn\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/__init__.py\", line 4, in <module>\n    from mlx.nn.layers import *\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/__init__.py\", line 3, in <module>\n    from mlx.nn.layers.activations import (\n    ...<52 lines>...\n    )\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/activations.py\", line 19, in <module>\n    @partial(mx.compile, shapeless=True)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\nException ignored in atexit callback <nanobind.nb_func object at 0x10939a460>:\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\n",
+      "stdout_tail": ""
+    }
+  },
+  "command": [
+    ".venv-mlx/bin/mlx_lm.lora",
+    "--model",
+    "Qwen/Qwen3-4B-MLX-4bit",
+    "--train",
+    "--data",
+    "llm-distill/data/distillation/mlx_sft_synthetic_900",
+    "--iters",
+    "120",
+    "--batch-size",
+    "1",
+    "--num-layers",
+    "8",
+    "--fine-tune-type",
+    "lora",
+    "--mask-prompt",
+    "--steps-per-report",
+    "20",
+    "--steps-per-eval",
+    "40",
+    "--adapter-path",
+    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
+  ],
+  "generated_at": "2026-05-30T23:46:53.691111+00:00",
+  "manifest": "llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json",
+  "mode": "run",
+  "notes": [
+    "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
+    "Preflight mode does execute mlx_lm.lora --help to verify that the MLX runtime can import and access Metal in the current session.",
+    "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+    "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
+  ],
+  "preflight_errors": [],
+  "ready": false,
+  "training_attempted": false,
+  "training_succeeded": null
+}

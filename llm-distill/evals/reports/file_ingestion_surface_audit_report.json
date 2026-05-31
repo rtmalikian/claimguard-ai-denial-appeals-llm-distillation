@@ -1,0 +1,106 @@
+{
+  "api_root": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1",
+  "blocked_reasons": [],
+  "generated_at": "2026-05-31T05:32:41.293969+00:00",
+  "notes": [
+    "This audit uses AST/source metadata and does not inspect uploaded file contents.",
+    "Any future UploadFile/File endpoint must be registered here and show metadata-only surface inspection plus governance/audit markers before production use.",
+    "Matched PHI/PII values, raw filenames, and uploaded document content are not included in this report."
+  ],
+  "ready": true,
+  "summary": {
+    "discovered_count": 2,
+    "expected_count": 2,
+    "registered_count": 2,
+    "unregistered_count": 0
+  },
+  "surfaces": [
+    {
+      "coverage_notes": [
+        "Accepts only text EDI 837 batch files with .edi or .txt extensions and a 10 MB limit.",
+        "Runs metadata-only document surface inspection over filename, MIME type, EDI text, and parser metadata.",
+        "Returns structured per-claim parser results without raw segment payloads and logs only safe counters/booleans.",
+        "Rejected uploads return structured parser-stage, field, and segment context without raw filenames, EDI text, or raw segment payloads."
+      ],
+      "expected_module_path": "app/api/v1/claims.py",
+      "file_parameter_names": [
+        "file"
+      ],
+      "function_name": "batch_upload_claims",
+      "methods": [
+        "POST"
+      ],
+      "missing_markers": [],
+      "module_path": "app/api/v1/claims.py",
+      "registered": true,
+      "required_markers": [
+        "_inspect_document_surfaces",
+        "document_surface_inspection",
+        "CLAIM_DOCUMENT_ACCESS_SCOPE_BILLING_TEAM",
+        "claims_batch_uploaded",
+        "source_filename_present",
+        "source_file_extension",
+        "source_mime_type",
+        "edi_parser",
+        "segment_count",
+        "claim_count",
+        "validation_issue_count",
+        "surface_count",
+        "surface_blocking_count",
+        "surface_residual_risk_score",
+        "surface_deidentification_status",
+        "_raise_batch_claim_upload_error",
+        "EDIParserError",
+        "error_code",
+        "parser_stage",
+        "field",
+        "segment_index",
+        "segment_id",
+        "safe_context"
+      ],
+      "route": "/claims/batch-upload",
+      "status": "ready"
+    },
+    {
+      "coverage_notes": [
+        "Runs metadata-only document surface inspection over filename, MIME type, extracted text/OCR text, and processing metadata.",
+        "Rejects unsupported, empty, and oversized uploads with structured safe error details before file processing or OCR.",
+        "Persists redacted inspection summary with the analyzed claim.",
+        "Stores claim document access-scope metadata and safe audit counters without raw filenames or matched PHI/PII values."
+      ],
+      "expected_module_path": "app/api/v1/claims.py",
+      "file_parameter_names": [
+        "file"
+      ],
+      "function_name": "upload_document",
+      "methods": [
+        "POST"
+      ],
+      "missing_markers": [],
+      "module_path": "app/api/v1/claims.py",
+      "registered": true,
+      "required_markers": [
+        "_inspect_document_surfaces",
+        "document_surface_inspection",
+        "document_access_scope",
+        "CLAIM_DOCUMENT_ACCESS_SCOPE_BILLING_TEAM",
+        "document_uploaded",
+        "surface_count",
+        "surface_blocking_count",
+        "surface_residual_risk_score",
+        "surface_deidentification_status",
+        "source_filename_present",
+        "source_file_extension",
+        "_raise_upload_document_error",
+        "CLAIM_DOCUMENT_UPLOAD_MAX_BYTES",
+        "error_code",
+        "processing_stage",
+        "content_length",
+        "max_upload_size_bytes"
+      ],
+      "route": "/claims/upload-document",
+      "status": "ready"
+    }
+  ],
+  "warnings": []
+}

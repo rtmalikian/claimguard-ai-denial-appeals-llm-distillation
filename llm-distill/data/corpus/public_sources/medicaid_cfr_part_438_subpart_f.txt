@@ -1,0 +1,19 @@
+Public government corpus source note: 42 CFR Part 438 Subpart F.
+
+Source URL:
+https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-C/part-438/subpart-F
+
+Corpus role:
+Appeal-process reference for Medicaid managed care grievance and appeal
+workflow examples, source-grounding checks, and route classification.
+
+Safety notes:
+This checked-in source note contains no user documents, no patient facts, no
+claim identifiers, no contact details, and no credentials. It is not a denial
+letter or appeal letter pair and is not exported to MLX SFT training splits.
+
+Use constraints:
+Use this record as public source coverage and retrieval/governance context only.
+Any current regulatory text, state procedure, plan-specific process, deadline,
+notice content, or exhaustion requirement must be verified against the current
+source and controlling state or plan materials before use.

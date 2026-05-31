@@ -1,0 +1,161 @@
+{
+  "blocked_item_count": 1,
+  "blocked_items": [
+    {
+      "blockers": [
+        "approved_non_synthetic_pair_count_below_minimum",
+        "pair_ids_not_reviewed_outside_source_control",
+        "source_documents_not_reviewed_outside_source_control"
+      ],
+      "evidence": {
+        "accepted_production_source_types": [
+          "approved_public_denial_appeal_pair",
+          "public_government_deidentified_pair",
+          "public_government_denial_appeal_pair",
+          "real_deidentified_pair",
+          "real_world_deidentified_pair"
+        ],
+        "complete_production_pair_count": 0,
+        "counts_by_source_type": {
+          "public_government_source": 7,
+          "synthetic_deidentified_pair": 6
+        },
+        "denial_and_appeal_roles_required": true,
+        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "minimum_required_production_pair_count": 1,
+        "pair_ids_reviewed_outside_source_control": false,
+        "record_count": 13,
+        "role_counts": {
+          "appeal_letter": 3,
+          "denial_letter": 3,
+          "rule_source": 7
+        },
+        "source_documents_reviewed_outside_source_control": false,
+        "training_source_types": {
+          "synthetic_deidentified_pair": 6
+        },
+        "values_redacted": true
+      },
+      "name": "Manifest includes approved non-synthetic denial/appeal training pairs",
+      "requirement_id": "production_corpus_manifest_pair_evidence",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
+  "generated_at": "2026-05-31T13:47:28.637589+00:00",
+  "notes": [
+    "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
+    "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
+    "A template evidence file is expected to be safe_to_review=true but production_corpus_ready=false until approved non-synthetic paired corpus evidence is present."
+  ],
+  "objective": "Validate production denial/appeal corpus evidence without storing PHI, secrets, approval values, source paths, checksums, or raw documents.",
+  "production_corpus_ready": false,
+  "ready_item_count": 4,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_production_corpus_evidence",
+        "evidence_status": "current_manifest_review_ready_non_synthetic_pair_blocked",
+        "version_configured": true
+      },
+      "name": "Production corpus evidence has the required structure",
+      "requirement_id": "production_corpus_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_phi_or_secret_values_attested": true,
+        "no_raw_document_content_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "values_redacted": true
+      },
+      "name": "Production corpus evidence contains no PHI, secrets, source values, or raw documents",
+      "requirement_id": "production_corpus_no_phi_secret_or_document_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "contains_approval_reference_values": false,
+        "contains_raw_document_content": false,
+        "license_review_attested": true,
+        "no_phi_review_attested": true,
+        "privacy_review_attested": true,
+        "residual_risk_review_attested": true,
+        "source_control_review_runbook_documented": true,
+        "source_license_scope_documented": true,
+        "training_scope_reviewed": true
+      },
+      "name": "Production corpus privacy, license, residual-risk, and training-scope review is attested",
+      "requirement_id": "production_corpus_manual_review_attestations",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 10,
+        "raw_runbook_text_included": false,
+        "required_marker_count": 10,
+        "runbook_exists": true,
+        "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-review-runbook.md",
+        "source_control_review_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled production corpus review runbook is documented",
+      "requirement_id": "production_corpus_operator_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_non_synthetic_pair_count_below_minimum",
+        "pair_ids_not_reviewed_outside_source_control",
+        "source_documents_not_reviewed_outside_source_control"
+      ],
+      "evidence": {
+        "accepted_production_source_types": [
+          "approved_public_denial_appeal_pair",
+          "public_government_deidentified_pair",
+          "public_government_denial_appeal_pair",
+          "real_deidentified_pair",
+          "real_world_deidentified_pair"
+        ],
+        "complete_production_pair_count": 0,
+        "counts_by_source_type": {
+          "public_government_source": 7,
+          "synthetic_deidentified_pair": 6
+        },
+        "denial_and_appeal_roles_required": true,
+        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "minimum_required_production_pair_count": 1,
+        "pair_ids_reviewed_outside_source_control": false,
+        "record_count": 13,
+        "role_counts": {
+          "appeal_letter": 3,
+          "denial_letter": 3,
+          "rule_source": 7
+        },
+        "source_documents_reviewed_outside_source_control": false,
+        "training_source_types": {
+          "synthetic_deidentified_pair": 6
+        },
+        "values_redacted": true
+      },
+      "name": "Manifest includes approved non-synthetic denial/appeal training pairs",
+      "requirement_id": "production_corpus_manifest_pair_evidence",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

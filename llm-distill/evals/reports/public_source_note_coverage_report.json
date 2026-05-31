@@ -1,0 +1,34 @@
+{
+  "artifact": "public_source_note_coverage_audit",
+  "blocker_count": 0,
+  "blockers": [],
+  "evidence": {
+    "checked_note_count": 7,
+    "checksum_mismatch_count": 0,
+    "covered_registry_source_count": 7,
+    "downloads_performed": false,
+    "duplicate_registry_source_ids": [],
+    "expected_public_source_count": 7,
+    "invalid_training_flag_count": 0,
+    "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+    "marker_missing_count": 0,
+    "missing_file_count": 0,
+    "missing_registry_source_ids": [],
+    "phi_scan": {
+      "finding_count": 0,
+      "values_redacted": true
+    },
+    "public_source_note_record_count": 7,
+    "registry_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/source_registry.json",
+    "training_exclusion_attested": true
+  },
+  "generated_at": "2026-05-31T04:11:44.061618+00:00",
+  "notes": [
+    "This audit reads checked-in registry metadata and local no-PHI source notes only.",
+    "It does not download, scrape, call external services, or mark public rule sources training eligible.",
+    "Public source notes are retrieval/governance context, not paired denial/appeal training documents."
+  ],
+  "ready": true,
+  "warning_count": 0,
+  "warnings": []
+}

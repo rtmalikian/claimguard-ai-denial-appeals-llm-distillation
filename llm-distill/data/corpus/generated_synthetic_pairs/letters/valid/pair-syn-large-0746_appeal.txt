@@ -1,0 +1,40 @@
+Draft for human review.
+draft_for_human_review
+Synthetic corpus pair PAIR-SYN-LARGE-0746.
+
+BrightPath Pediatrics
+Synthetic appeal draft for case reference SYN-CASE-0746
+Route metadata plan_reconsideration; appeal level first_level
+Synthetic formatting profile
+- Corpus role: appeal_letter
+- Layout profile: portal_card_stack
+- Typography profile: mixed_heading_body_hierarchy
+- Length profile: table_heavy
+- Format family: corrected_claim_cover_letter
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Corrected claim cover draft
+
+This supervised training draft responds to Northstar Care Alliance's synthetic denial for outpatient MRI lumbar spine in service window 2026-Q2.
+
+Correction focus: reconcile service line, procedure code, authorization placeholder, and payer edit.
+The provider staff reviewer should request reconsideration because the billed procedure and modifier combination needs coding review. The packet should connect each assertion to the denial notice, source record, or coding rationale.
+
+- Verify the denial rationale for coding_modifier_mismatch.
+- Attach source-grounded records for outpatient MRI lumbar spine.
+- Confirm code 72148 and any modifier logic before submission.
+- Keep placeholders [PATIENT_0746], [AUTH_0746], and SYN-COVERAGE-2682 synthetic.
+
+Before any real-world use, verify payer channel, current deadline, authority, attachments, clinical statements, coding facts, and minimum necessary PHI scope. This synthetic draft is not filing-ready.
+
+Source index for reviewer
+1. Synthetic denial notice SYN-CASE-0746.
+2. Coding rationale for procedure code 72148.
+3. Placeholder record summary with no real person or claim information.
+4. Payer-specific rule source to be verified outside this training fixture.
+
+Quality-control checklist
+- Confirm the draft remains conditional and source-grounded.
+- Remove any unsupported clinical, legal, deadline, or citation language.
+- Verify attachments and signature authority before real-world use.
+- Preserve only minimum necessary placeholder information.

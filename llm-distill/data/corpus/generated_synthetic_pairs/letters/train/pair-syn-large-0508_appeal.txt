@@ -1,0 +1,40 @@
+Draft for human review.
+draft_for_human_review
+Synthetic corpus pair PAIR-SYN-LARGE-0508.
+
+Pinecrest Cardiology
+Synthetic appeal draft for case reference SYN-CASE-0508
+Route metadata erisa_internal_appeal; appeal level first_level
+Synthetic formatting profile
+- Corpus role: appeal_letter
+- Layout profile: fax_cover_plus_body
+- Typography profile: large_print_accessible_notice
+- Length profile: expanded
+- Format family: medical_records_index
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Records index plus appeal narrative
+
+This supervised training draft responds to Summit Benefit Administrators's synthetic denial for outpatient MRI lumbar spine in service window 2026-Q4.
+
+The provider staff reviewer should request reconsideration because the plan classified the requested service as investigational pending evidence review. The packet should connect each assertion to the denial notice, source record, or coding rationale.
+
+Records index:
+- Verify the denial rationale for experimental_investigational.
+- Attach source-grounded records for outpatient MRI lumbar spine.
+- Confirm code 72148 and any modifier logic before submission.
+- Keep placeholders [PATIENT_0508], [AUTH_0508], and SYN-COVERAGE-8636 synthetic.
+
+Before any real-world use, verify payer channel, current deadline, authority, attachments, clinical statements, coding facts, and minimum necessary PHI scope. This synthetic draft is not filing-ready.
+
+Source index for reviewer
+1. Synthetic denial notice SYN-CASE-0508.
+2. Coding rationale for procedure code 72148.
+3. Placeholder record summary with no real person or claim information.
+4. Payer-specific rule source to be verified outside this training fixture.
+
+Quality-control checklist
+- Confirm the draft remains conditional and source-grounded.
+- Remove any unsupported clinical, legal, deadline, or citation language.
+- Verify attachments and signature authority before real-world use.
+- Preserve only minimum necessary placeholder information.

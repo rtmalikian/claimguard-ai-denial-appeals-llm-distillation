@@ -1,0 +1,444 @@
+{
+  "blocked_stage_count": 1,
+  "blocked_stages": [
+    {
+      "blockers": [
+        "student acceptance report is not release-ready"
+      ],
+      "stage": "student_acceptance"
+    }
+  ],
+  "generated_at": "2026-05-30T04:17:18.204136+00:00",
+  "mode": "preflight",
+  "notes": [
+    "Default preflight mode does not call teacher endpoints, train models, benchmark endpoints, or write adapter weights.",
+    "Each stage runs only when its explicit --run-* flag is supplied.",
+    "Raw teacher responses and reviewed training outputs are ignored by repository .gitignore rules."
+  ],
+  "pipeline_ready": false,
+  "stage_run_requests": {
+    "run_acceptance": false,
+    "run_finetune": false,
+    "run_ingest": false,
+    "run_sft_export": false
+  },
+  "stages": [
+    {
+      "blockers": [],
+      "evidence": {
+        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_responses_from_review.jsonl",
+        "phi_scan": {
+          "exists": true,
+          "finding_count": 0,
+          "findings": []
+        },
+        "record_count": 10
+      },
+      "ready": true,
+      "stage": "teacher_responses"
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "ingestion_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_ingestion_report.json",
+        "ingestion_report_summary": {
+          "error_count": 0,
+          "errors": [],
+          "missing_response_count": 0,
+          "review_status": "large_teacher_reviewed",
+          "reviewed_output": "llm-distill/data/distillation/reviewed_supervised.jsonl",
+          "reviewed_record_count": 10,
+          "seed_input": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+          "seed_record_count": 10,
+          "teacher_model": "codex_gpt5_synthetic_review",
+          "teacher_response_count": 10,
+          "teacher_responses": "llm-distill/data/distillation/teacher_responses_from_review.jsonl",
+          "training_gate": {
+            "reason": "all teacher labels validated",
+            "training_allowed": true
+          }
+        },
+        "phi_scan": {
+          "exists": true,
+          "finding_count": 0,
+          "findings": []
+        },
+        "reviewed_output": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/reviewed_supervised.jsonl",
+        "reviewed_record_count": 10,
+        "run_requested": false
+      },
+      "ready": true,
+      "stage": "ingest_reviewed_labels"
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+        "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+        "manifest_summary": {
+          "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+          "artifact": "claimguard_mlx_sft_seed",
+          "blocked_reasons": [],
+          "data_safety": {
+            "data_tier": "synthetic",
+            "external_model_calls_made": false,
+            "local_model_weights_written": false,
+            "phi_status": "no_phi",
+            "user_phi_allowed": false
+          },
+          "format": "mlx_lm_chat_jsonl",
+          "micro_skill_counts": {
+            "MS01": 10,
+            "MS02": 10,
+            "MS03": 10,
+            "MS04": 1,
+            "MS05": 5,
+            "MS06": 10,
+            "MS07": 1,
+            "MS08": 10,
+            "MS09": 10,
+            "MS10": 10,
+            "MS11": 10,
+            "MS12": 1
+          },
+          "micro_skill_coverage_complete": true,
+          "missing_required_micro_skill_ids": [],
+          "model": "Qwen/Qwen3-4B-MLX-4bit",
+          "notes": [
+            "MLX-LM expects train.jsonl for training, optional valid.jsonl for validation, and test.jsonl for adapter evaluation.",
+            "Each generated JSONL row uses the chat dataset shape: {'messages': [...]}",
+            "The final assistant message is the completion and contains compact ClaimGuard JSON.",
+            "Use --mask-prompt so loss is applied to the assistant completion for chat SFT."
+          ],
+          "record_count": 10,
+          "required_micro_skill_ids": [
+            "MS01",
+            "MS02",
+            "MS03",
+            "MS04",
+            "MS05",
+            "MS06",
+            "MS07",
+            "MS08",
+            "MS09",
+            "MS10",
+            "MS11",
+            "MS12"
+          ],
+          "source_data": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/reviewed_supervised.jsonl",
+          "split_counts": {
+            "test": 1,
+            "train": 8,
+            "valid": 1
+          },
+          "teacher_review_status_counts": {
+            "large_teacher_reviewed": 10
+          },
+          "train_command": [
+            "mlx_lm.lora",
+            "--model",
+            "Qwen/Qwen3-4B-MLX-4bit",
+            "--train",
+            "--data",
+            "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+            "--iters",
+            "60",
+            "--batch-size",
+            "1",
+            "--num-layers",
+            "8",
+            "--fine-tune-type",
+            "lora",
+            "--mask-prompt",
+            "--steps-per-report",
+            "10",
+            "--steps-per-eval",
+            "30",
+            "--adapter-path",
+            "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+          ],
+          "training_allowed": true
+        },
+        "phi_scans": {
+          "test": {
+            "exists": true,
+            "finding_count": 0,
+            "findings": []
+          },
+          "train": {
+            "exists": true,
+            "finding_count": 0,
+            "findings": []
+          },
+          "valid": {
+            "exists": true,
+            "finding_count": 0,
+            "findings": []
+          }
+        },
+        "reviewed_sft_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+        "run_requested": false,
+        "split_counts": {
+          "test": 1,
+          "train": 8,
+          "valid": 1
+        }
+      },
+      "ready": true,
+      "stage": "export_reviewed_mlx_sft"
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_reviewed_report.json",
+        "fine_tune_report_summary": {
+          "blocked_reasons": [],
+          "checks": {
+            "adapter_output": {
+              "exists_before_run": false,
+              "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+            },
+            "data": {
+              "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+              "errors": [],
+              "ready": true,
+              "split_reports": {
+                "test": {
+                  "errors": [],
+                  "exists": true,
+                  "expected_count": 1,
+                  "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/test.jsonl",
+                  "phi_findings": [],
+                  "record_count": 1
+                },
+                "train": {
+                  "errors": [],
+                  "exists": true,
+                  "expected_count": 8,
+                  "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/train.jsonl",
+                  "phi_findings": [],
+                  "record_count": 8
+                },
+                "valid": {
+                  "errors": [],
+                  "exists": true,
+                  "expected_count": 1,
+                  "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/valid.jsonl",
+                  "phi_findings": [],
+                  "record_count": 1
+                }
+              },
+              "total_phi_findings": 0
+            },
+            "host": {
+              "machine": "arm64",
+              "processor": "arm",
+              "python": "3.14.5",
+              "system": "Darwin"
+            },
+            "manifest": {
+              "artifact": "claimguard_mlx_sft_seed",
+              "data_safety": {
+                "data_tier": "synthetic",
+                "external_model_calls_made": false,
+                "local_model_weights_written": false,
+                "phi_status": "no_phi",
+                "user_phi_allowed": false
+              },
+              "errors": [],
+              "manifest_blocked_reasons": [],
+              "model": "Qwen/Qwen3-4B-MLX-4bit",
+              "ready": true,
+              "training_allowed": true,
+              "warnings": []
+            },
+            "mlx_lm_lora": {
+              "available": true,
+              "error": null,
+              "path": ".venv-mlx/bin/mlx_lm.lora"
+            }
+          },
+          "command": [
+            ".venv-mlx/bin/mlx_lm.lora",
+            "--model",
+            "Qwen/Qwen3-4B-MLX-4bit",
+            "--train",
+            "--data",
+            "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+            "--iters",
+            "60",
+            "--batch-size",
+            "1",
+            "--num-layers",
+            "8",
+            "--fine-tune-type",
+            "lora",
+            "--mask-prompt",
+            "--steps-per-report",
+            "10",
+            "--steps-per-eval",
+            "30",
+            "--adapter-path",
+            "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+          ],
+          "generated_at": "2026-05-30T03:47:00.358742+00:00",
+          "manifest": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+          "mode": "run",
+          "notes": [
+            "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
+            "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+            "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
+          ],
+          "preflight_errors": [],
+          "process": {
+            "returncode": 0,
+            "stderr_tail": "\nFetching 7 files:   0%|          | 0/7 [00:00<?, ?it/s]\nFetching 7 files: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 7/7 [00:00<00:00, 111212.61it/s]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.09s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.10s/it]\n",
+            "stdout_tail": "e sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 40: Train loss 0.284, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.804, Trained Tokens 31285, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 50: Train loss 0.117, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 34.095, Trained Tokens 39139, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6683 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 60: Val loss 0.290, Val took 16.167s\nIter 60: Train loss 0.055, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.629, Trained Tokens 46987, Peak mem 10.042 GB\nSaved final weights to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed/adapters.safetensors.\n"
+          },
+          "ready": true,
+          "training_attempted": true,
+          "training_succeeded": true
+        },
+        "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+        "run_requested": false
+      },
+      "ready": true,
+      "stage": "fine_tune_student"
+    },
+    {
+      "blockers": [
+        "student acceptance report is not release-ready"
+      ],
+      "evidence": {
+        "acceptance_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_acceptance_report.json",
+        "acceptance_report_summary": {
+          "blocked_reasons": [
+            "base benchmark failed required_keys_present on 1 record(s)",
+            "base benchmark failed draft_for_human_review on 10 record(s)",
+            "student benchmark score_ratio must be >= 0.95",
+            "student benchmark failed required_keys_present on 1 record(s)",
+            "student benchmark failed draft_for_human_review on 10 record(s)"
+          ],
+          "checks": {
+            "base_benchmark": {
+              "dry_run": false,
+              "endpoint_available": true,
+              "endpoint_error_count": 0,
+              "errors": [],
+              "gate_failures": {
+                "draft_for_human_review": 10,
+                "human_review_required": 0,
+                "json_valid": 0,
+                "required_keys_present": 1
+              },
+              "model": "Qwen/Qwen3-4B-MLX-4bit",
+              "parse_error_count": 0,
+              "ready": false,
+              "record_count": 10,
+              "score_ratio": 0.7333
+            },
+            "fine_tune_run": {
+              "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+              "adapter_path_exists": true,
+              "blocked_reasons": [],
+              "data_total_phi_findings": 0,
+              "errors": [],
+              "manifest_training_allowed": true,
+              "mode": "run",
+              "preflight_errors": [],
+              "process_returncode": 0,
+              "ready": true,
+              "training_attempted": true,
+              "training_succeeded": true
+            },
+            "phi_scans": {
+              "base_benchmark": {
+                "exists": true,
+                "finding_count": 0,
+                "findings": [],
+                "path": "llm-distill/evals/reports/local_mlx_benchmark_report.json"
+              },
+              "fine_tune_report": {
+                "exists": true,
+                "finding_count": 0,
+                "findings": [],
+                "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+              },
+              "student_benchmark": {
+                "exists": true,
+                "finding_count": 0,
+                "findings": [],
+                "path": "llm-distill/evals/reports/student_mlx_benchmark_report.json"
+              },
+              "workflow_report": {
+                "exists": true,
+                "finding_count": 0,
+                "findings": [],
+                "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+              }
+            },
+            "student_benchmark": {
+              "dry_run": false,
+              "endpoint_available": true,
+              "endpoint_error_count": 0,
+              "errors": [],
+              "gate_failures": {
+                "draft_for_human_review": 10,
+                "human_review_required": 0,
+                "json_valid": 0,
+                "required_keys_present": 1
+              },
+              "model": "Qwen/Qwen3-4B-MLX-4bit",
+              "parse_error_count": 0,
+              "ready": false,
+              "record_count": 10,
+              "score_ratio": 0.7333
+            },
+            "student_vs_base": {
+              "base_score_ratio": 0.7333,
+              "max_allowed_regression": 0.02,
+              "ready": true,
+              "score_delta": 0.0,
+              "student_score_ratio": 0.7333
+            },
+            "workflow_baseline": {
+              "errors": [],
+              "failed_scenarios": [],
+              "forbidden_scenarios": [],
+              "passed_count": 10,
+              "ready": true,
+              "scenario_count": 10,
+              "score_ratio": 1.0
+            }
+          },
+          "generated_at": "2026-05-30T04:17:17.905449+00:00",
+          "inputs": {
+            "base_benchmark": "llm-distill/evals/reports/local_mlx_benchmark_report.json",
+            "fine_tune_report": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+            "student_benchmark": "llm-distill/evals/reports/student_mlx_benchmark_report.json",
+            "workflow_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+          },
+          "notes": [
+            "This gate does not train, quantize, download models, call endpoints, or inspect adapter weights.",
+            "A release-ready student requires reviewed-label training evidence and live base/student MLX benchmark reports.",
+            "Use this gate before any adapter promotion, quantization, or application default-model change."
+          ],
+          "release_ready": false,
+          "thresholds": {
+            "max_score_regression": 0.02,
+            "min_benchmark_records": 10,
+            "student_min_score": 0.95,
+            "workflow_min_score": 0.95
+          }
+        },
+        "base_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json",
+        "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_reviewed_report.json",
+        "run_requested": false,
+        "student_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json",
+        "workflow_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+      },
+      "ready": false,
+      "stage": "student_acceptance"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0048.
+
+Blue Harbor Administrators
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0048
+Coverage reference SYN-COVERAGE-0816
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: single_column_letterhead
+- Typography profile: serif_notice_body
+- Length profile: compact
+- Format family: formal_letter
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Dear Provider Staff,
+
+Synthetic member placeholder [PATIENT_0048]; provider group Pinecrest Cardiology; service window 2026-Q4; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $7,051.00.
+
+Determination rationale: the plan classified the requested service as investigational pending evidence review. This synthetic notice is for model training only and is not connected to any real person.
+
+Recommended route metadata: formal_internal_appeal. The provider may submit a draft_for_human_review appeal packet with source documents, coding rationale, and minimum necessary placeholders.
+
+No final deadline is asserted in this synthetic example; local plan documents must be verified.

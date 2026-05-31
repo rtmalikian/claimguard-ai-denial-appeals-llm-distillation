@@ -1,0 +1,33 @@
+{
+  "artifact": "claimguard_production_corpus_evidence",
+  "version": "1.0",
+  "evidence_status": "current_manifest_review_ready_non_synthetic_pair_blocked",
+  "prepared_at": null,
+  "no_phi_or_secret_values_attested": true,
+  "no_raw_document_content_attested": true,
+  "manifest_path": "llm-distill/data/corpus/manifest.json",
+  "corpus_review": {
+    "source_control_review_runbook_documented": true,
+    "source_control_review_runbook_path": "llm-distill/docs/production-corpus-review-runbook.md",
+    "privacy_review_attested": true,
+    "license_review_attested": true,
+    "residual_risk_review_attested": true,
+    "training_scope_reviewed": true,
+    "no_phi_review_attested": true,
+    "source_license_scope_documented": true,
+    "contains_approval_reference_values": false,
+    "contains_raw_document_content": false
+  },
+  "pairing_requirements": {
+    "minimum_approved_non_synthetic_pair_count": 1,
+    "denial_and_appeal_roles_required": true,
+    "pair_ids_reviewed_outside_source_control": false,
+    "source_documents_reviewed_outside_source_control": false
+  },
+  "operator_notes": [
+    "Do not store raw denial letters, raw appeal letters, approval reference values, credentials, tokens, PHI, source document paths, checksums, or production document details in this evidence file.",
+    "The manifest may contain versioned metadata, but this report emits counts and blocker codes only.",
+    "Current checked-in manifest metadata has been reviewed for privacy, license, residual-risk, training-scope, no-PHI, and source/license scope evidence.",
+    "Production readiness still requires at least one approved non-synthetic denial/appeal pair and outside-source-control pair/source review before setting pairing booleans true."
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "artifact": "synthetic_denial_appeal_visual_layouts",
+  "blocker_count": 0,
+  "blockers": [],
+  "evidence": {
+    "checksum_mismatch_count": 0,
+    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+    "counts": {
+      "document_role": {
+        "appeal_letter": 900,
+        "denial_letter": 900
+      },
+      "font_family": {
+        "Arial Narrow, Roboto Condensed, Arial, sans-serif": 224,
+        "Arial, Helvetica, sans-serif": 224,
+        "Calibri, Arial, sans-serif": 226,
+        "Courier New, Courier, monospace": 224,
+        "Georgia, Times New Roman, serif": 224,
+        "Lucida Console, Courier New, monospace": 226,
+        "Times New Roman, Georgia, serif": 226,
+        "Verdana, Arial, sans-serif": 226
+      },
+      "layout_profile": {
+        "bullet_heavy_managed_care_notice": 150,
+        "corrected_claim_cover_layout": 150,
+        "dense_utilization_review_notice": 150,
+        "employer_plan_memo": 150,
+        "fax_cover_plus_body": 150,
+        "long_form_adverse_benefit_notice": 150,
+        "portal_card_stack": 150,
+        "records_index_packet": 150,
+        "short_portal_update": 150,
+        "single_column_letterhead": 150,
+        "tabbed_reconsideration_notice": 150,
+        "two_column_eob_summary": 150
+      },
+      "split": {
+        "test": 180,
+        "train": 1440,
+        "valid": 180
+      },
+      "typography_profile": {
+        "condensed_table_labels": 224,
+        "large_print_accessible_notice": 226,
+        "mixed_heading_body_hierarchy": 226,
+        "monospace_fax_extract": 224,
+        "plain_text_eob_export": 226,
+        "sans_serif_portal_body": 224,
+        "serif_notice_body": 224,
+        "small_footer_legal_notice": 226
+      }
+    },
+    "html_existing_count": 0,
+    "letter_count": 1800,
+    "missing_source_count": 0,
+    "pair_count": 900,
+    "phi_scan": {
+      "finding_count": 0,
+      "finding_types": [],
+      "values_redacted": true
+    },
+    "rendered_html_count": 1800,
+    "safety": {
+      "actual_css_font_stacks": true,
+      "actual_html_layout_wrappers": true,
+      "external_model_calls_made": false,
+      "real_claim_data_used": false,
+      "real_patient_data_used": false,
+      "synthetic_only": true
+    },
+    "source_manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "source_record_count": 1800,
+    "variant_counts": {
+      "font_family": 8,
+      "layout_profile": 12,
+      "typography_profile": 8
+    },
+    "visual_manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/visual_manifest_synthetic_900.json",
+    "visual_record_count": 1800
+  },
+  "generated_at": "2026-05-31T02:55:48.092113+00:00",
+  "notes": [
+    "Rendered HTML companions preserve the same synthetic text as the training corpus.",
+    "Actual CSS font-family stacks and layout classes provide visual document variation.",
+    "HTML files are local no-PHI artifacts for layout and OCR-style stress testing."
+  ],
+  "ready": true
+}

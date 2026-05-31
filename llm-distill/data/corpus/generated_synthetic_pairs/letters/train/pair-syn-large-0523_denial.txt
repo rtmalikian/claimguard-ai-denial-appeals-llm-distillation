@@ -1,0 +1,21 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0523.
+
+Clearwater Managed Care
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0523
+Coverage reference SYN-COVERAGE-8891
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: two_column_eob_summary
+- Typography profile: small_footer_legal_notice
+- Length profile: short_portal
+- Format family: eob_summary
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Explanation summary
+- Review status: denied
+- Service category: home_health
+- Synthetic member placeholder [PATIENT_0523]; provider group Harborview Oncology Center; service window 2026-Q3; service reviewed home health skilled nursing visit; procedure code G0299; billed amount $3,526.00.
+- Determination rationale: submitted notes did not establish the plan criteria for the requested level of care. This synthetic notice is for model training only and is not connected to any real person.
+- Action: reconcile coding, coverage, and documentation before appeal submission.
+- Human review required before any real-world use.

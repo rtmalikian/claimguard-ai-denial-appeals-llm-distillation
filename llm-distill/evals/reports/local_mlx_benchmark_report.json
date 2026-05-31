@@ -1,0 +1,355 @@
+{
+  "base_url": "http://localhost:8080/v1",
+  "generated_at": "2026-05-30T04:58:34.849942+00:00",
+  "host": {
+    "machine": "arm64",
+    "processor": "arm",
+    "python": "3.14.5",
+    "system": "Darwin"
+  },
+  "model": "Qwen/Qwen3-4B-MLX-4bit",
+  "records": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+  "results": [
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs01-commercial_or_unknown_medical_necessity",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 633,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 34.8146,
+        "endpoint_error": null,
+        "output_token_estimate": 372,
+        "parse_error": null,
+        "tokens_per_second": 10.6852
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs02-urgent_pre_service",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 626,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 34.6999,
+        "endpoint_error": null,
+        "output_token_estimate": 442,
+        "parse_error": null,
+        "tokens_per_second": 12.7378
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs03-self_funded_erisa_medical_necessity",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 624,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 35.8451,
+        "endpoint_error": null,
+        "output_token_estimate": 453,
+        "parse_error": null,
+        "tokens_per_second": 12.6377
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs04-medicare_ffs_redetermination",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 616,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 37.178,
+        "endpoint_error": null,
+        "output_token_estimate": 457,
+        "parse_error": null,
+        "tokens_per_second": 12.2922
+      },
+      "score": {
+        "denial_type_match": false,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 5
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs05-medicare_advantage_pre_service",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 606,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 33.8209,
+        "endpoint_error": null,
+        "output_token_estimate": 462,
+        "parse_error": null,
+        "tokens_per_second": 13.6602
+      },
+      "score": {
+        "denial_type_match": false,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 5
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs06-medicaid_managed_care_service_reduction",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 604,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 28.8221,
+        "endpoint_error": null,
+        "output_token_estimate": 388,
+        "parse_error": null,
+        "tokens_per_second": 13.4619
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs07-commercial_out_of_network",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 612,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 28.1988,
+        "endpoint_error": null,
+        "output_token_estimate": 378,
+        "parse_error": null,
+        "tokens_per_second": 13.4048
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs08-coding_modifier_corrected_claim",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 633,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 28.1238,
+        "endpoint_error": null,
+        "output_token_estimate": 352,
+        "parse_error": null,
+        "tokens_per_second": 12.5161
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs09-provider_authority_missing",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 625,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 36.6558,
+        "endpoint_error": null,
+        "output_token_estimate": 475,
+        "parse_error": null,
+        "tokens_per_second": 12.9584
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    },
+    {
+      "dataset_split": "dev",
+      "example_id": "cg-vs10-upheld_final_adverse_response",
+      "request": {
+        "max_tokens": 1800,
+        "prompt_token_estimate": 574,
+        "schema_contract": {
+          "enabled": true,
+          "name": "strict_claim_guard_json_v1"
+        }
+      },
+      "runtime": {
+        "dry_run": false,
+        "duration_seconds": 39.6636,
+        "endpoint_error": null,
+        "output_token_estimate": 513,
+        "parse_error": null,
+        "tokens_per_second": 12.9338
+      },
+      "score": {
+        "denial_type_match": true,
+        "draft_for_human_review": true,
+        "human_review_required": true,
+        "json_valid": true,
+        "max_score": 6,
+        "required_keys_present": true,
+        "route_match": true,
+        "score": 6
+      },
+      "teacher_review_status": "pending_large_teacher_review"
+    }
+  ],
+  "schema_contract": {
+    "enabled": true,
+    "name": "strict_claim_guard_json_v1",
+    "required_output_keys": [
+      "case_summary",
+      "cited_rules",
+      "deadline_table",
+      "denial_type",
+      "draft_sections",
+      "evidence_gaps",
+      "follow_up_plan",
+      "human_review_required",
+      "inferred",
+      "known_from_documents",
+      "missing_needs_human_verification",
+      "plan_type",
+      "recommended_route",
+      "warnings"
+    ]
+  },
+  "summary": {
+    "dry_run": false,
+    "endpoint_available": true,
+    "endpoint_error_count": 0,
+    "latency_seconds_avg": 33.7823,
+    "max_score": 60,
+    "record_count": 10,
+    "score_ratio": 0.9667,
+    "tokens_per_second_avg": 12.7288,
+    "total_score": 58
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "artifact": "claimguard_mlx_runtime_supervisor_evidence",
+  "version": "1.0",
+  "evidence_status": "template_pending",
+  "prepared_at": null,
+  "no_phi_or_secret_values_attested": true,
+  "launchd_template": {
+    "plist_path": "llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist",
+    "uses_shell": false,
+    "runs_mlx_lm_server": true,
+    "uses_adapter_path": true,
+    "binds_loopback_only": true,
+    "base_url_matches_mlx_base_url": true,
+    "keepalive_enabled": true,
+    "working_directory_configured": true,
+    "log_paths_configured": true,
+    "contains_secrets": false
+  },
+  "operator_controls": {
+    "runtime_owner_configured": false,
+    "source_control_runbook_documented": true,
+    "source_control_runbook_path": "llm-distill/docs/mlx-runtime-supervisor-runbook.md",
+    "restart_policy_reviewed": true,
+    "health_check_reviewed": true,
+    "manual_start_command_reviewed": true,
+    "rollback_to_nvidia_reviewed": true,
+    "environment_file_excluded_from_source_control": true
+  },
+  "runtime_validation": {
+    "source_control_validation_checklist_documented": true,
+    "source_control_validation_checklist_path": "llm-distill/docs/mlx-runtime-validation-checklist.md",
+    "mlx_runtime_preflight_ready": false,
+    "student_status_endpoint_checked": false,
+    "student_runtime_health_ok": false,
+    "supervisor_loaded_in_user_session": false,
+    "supervisor_restart_test_passed": false
+  },
+  "operator_notes": [
+    "Do not store approval reference values, PHI, credentials, tokens, production document content, or environment secrets in this evidence file.",
+    "Install the launchd plist from a private operator copy after replacing /ABSOLUTE/PATH/TO with the deployment path outside source control.",
+    "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approval, approval-reference configuration, runtime supervision, health checks, and rollback review are complete."
+  ]
+}

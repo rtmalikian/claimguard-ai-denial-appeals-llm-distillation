@@ -1,0 +1,19 @@
+Public government corpus source note: DOL EBSA health benefit claims and appeals.
+
+Source URL:
+https://www.dol.gov/agencies/ebsa/about-ebsa/our-activities/resource-center/publications/filing-a-claim-for-your-health-benefits
+
+Corpus role:
+Appeal-process reference for employer-plan claim and appeal workflow examples,
+including source-grounded reminders that plan documents and current rules must
+be verified by a human reviewer.
+
+Safety notes:
+This checked-in source note contains no user documents, no patient facts, no
+claim identifiers, no contact details, and no credentials. It is not a denial
+letter or appeal letter pair and is not exported to MLX SFT training splits.
+
+Use constraints:
+Use this record as public source coverage and retrieval/governance context only.
+Any deadline, appeal right, plan classification, or submission channel must be
+verified against the current source and governing plan documents before use.

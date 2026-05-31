@@ -1,0 +1,514 @@
+{
+  "blocked_item_count": 6,
+  "blocked_items": [
+    {
+      "blockers": [
+        "manual_gate_packet_production_gates_not_ready"
+      ],
+      "evidence": {
+        "blocked_item_count": 5,
+        "blocked_requirement_ids": [
+          "manual_prediction_fairness_monitoring_evidence",
+          "manual_production_corpus_evidence",
+          "manual_retrieval_vector_backend_evidence",
+          "manual_student_default_cutover_evidence",
+          "manual_user_data_model_improvement_evidence"
+        ],
+        "packet_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+        "production_gate_ready": false,
+        "safe_to_review": true
+      },
+      "name": "Manual PHIplan production-gate packet is safe and production-ready",
+      "requirement_id": "manual_production_gate_packet_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "student_default_not_requested_or_disabled",
+        "student_cutover_approval_missing",
+        "student_cutover_approval_reference_missing",
+        "student_runtime_supervision_missing",
+        "student_runtime_supervisor_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "cutover_approved": false,
+        "distillation_release_ready": true,
+        "distillation_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+        "rollback_to_nvidia": false,
+        "runtime_supervised": false,
+        "runtime_supervisor_blocked_requirement_ids": [
+          "mlx_runtime_supervisor_operator_controls",
+          "mlx_runtime_supervisor_runtime_validation"
+        ],
+        "runtime_supervisor_ready": false,
+        "runtime_supervisor_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+        "runtime_supervisor_safe_to_review": true,
+        "student_auto_launch_requested": false,
+        "student_use_by_default": false
+      },
+      "name": "Student default cutover has external approval and supervised runtime gates",
+      "requirement_id": "student_default_cutover_external_approval",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "user_data_model_improvement_disabled",
+        "legal_approval_missing",
+        "baa_confirmation_missing",
+        "consent_notice_version_missing",
+        "approval_reference_missing",
+        "model_improvement_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "enabled": false,
+        "legal_approval_confirmed": false,
+        "model_improvement_blocked_requirement_ids": [
+          "model_improvement_legal_controls"
+        ],
+        "model_improvement_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/model_improvement_evidence_report.json",
+        "model_improvement_report_ready": false,
+        "model_improvement_report_safe_to_review": true
+      },
+      "name": "User-data model improvement has legal, BAA, consent, and approval gates",
+      "requirement_id": "user_data_model_improvement_external_approval",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "semantic_embedding_backend_not_configured",
+        "hash_embedding_backend_is_fallback_only",
+        "embedding_model_not_approved_for_production",
+        "production_vector_backend_not_configured",
+        "hash_fallback_not_disabled_for_production",
+        "retrieval_vector_backend_report_not_ready"
+      ],
+      "evidence": {
+        "embedding_backend": "hash",
+        "embedding_model": "claimguard-hash-embedding-v1",
+        "embedding_model_approved": false,
+        "hash_fallback_configured": true,
+        "hash_fallback_disabled_for_production": false,
+        "semantic_backend_configured": false,
+        "vector_backend": "encrypted_local_metadata",
+        "vector_backend_blocked_requirement_ids": [
+          "retrieval_vector_backend_configuration",
+          "retrieval_vector_backend_index_state",
+          "retrieval_vector_backend_runtime_validation"
+        ],
+        "vector_backend_has_url_or_credentials": false,
+        "vector_backend_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/retrieval_vector_backend_report.json",
+        "vector_backend_report_ready": false,
+        "vector_backend_report_safe_to_review": true
+      },
+      "name": "Production semantic embeddings and vector backend are configured",
+      "requirement_id": "production_semantic_vector_backend",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "production_training_corpus_has_only_synthetic_or_unpaired_records",
+        "production_corpus_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "accepted_production_source_types": [
+          "approved_public_denial_appeal_pair",
+          "public_government_deidentified_pair",
+          "public_government_denial_appeal_pair",
+          "real_deidentified_pair",
+          "real_world_deidentified_pair"
+        ],
+        "complete_production_pair_count": 0,
+        "complete_production_pair_ids": [],
+        "counts_by_source_type": {
+          "public_government_source": 7,
+          "synthetic_deidentified_pair": 6
+        },
+        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "minimum_required_production_pair_count": 1,
+        "production_corpus_blocked_requirement_ids": [
+          "production_corpus_manifest_pair_evidence"
+        ],
+        "production_corpus_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/production_corpus_evidence_report.json",
+        "production_corpus_report_ready": false,
+        "production_corpus_report_safe_to_review": true,
+        "record_count": 13,
+        "training_source_types": {
+          "synthetic_deidentified_pair": 6
+        }
+      },
+      "name": "Production corpus includes non-synthetic approved denial/appeal training pairs",
+      "requirement_id": "production_corpus_expansion_beyond_synthetic",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "prediction_fairness_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "prediction_fairness_blocked_requirement_ids": [
+          "prediction_fairness_calibrated_threshold",
+          "prediction_fairness_continuous_monitoring",
+          "prediction_fairness_governance_controls"
+        ],
+        "prediction_fairness_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+        "prediction_fairness_report_ready": false,
+        "prediction_fairness_report_safe_to_review": true,
+        "values_redacted": true
+      },
+      "name": "Production threshold calibration and continuous fairness monitoring are ready",
+      "requirement_id": "production_prediction_fairness_monitoring",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "generated_at": "2026-05-31T16:45:07.213759+00:00",
+  "next_required_actions": [
+    "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
+    "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
+    "Keep user-data model improvement disabled until legal approval, BAA confirmation, consent notice version, approval reference, per-request attestations, and boolean-only evidence from validate_model_improvement_evidence.py are complete.",
+    "Configure a production semantic embedding backend and vector store, then reindex retrieval/corpus chunks and validate boolean-only evidence with validate_retrieval_vector_backend.py before treating retrieval as production semantic search.",
+    "Add approved non-synthetic denial/appeal training pairs only after public/government licensing or Raphael-approved de-identification review is complete, then validate boolean-only evidence with validate_production_corpus_evidence.py.",
+    "Keep production threshold calibration and continuous fairness monitoring blocked until approved real-world outcome data, minimum sample size, threshold review, demographic grouping review, monitoring ownership, latest run evidence, legal/privacy review, and boolean-only evidence from validate_prediction_fairness_evidence.py are complete.",
+    "Rerun the guarded synthetic-900 MLX LoRA command from a local macOS session with Metal access before promoting a synthetic-900 adapter."
+  ],
+  "notes": [
+    "This audit does not enable student default routing, call external services, train models, or write adapter files.",
+    "Approval and consent reference values are reduced to configured/not-configured booleans and are not written to the report.",
+    "safe_current_state=true means the current defaults remain conservative; production_ready=false means external production gates remain open."
+  ],
+  "objective": "Audit PHIplan production-readiness gates separately from the passing synthetic/reviewed distillation evidence.",
+  "production_ready": false,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "llm_provider": "nvidia_nim",
+        "safe_default_expected_provider": "nvidia_nim",
+        "student_use_by_default": false
+      },
+      "name": "Current base runtime remains NVIDIA while student routing is separately gated",
+      "requirement_id": "current_runtime_default_safe",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "api_environment_found": true,
+        "approval_reference_values_included": false,
+        "compose_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml",
+        "configured_guard_env_var_count": 19,
+        "forbidden_guard_env_vars": [],
+        "missing_guard_env_vars": [],
+        "non_conservative_default_guard_env_vars": [],
+        "non_self_referenced_guard_env_vars": [],
+        "raw_env_values_included": false,
+        "raw_secrets_included": false,
+        "required_guard_env_var_count": 19
+      },
+      "name": "Production compose forwards startup guard settings with conservative defaults",
+      "requirement_id": "production_compose_startup_guard_env",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "blocked_reasons": [],
+        "ready": true,
+        "summary": {
+          "discovered_count": 2,
+          "expected_count": 2,
+          "registered_count": 2,
+          "unregistered_count": 0
+        },
+        "surface_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
+        "values_redacted": true
+      },
+      "name": "Automated file-ingestion endpoints have PHI surface and governance coverage",
+      "requirement_id": "file_ingestion_surface_audit_ready",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_runtime_metrics": [],
+        "missing_source_metrics": [],
+        "monitoring_module_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
+        "raw_approval_or_report_values_included": false,
+        "raw_document_text_included": false,
+        "raw_metric_output_included": false,
+        "raw_phi_included": false,
+        "raw_secret_included": false,
+        "required_metric_count": 18,
+        "runtime_check_performed": true,
+        "runtime_error_type": null,
+        "runtime_metric_count": 25,
+        "source_metric_count": 18
+      },
+      "name": "Admin Prometheus metrics expose PHIplan gate state without raw values",
+      "requirement_id": "monitoring_gate_metrics_ready",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_payload_keys": [],
+        "missing_source_markers": [],
+        "monitoring_module_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
+        "raw_approval_or_report_values_included": false,
+        "raw_document_text_included": false,
+        "raw_evidence_included": false,
+        "raw_phi_included": false,
+        "raw_report_paths_included": false,
+        "raw_secret_included": false,
+        "required_source_marker_count": 7,
+        "runtime_check_performed": true,
+        "runtime_error_type": null,
+        "source_marker_count": 7,
+        "unsafe_safe_context_flags": []
+      },
+      "name": "Admin PHIplan readiness endpoint exposes sanitized metadata only",
+      "requirement_id": "monitoring_readiness_endpoint_ready",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "manual_gate_packet_production_gates_not_ready"
+      ],
+      "evidence": {
+        "blocked_item_count": 5,
+        "blocked_requirement_ids": [
+          "manual_prediction_fairness_monitoring_evidence",
+          "manual_production_corpus_evidence",
+          "manual_retrieval_vector_backend_evidence",
+          "manual_student_default_cutover_evidence",
+          "manual_user_data_model_improvement_evidence"
+        ],
+        "packet_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+        "production_gate_ready": false,
+        "safe_to_review": true
+      },
+      "name": "Manual PHIplan production-gate packet is safe and production-ready",
+      "requirement_id": "manual_production_gate_packet_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "student_default_not_requested_or_disabled",
+        "student_cutover_approval_missing",
+        "student_cutover_approval_reference_missing",
+        "student_runtime_supervision_missing",
+        "student_runtime_supervisor_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "cutover_approved": false,
+        "distillation_release_ready": true,
+        "distillation_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+        "rollback_to_nvidia": false,
+        "runtime_supervised": false,
+        "runtime_supervisor_blocked_requirement_ids": [
+          "mlx_runtime_supervisor_operator_controls",
+          "mlx_runtime_supervisor_runtime_validation"
+        ],
+        "runtime_supervisor_ready": false,
+        "runtime_supervisor_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+        "runtime_supervisor_safe_to_review": true,
+        "student_auto_launch_requested": false,
+        "student_use_by_default": false
+      },
+      "name": "Student default cutover has external approval and supervised runtime gates",
+      "requirement_id": "student_default_cutover_external_approval",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "user_data_model_improvement_disabled",
+        "legal_approval_missing",
+        "baa_confirmation_missing",
+        "consent_notice_version_missing",
+        "approval_reference_missing",
+        "model_improvement_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "approval_reference_configured": false,
+        "baa_confirmed": false,
+        "consent_notice_version_configured": false,
+        "enabled": false,
+        "legal_approval_confirmed": false,
+        "model_improvement_blocked_requirement_ids": [
+          "model_improvement_legal_controls"
+        ],
+        "model_improvement_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/model_improvement_evidence_report.json",
+        "model_improvement_report_ready": false,
+        "model_improvement_report_safe_to_review": true
+      },
+      "name": "User-data model improvement has legal, BAA, consent, and approval gates",
+      "requirement_id": "user_data_model_improvement_external_approval",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "semantic_embedding_backend_not_configured",
+        "hash_embedding_backend_is_fallback_only",
+        "embedding_model_not_approved_for_production",
+        "production_vector_backend_not_configured",
+        "hash_fallback_not_disabled_for_production",
+        "retrieval_vector_backend_report_not_ready"
+      ],
+      "evidence": {
+        "embedding_backend": "hash",
+        "embedding_model": "claimguard-hash-embedding-v1",
+        "embedding_model_approved": false,
+        "hash_fallback_configured": true,
+        "hash_fallback_disabled_for_production": false,
+        "semantic_backend_configured": false,
+        "vector_backend": "encrypted_local_metadata",
+        "vector_backend_blocked_requirement_ids": [
+          "retrieval_vector_backend_configuration",
+          "retrieval_vector_backend_index_state",
+          "retrieval_vector_backend_runtime_validation"
+        ],
+        "vector_backend_has_url_or_credentials": false,
+        "vector_backend_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/retrieval_vector_backend_report.json",
+        "vector_backend_report_ready": false,
+        "vector_backend_report_safe_to_review": true
+      },
+      "name": "Production semantic embeddings and vector backend are configured",
+      "requirement_id": "production_semantic_vector_backend",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "production_training_corpus_has_only_synthetic_or_unpaired_records",
+        "production_corpus_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "accepted_production_source_types": [
+          "approved_public_denial_appeal_pair",
+          "public_government_deidentified_pair",
+          "public_government_denial_appeal_pair",
+          "real_deidentified_pair",
+          "real_world_deidentified_pair"
+        ],
+        "complete_production_pair_count": 0,
+        "complete_production_pair_ids": [],
+        "counts_by_source_type": {
+          "public_government_source": 7,
+          "synthetic_deidentified_pair": 6
+        },
+        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "minimum_required_production_pair_count": 1,
+        "production_corpus_blocked_requirement_ids": [
+          "production_corpus_manifest_pair_evidence"
+        ],
+        "production_corpus_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/production_corpus_evidence_report.json",
+        "production_corpus_report_ready": false,
+        "production_corpus_report_safe_to_review": true,
+        "record_count": 13,
+        "training_source_types": {
+          "synthetic_deidentified_pair": 6
+        }
+      },
+      "name": "Production corpus includes non-synthetic approved denial/appeal training pairs",
+      "requirement_id": "production_corpus_expansion_beyond_synthetic",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "prediction_fairness_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "prediction_fairness_blocked_requirement_ids": [
+          "prediction_fairness_calibrated_threshold",
+          "prediction_fairness_continuous_monitoring",
+          "prediction_fairness_governance_controls"
+        ],
+        "prediction_fairness_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+        "prediction_fairness_report_ready": false,
+        "prediction_fairness_report_safe_to_review": true,
+        "values_redacted": true
+      },
+      "name": "Production threshold calibration and continuous fairness monitoring are ready",
+      "requirement_id": "production_prediction_fairness_monitoring",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "adapter_written": false,
+        "blocked_reasons": [
+          "mlx_lm.lora cannot access a Metal device in this session"
+        ],
+        "data_ready": true,
+        "manifest_ready": true,
+        "no_metal_device": true,
+        "run_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
+        "training_attempted": false,
+        "training_succeeded": null
+      },
+      "name": "Synthetic-900 adapter training evidence is current",
+      "requirement_id": "synthetic_900_adapter_training_status",
+      "status": "warning",
+      "warnings": [
+        "synthetic_900_training_not_run_no_metal_device"
+      ]
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "external_deidentification_service_configured": false,
+        "raw_phi_training_allowed": false,
+        "user_data_model_improvement_enabled": false
+      },
+      "name": "No independent external PHI de-identification service is enabled by default",
+      "requirement_id": "external_phi_service_guard",
+      "status": "ready",
+      "warnings": []
+    }
+  ],
+  "safe_current_state": true,
+  "warning_item_count": 1,
+  "warning_items": [
+    {
+      "blockers": [],
+      "evidence": {
+        "adapter_written": false,
+        "blocked_reasons": [
+          "mlx_lm.lora cannot access a Metal device in this session"
+        ],
+        "data_ready": true,
+        "manifest_ready": true,
+        "no_metal_device": true,
+        "run_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
+        "training_attempted": false,
+        "training_succeeded": null
+      },
+      "name": "Synthetic-900 adapter training evidence is current",
+      "requirement_id": "synthetic_900_adapter_training_status",
+      "status": "warning",
+      "warnings": [
+        "synthetic_900_training_not_run_no_metal_device"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Training synthetic corpus pair CP-TEST-001.
+
+A Medicaid managed care example denies a procedure as a coding and modifier mismatch. The synthetic notice contains no personal identifiers, contact routes, account references, addresses, exact calendar details, or raw document metadata. Reviewer action is to reconcile procedure coding, modifier use, billed units, payer edit logic, and the correct appeal route.

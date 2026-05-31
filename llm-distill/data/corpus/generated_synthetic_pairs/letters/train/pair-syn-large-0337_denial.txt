@@ -1,0 +1,20 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0337.
+
+Aster Health Plan
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0337
+Coverage reference SYN-COVERAGE-5729
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: employer_plan_memo
+- Typography profile: plain_text_eob_export
+- Length profile: short_portal
+- Format family: utilization_review_notice
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Utilization review outcome
+
+Clinical/service topic: home health skilled nursing visit.
+Administrative context: Synthetic member placeholder [PATIENT_0337]; provider group Lakeside Imaging Associates; service window 2026-Q1; service reviewed home health skilled nursing visit; procedure code G0299; billed amount $7,444.00.
+Review finding: Determination rationale: the payer system detected a potentially duplicate service line. This synthetic notice is for model training only and is not connected to any real person.
+A reviewer should compare the submitted packet against current plan criteria.

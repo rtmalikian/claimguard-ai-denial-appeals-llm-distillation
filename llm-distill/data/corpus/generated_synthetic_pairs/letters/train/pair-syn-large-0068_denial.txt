@@ -1,0 +1,31 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0068.
+
+Summit Benefit Administrators
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0068
+Coverage reference SYN-COVERAGE-1156
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: records_index_packet
+- Typography profile: large_print_accessible_notice
+- Length profile: table_heavy
+- Format family: fax_cover_summary
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Fax-style synthetic summary
+
+Line 1: Synthetic member placeholder [PATIENT_0068]; provider group Pinecrest Cardiology; service window 2026-Q4; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $9,791.00.
+Line 2: Denial type experimental_investigational.
+Line 3: Determination rationale: the plan classified the requested service as investigational pending evidence review. This synthetic notice is for model training only and is not connected to any real person.
+Line 4: Attach verified records only; do not add real identifiers.
+
+Source packet review
+The review queue could not confirm that Pinecrest Cardiology supplied all plan-required support for outpatient MRI lumbar spine. Staff should compare the service category, code, and submitted record summary before preparing any appeal response.
+
+Service-line table
+| Field | Synthetic value |
+|---|---|
+| Service category | radiology |
+| Procedure code | 72148 |
+| Review amount | $9,791.00 |
+| Route metadata | erisa_internal_appeal |

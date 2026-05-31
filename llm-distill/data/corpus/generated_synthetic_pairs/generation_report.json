@@ -1,0 +1,106 @@
+{
+  "artifact": "synthetic_denial_appeal_corpus",
+  "counts": {
+    "appeal_format": {
+      "clinical_reconsideration_packet": 112,
+      "coding_review_appeal": 113,
+      "corrected_claim_cover_letter": 113,
+      "medical_records_index": 113,
+      "network_exception_appeal": 112,
+      "portal_appeal_message": 112,
+      "provider_formal_letter": 112,
+      "timely_filing_rebuttal": 113
+    },
+    "denial_format": {
+      "employer_plan_adverse_benefit_notice": 112,
+      "eob_summary": 113,
+      "fax_cover_summary": 113,
+      "formal_letter": 112,
+      "medicaid_managed_care_notice": 113,
+      "medicare_reconsideration_notice": 112,
+      "portal_message": 112,
+      "utilization_review_notice": 113
+    },
+    "denial_type": {
+      "coding_modifier_mismatch": 90,
+      "coordination_of_benefits": 90,
+      "documentation_support": 90,
+      "duplicate_service": 90,
+      "eligibility": 90,
+      "experimental_investigational": 90,
+      "medical_necessity": 90,
+      "out_of_network": 90,
+      "prior_authorization_missing": 90,
+      "timely_filing": 90
+    },
+    "layout_profile": {
+      "bullet_heavy_managed_care_notice": 75,
+      "corrected_claim_cover_layout": 75,
+      "dense_utilization_review_notice": 75,
+      "employer_plan_memo": 75,
+      "fax_cover_plus_body": 75,
+      "long_form_adverse_benefit_notice": 75,
+      "portal_card_stack": 75,
+      "records_index_packet": 75,
+      "short_portal_update": 75,
+      "single_column_letterhead": 75,
+      "tabbed_reconsideration_notice": 75,
+      "two_column_eob_summary": 75
+    },
+    "length_profile": {
+      "compact": 150,
+      "expanded": 150,
+      "long_review_packet": 150,
+      "short_portal": 150,
+      "standard": 150,
+      "table_heavy": 150
+    },
+    "payer_type": {
+      "commercial": 225,
+      "erisa_self_funded": 113,
+      "marketplace": 112,
+      "medicaid_managed_care": 225,
+      "medicare_advantage": 225
+    },
+    "split": {
+      "test": 90,
+      "train": 720,
+      "valid": 90
+    },
+    "typography_profile": {
+      "condensed_table_labels": 112,
+      "large_print_accessible_notice": 113,
+      "mixed_heading_body_hierarchy": 113,
+      "monospace_fax_extract": 112,
+      "plain_text_eob_export": 113,
+      "sans_serif_portal_body": 112,
+      "serif_notice_body": 112,
+      "small_footer_legal_notice": 113
+    }
+  },
+  "letter_count": 1800,
+  "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+  "notes": [
+    "Fictitious payer and provider organization names are synthetic.",
+    "Patient, authorization, and coverage context uses placeholders rather than real identifiers.",
+    "The generated appeal letters remain draft_for_human_review.",
+    "Each text file includes a synthetic formatting profile documenting intended layout, typography, format family, and length variation.",
+    "Font variation is represented as metadata so the training corpus remains plain text and PHI-scannable."
+  ],
+  "output_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+  "pair_count": 900,
+  "phi_scan": {
+    "finding_count": 0,
+    "findings": [],
+    "values_redacted": true
+  },
+  "readme_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/README.md",
+  "safety": {
+    "external_model_calls_made": false,
+    "real_claim_data_used": false,
+    "real_patient_data_used": false,
+    "synthetic_only": true,
+    "training_allowed_only_after_export_gates": true,
+    "uses_placeholders_for_member_and_patient_context": true
+  }
+}

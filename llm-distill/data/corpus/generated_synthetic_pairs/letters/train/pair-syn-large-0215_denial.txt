@@ -1,0 +1,27 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0215.
+
+Oakline Community Health
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0215
+Coverage reference SYN-COVERAGE-3655
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: tabbed_reconsideration_notice
+- Typography profile: sans_serif_portal_body
+- Length profile: standard
+- Format family: medicare_reconsideration_notice
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Plan reconsideration training notice
+
+Synthetic member placeholder [PATIENT_0215]; provider group Westhaven Digestive Health; service window 2026-Q3; service reviewed home health skilled nursing visit; procedure code G0299; billed amount $530.00.
+
+Determination rationale: coverage eligibility could not be confirmed for the service window. This synthetic notice is for model training only and is not connected to any real person.
+
+Use this example to train route selection and evidence-gap detection, not to assert Medicare rules.
+
+Reviewer action list
+- Verify the current payer rule before citing it.
+- Confirm the appeal channel and representative authority.
+- Use only minimum necessary placeholders in any training response.
+- Keep any generated appeal draft marked for human review.

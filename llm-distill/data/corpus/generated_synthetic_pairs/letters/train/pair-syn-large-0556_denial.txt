@@ -1,0 +1,31 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0556.
+
+Summit Benefit Administrators
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0556
+Coverage reference SYN-COVERAGE-9452
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: fax_cover_plus_body
+- Typography profile: large_print_accessible_notice
+- Length profile: expanded
+- Format family: fax_cover_summary
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Fax-style synthetic summary
+
+Line 1: Synthetic member placeholder [PATIENT_0556]; provider group BrightPath Pediatrics; service window 2026-Q4; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $8,047.00.
+Line 2: Denial type coding_modifier_mismatch.
+Line 3: Determination rationale: the billed procedure and modifier combination needs coding review. This synthetic notice is for model training only and is not connected to any real person.
+Line 4: Attach verified records only; do not add real identifiers.
+
+Source packet review
+The review queue could not confirm that BrightPath Pediatrics supplied all plan-required support for outpatient MRI lumbar spine. Staff should compare the service category, code, and submitted record summary before preparing any appeal response.
+
+Service-line table
+| Field | Synthetic value |
+|---|---|
+| Service category | radiology |
+| Procedure code | 72148 |
+| Review amount | $8,047.00 |
+| Route metadata | erisa_internal_appeal |

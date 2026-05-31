@@ -1,0 +1,534 @@
+{
+  "artifact": "synthetic_denial_appeal_corpus_format_audit",
+  "blocker_count": 0,
+  "blockers": [],
+  "evidence": {
+    "appeal_quality_contract": {
+      "checked_appeal_count": 900,
+      "missing_appeal_level_alignment_count": 0,
+      "missing_deadline_verification_count": 0,
+      "missing_denial_type_alignment_count": 0,
+      "missing_draft_status_count": 0,
+      "missing_human_review_header_count": 0,
+      "missing_not_filing_ready_notice_count": 0,
+      "missing_phi_minimization_count": 0,
+      "missing_route_alignment_count": 0,
+      "missing_source_grounding_count": 0,
+      "ready": true,
+      "unsupported_deadline_or_citation_claim_count": 0
+    },
+    "complete_pair_count": 900,
+    "content_contract": {
+      "checked_file_count": 1800,
+      "checksum_mismatch_count": 0,
+      "invalid_training_gate_count": 0,
+      "missing_file_count": 0,
+      "missing_marker_count": 0,
+      "profile_mismatch_count": 0,
+      "profile_missing_count": 0,
+      "split_path_mismatch_count": 0
+    },
+    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+    "counts": {
+      "appeal_format": {
+        "clinical_reconsideration_packet": 112,
+        "coding_review_appeal": 113,
+        "corrected_claim_cover_letter": 113,
+        "medical_records_index": 113,
+        "network_exception_appeal": 112,
+        "portal_appeal_message": 112,
+        "provider_formal_letter": 112,
+        "timely_filing_rebuttal": 113
+      },
+      "denial_format": {
+        "employer_plan_adverse_benefit_notice": 112,
+        "eob_summary": 113,
+        "fax_cover_summary": 113,
+        "formal_letter": 112,
+        "medicaid_managed_care_notice": 113,
+        "medicare_reconsideration_notice": 112,
+        "portal_message": 112,
+        "utilization_review_notice": 113
+      },
+      "document_role": {
+        "appeal_letter": 900,
+        "denial_letter": 900
+      },
+      "layout_profile": {
+        "bullet_heavy_managed_care_notice": 150,
+        "corrected_claim_cover_layout": 150,
+        "dense_utilization_review_notice": 150,
+        "employer_plan_memo": 150,
+        "fax_cover_plus_body": 150,
+        "long_form_adverse_benefit_notice": 150,
+        "portal_card_stack": 150,
+        "records_index_packet": 150,
+        "short_portal_update": 150,
+        "single_column_letterhead": 150,
+        "tabbed_reconsideration_notice": 150,
+        "two_column_eob_summary": 150
+      },
+      "length_profile": {
+        "compact": 300,
+        "expanded": 300,
+        "long_review_packet": 300,
+        "short_portal": 300,
+        "standard": 300,
+        "table_heavy": 300
+      },
+      "split": {
+        "test": 180,
+        "train": 1440,
+        "valid": 180
+      },
+      "typography_profile": {
+        "condensed_table_labels": 224,
+        "large_print_accessible_notice": 226,
+        "mixed_heading_body_hierarchy": 226,
+        "monospace_fax_extract": 224,
+        "plain_text_eob_export": 226,
+        "sans_serif_portal_body": 224,
+        "serif_notice_body": 224,
+        "small_footer_legal_notice": 226
+      }
+    },
+    "documentation": {
+      "exists": true,
+      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/README.md",
+      "phi_scan_finding_count": 0,
+      "ready": true,
+      "required_marker_count": 10
+    },
+    "duplicate_pair_group_count": 0,
+    "duplicate_text_group_count": 0,
+    "generation_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
+    "generation_report_counts": {
+      "appeal_format": {
+        "clinical_reconsideration_packet": 112,
+        "coding_review_appeal": 113,
+        "corrected_claim_cover_letter": 113,
+        "medical_records_index": 113,
+        "network_exception_appeal": 112,
+        "portal_appeal_message": 112,
+        "provider_formal_letter": 112,
+        "timely_filing_rebuttal": 113
+      },
+      "denial_format": {
+        "employer_plan_adverse_benefit_notice": 112,
+        "eob_summary": 113,
+        "fax_cover_summary": 113,
+        "formal_letter": 112,
+        "medicaid_managed_care_notice": 113,
+        "medicare_reconsideration_notice": 112,
+        "portal_message": 112,
+        "utilization_review_notice": 113
+      },
+      "denial_type": {
+        "coding_modifier_mismatch": 90,
+        "coordination_of_benefits": 90,
+        "documentation_support": 90,
+        "duplicate_service": 90,
+        "eligibility": 90,
+        "experimental_investigational": 90,
+        "medical_necessity": 90,
+        "out_of_network": 90,
+        "prior_authorization_missing": 90,
+        "timely_filing": 90
+      },
+      "layout_profile": {
+        "bullet_heavy_managed_care_notice": 75,
+        "corrected_claim_cover_layout": 75,
+        "dense_utilization_review_notice": 75,
+        "employer_plan_memo": 75,
+        "fax_cover_plus_body": 75,
+        "long_form_adverse_benefit_notice": 75,
+        "portal_card_stack": 75,
+        "records_index_packet": 75,
+        "short_portal_update": 75,
+        "single_column_letterhead": 75,
+        "tabbed_reconsideration_notice": 75,
+        "two_column_eob_summary": 75
+      },
+      "length_profile": {
+        "compact": 150,
+        "expanded": 150,
+        "long_review_packet": 150,
+        "short_portal": 150,
+        "standard": 150,
+        "table_heavy": 150
+      },
+      "payer_type": {
+        "commercial": 225,
+        "erisa_self_funded": 113,
+        "marketplace": 112,
+        "medicaid_managed_care": 225,
+        "medicare_advantage": 225
+      },
+      "split": {
+        "test": 90,
+        "train": 720,
+        "valid": 90
+      },
+      "typography_profile": {
+        "condensed_table_labels": 112,
+        "large_print_accessible_notice": 113,
+        "mixed_heading_body_hierarchy": 113,
+        "monospace_fax_extract": 112,
+        "plain_text_eob_export": 113,
+        "sans_serif_portal_body": 112,
+        "serif_notice_body": 112,
+        "small_footer_legal_notice": 113
+      }
+    },
+    "letter_count": 1800,
+    "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "manifest_record_count": 1800,
+    "manifest_version": "synthetic-large-900",
+    "pair_count": 900,
+    "phi_scan": {
+      "finding_count": 0,
+      "finding_types": {},
+      "values_redacted": true
+    },
+    "profile_matrix_coverage": {
+      "document_role": {
+        "appeal_letter": {
+          "layout_profile": {
+            "counts": {
+              "bullet_heavy_managed_care_notice": 75,
+              "corrected_claim_cover_layout": 75,
+              "dense_utilization_review_notice": 75,
+              "employer_plan_memo": 75,
+              "fax_cover_plus_body": 75,
+              "long_form_adverse_benefit_notice": 75,
+              "portal_card_stack": 75,
+              "records_index_packet": 75,
+              "short_portal_update": 75,
+              "single_column_letterhead": 75,
+              "tabbed_reconsideration_notice": 75,
+              "two_column_eob_summary": 75
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 12,
+            "variant_count": 12
+          },
+          "length_profile": {
+            "counts": {
+              "compact": 150,
+              "expanded": 150,
+              "long_review_packet": 150,
+              "short_portal": 150,
+              "standard": 150,
+              "table_heavy": 150
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 6,
+            "variant_count": 6
+          },
+          "typography_profile": {
+            "counts": {
+              "condensed_table_labels": 112,
+              "large_print_accessible_notice": 113,
+              "mixed_heading_body_hierarchy": 113,
+              "monospace_fax_extract": 112,
+              "plain_text_eob_export": 113,
+              "sans_serif_portal_body": 112,
+              "serif_notice_body": 112,
+              "small_footer_legal_notice": 113
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 8,
+            "variant_count": 8
+          }
+        },
+        "denial_letter": {
+          "layout_profile": {
+            "counts": {
+              "bullet_heavy_managed_care_notice": 75,
+              "corrected_claim_cover_layout": 75,
+              "dense_utilization_review_notice": 75,
+              "employer_plan_memo": 75,
+              "fax_cover_plus_body": 75,
+              "long_form_adverse_benefit_notice": 75,
+              "portal_card_stack": 75,
+              "records_index_packet": 75,
+              "short_portal_update": 75,
+              "single_column_letterhead": 75,
+              "tabbed_reconsideration_notice": 75,
+              "two_column_eob_summary": 75
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 12,
+            "variant_count": 12
+          },
+          "length_profile": {
+            "counts": {
+              "compact": 150,
+              "expanded": 150,
+              "long_review_packet": 150,
+              "short_portal": 150,
+              "standard": 150,
+              "table_heavy": 150
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 6,
+            "variant_count": 6
+          },
+          "typography_profile": {
+            "counts": {
+              "condensed_table_labels": 112,
+              "large_print_accessible_notice": 113,
+              "mixed_heading_body_hierarchy": 113,
+              "monospace_fax_extract": 112,
+              "plain_text_eob_export": 113,
+              "sans_serif_portal_body": 112,
+              "serif_notice_body": 112,
+              "small_footer_legal_notice": 113
+            },
+            "ready": true,
+            "record_count": 900,
+            "required_variant_count": 8,
+            "variant_count": 8
+          }
+        }
+      },
+      "split": {
+        "test": {
+          "layout_profile": {
+            "counts": {
+              "bullet_heavy_managed_care_notice": 14,
+              "corrected_claim_cover_layout": 14,
+              "dense_utilization_review_notice": 16,
+              "employer_plan_memo": 14,
+              "fax_cover_plus_body": 14,
+              "long_form_adverse_benefit_notice": 16,
+              "portal_card_stack": 14,
+              "records_index_packet": 16,
+              "short_portal_update": 14,
+              "single_column_letterhead": 16,
+              "tabbed_reconsideration_notice": 16,
+              "two_column_eob_summary": 16
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 12,
+            "variant_count": 12
+          },
+          "length_profile": {
+            "counts": {
+              "compact": 30,
+              "expanded": 30,
+              "long_review_packet": 30,
+              "short_portal": 30,
+              "standard": 30,
+              "table_heavy": 30
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 6,
+            "variant_count": 6
+          },
+          "typography_profile": {
+            "counts": {
+              "condensed_table_labels": 22,
+              "large_print_accessible_notice": 24,
+              "mixed_heading_body_hierarchy": 22,
+              "monospace_fax_extract": 22,
+              "plain_text_eob_export": 22,
+              "sans_serif_portal_body": 22,
+              "serif_notice_body": 22,
+              "small_footer_legal_notice": 24
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 8,
+            "variant_count": 8
+          }
+        },
+        "train": {
+          "layout_profile": {
+            "counts": {
+              "bullet_heavy_managed_care_notice": 120,
+              "corrected_claim_cover_layout": 120,
+              "dense_utilization_review_notice": 120,
+              "employer_plan_memo": 120,
+              "fax_cover_plus_body": 120,
+              "long_form_adverse_benefit_notice": 120,
+              "portal_card_stack": 120,
+              "records_index_packet": 120,
+              "short_portal_update": 120,
+              "single_column_letterhead": 120,
+              "tabbed_reconsideration_notice": 120,
+              "two_column_eob_summary": 120
+            },
+            "ready": true,
+            "record_count": 1440,
+            "required_variant_count": 12,
+            "variant_count": 12
+          },
+          "length_profile": {
+            "counts": {
+              "compact": 240,
+              "expanded": 240,
+              "long_review_packet": 240,
+              "short_portal": 240,
+              "standard": 240,
+              "table_heavy": 240
+            },
+            "ready": true,
+            "record_count": 1440,
+            "required_variant_count": 6,
+            "variant_count": 6
+          },
+          "typography_profile": {
+            "counts": {
+              "condensed_table_labels": 180,
+              "large_print_accessible_notice": 180,
+              "mixed_heading_body_hierarchy": 180,
+              "monospace_fax_extract": 180,
+              "plain_text_eob_export": 180,
+              "sans_serif_portal_body": 180,
+              "serif_notice_body": 180,
+              "small_footer_legal_notice": 180
+            },
+            "ready": true,
+            "record_count": 1440,
+            "required_variant_count": 8,
+            "variant_count": 8
+          }
+        },
+        "valid": {
+          "layout_profile": {
+            "counts": {
+              "bullet_heavy_managed_care_notice": 16,
+              "corrected_claim_cover_layout": 16,
+              "dense_utilization_review_notice": 14,
+              "employer_plan_memo": 16,
+              "fax_cover_plus_body": 16,
+              "long_form_adverse_benefit_notice": 14,
+              "portal_card_stack": 16,
+              "records_index_packet": 14,
+              "short_portal_update": 16,
+              "single_column_letterhead": 14,
+              "tabbed_reconsideration_notice": 14,
+              "two_column_eob_summary": 14
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 12,
+            "variant_count": 12
+          },
+          "length_profile": {
+            "counts": {
+              "compact": 30,
+              "expanded": 30,
+              "long_review_packet": 30,
+              "short_portal": 30,
+              "standard": 30,
+              "table_heavy": 30
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 6,
+            "variant_count": 6
+          },
+          "typography_profile": {
+            "counts": {
+              "condensed_table_labels": 22,
+              "large_print_accessible_notice": 22,
+              "mixed_heading_body_hierarchy": 24,
+              "monospace_fax_extract": 22,
+              "plain_text_eob_export": 24,
+              "sans_serif_portal_body": 22,
+              "serif_notice_body": 22,
+              "small_footer_legal_notice": 22
+            },
+            "ready": true,
+            "record_count": 180,
+            "required_variant_count": 8,
+            "variant_count": 8
+          }
+        }
+      }
+    },
+    "safety": {
+      "external_model_calls_made": false,
+      "real_claim_data_used": false,
+      "real_patient_data_used": false,
+      "synthetic_only": true,
+      "training_allowed_only_after_export_gates": true,
+      "uses_placeholders_for_member_and_patient_context": true
+    },
+    "unique_text_count": 1800,
+    "visual_rendering": {
+      "exists": true,
+      "font_family_count": 8,
+      "layout_profile_count": 12,
+      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json",
+      "phi_scan_finding_count": 0,
+      "ready": true,
+      "rendered_html_count": 1800,
+      "typography_profile_count": 8,
+      "visual_record_count": 1800
+    },
+    "word_count": {
+      "average": 205.86,
+      "by_length_profile": {
+        "compact": {
+          "average": 161.06,
+          "count": 300,
+          "max": 192,
+          "min": 124
+        },
+        "expanded": {
+          "average": 228.45,
+          "count": 300,
+          "max": 262,
+          "min": 189
+        },
+        "long_review_packet": {
+          "average": 259.96,
+          "count": 300,
+          "max": 300,
+          "min": 218
+        },
+        "short_portal": {
+          "average": 162.44,
+          "count": 300,
+          "max": 198,
+          "min": 128
+        },
+        "standard": {
+          "average": 194.7,
+          "count": 300,
+          "max": 235,
+          "min": 147
+        },
+        "table_heavy": {
+          "average": 228.52,
+          "count": 300,
+          "max": 262,
+          "min": 187
+        }
+      },
+      "count": 1800,
+      "max": 300,
+      "min": 124,
+      "range": 176
+    }
+  },
+  "generated_at": "2026-05-31T14:22:02.454100+00:00",
+  "notes": [
+    "This audit checks file-level formatting markers and metadata; it does not train or call external models.",
+    "Plain-text letters keep typography metadata, and rendered HTML companions apply actual CSS font stacks and layout wrappers.",
+    "All appeal letters must remain draft_for_human_review and not filing-ready."
+  ],
+  "ready": true,
+  "warning_count": 0,
+  "warnings": []
+}

@@ -1,0 +1,30 @@
+Draft for human review.
+draft_for_human_review
+Synthetic corpus pair PAIR-SYN-LARGE-0744.
+
+Cedar Valley Therapy
+Synthetic appeal draft for case reference SYN-CASE-0744
+Route metadata formal_internal_appeal; appeal level first_level
+Synthetic formatting profile
+- Corpus role: appeal_letter
+- Layout profile: single_column_letterhead
+- Typography profile: serif_notice_body
+- Length profile: compact
+- Format family: provider_formal_letter
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+To Appeals Review Staff,
+
+This supervised training draft responds to Blue Harbor Administrators's synthetic denial for outpatient MRI lumbar spine in service window 2026-Q4.
+
+The provider staff reviewer should request reconsideration because network status was not supported by the submitted materials. The packet should connect each assertion to the denial notice, source record, or coding rationale.
+
+Evidence checklist:
+- Verify the denial rationale for out_of_network.
+- Attach source-grounded records for outpatient MRI lumbar spine.
+- Confirm code 72148 and any modifier logic before submission.
+- Keep placeholders [PATIENT_0744], [AUTH_0744], and SYN-COVERAGE-2648 synthetic.
+
+Requested action: review and reprocess if the verified record supports coverage.
+
+Before any real-world use, verify payer channel, current deadline, authority, attachments, clinical statements, coding facts, and minimum necessary PHI scope. This synthetic draft is not filing-ready.

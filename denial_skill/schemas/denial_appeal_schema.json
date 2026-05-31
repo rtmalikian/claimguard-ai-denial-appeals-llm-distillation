@@ -1,0 +1,1067 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claimguard.local/schemas/denial_appeal_schema.json",
+  "title": "ClaimGuard Denial Appeal Platform Schema",
+  "type": "object",
+  "required": [
+    "case_id",
+    "patient",
+    "provider",
+    "payer",
+    "plan",
+    "denial_letter",
+    "claim",
+    "denied_service_lines",
+    "deadlines",
+    "appeal_levels",
+    "evidence_items",
+    "human_review"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string"
+    },
+    "case_status": {
+      "type": "string",
+      "enum": [
+        "intake_open",
+        "awaiting_records",
+        "strategy_pending",
+        "drafting",
+        "qa_pending",
+        "ready_for_submission",
+        "submitted",
+        "follow_up",
+        "escalation",
+        "payment_verification",
+        "closed"
+      ]
+    },
+    "patient": {
+      "$ref": "#/$defs/patient"
+    },
+    "provider": {
+      "$ref": "#/$defs/provider"
+    },
+    "payer": {
+      "$ref": "#/$defs/payer"
+    },
+    "plan": {
+      "$ref": "#/$defs/plan"
+    },
+    "denial_letter": {
+      "$ref": "#/$defs/denial_letter"
+    },
+    "claim": {
+      "$ref": "#/$defs/claim"
+    },
+    "denied_service_lines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/denied_service_line"
+      }
+    },
+    "denial_reasons": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/denial_reason"
+      }
+    },
+    "deadlines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/deadline"
+      }
+    },
+    "appeal_levels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/appeal_level"
+      }
+    },
+    "evidence_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence_item"
+      }
+    },
+    "appeal_drafts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/appeal_draft"
+      }
+    },
+    "submission_records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/submission_record"
+      }
+    },
+    "follow_up_activities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/follow_up_activity"
+      }
+    },
+    "payer_responses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/payer_response"
+      }
+    },
+    "outcome": {
+      "$ref": "#/$defs/outcome"
+    },
+    "prevention_insights": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/prevention_insight"
+      }
+    },
+    "human_review": {
+      "$ref": "#/$defs/human_review"
+    },
+    "audit": {
+      "$ref": "#/$defs/audit"
+    }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "string",
+      "enum": [
+        "known_from_documents",
+        "inferred",
+        "missing_needs_human_verification",
+        "cited_rule"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source_status",
+        "human_verified"
+      ],
+      "properties": {
+        "source_status": {
+          "$ref": "#/$defs/source_status"
+        },
+        "source_document_id": {
+          "type": "string"
+        },
+        "source_page": {
+          "type": "string"
+        },
+        "source_excerpt_ref": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "extraction_method": {
+          "type": "string",
+          "enum": [
+            "ocr",
+            "manual_entry",
+            "api",
+            "model_inference",
+            "rule_lookup",
+            "system_import"
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "human_verified": {
+          "type": "boolean"
+        },
+        "verified_by": {
+          "type": "string"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verification_note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fact_string": {
+      "type": "object",
+      "required": [
+        "value",
+        "provenance"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fact_date": {
+      "type": "object",
+      "required": [
+        "value",
+        "provenance"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      },
+      "additionalProperties": false
+    },
+    "patient": {
+      "type": "object",
+      "required": [
+        "patient_id",
+        "full_name",
+        "member_id"
+      ],
+      "properties": {
+        "patient_id": {
+          "type": "string"
+        },
+        "full_name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "date_of_birth": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "member_id": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "subscriber_name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "group_number": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "minimum_necessary_note": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "provider": {
+      "type": "object",
+      "required": [
+        "provider_id",
+        "name"
+      ],
+      "properties": {
+        "provider_id": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "facility_name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "npi": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "tin": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "billing_provider": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "rendering_provider": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "contact": {
+          "$ref": "#/$defs/fact_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "payer": {
+      "type": "object",
+      "required": [
+        "payer_id",
+        "name"
+      ],
+      "properties": {
+        "payer_id": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "administrator_or_tpa": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "appeal_phone": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "appeal_fax": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "appeal_address": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "appeal_portal": {
+          "$ref": "#/$defs/fact_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "plan": {
+      "type": "object",
+      "required": [
+        "plan_id",
+        "plan_name",
+        "plan_type"
+      ],
+      "properties": {
+        "plan_id": {
+          "type": "string"
+        },
+        "plan_name": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "plan_type": {
+          "type": "object",
+          "required": [
+            "value",
+            "provenance"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "enum": [
+                "commercial_fully_insured",
+                "self_funded_erisa",
+                "marketplace_aca",
+                "medicare_ffs",
+                "medicare_advantage",
+                "medicaid_managed_care",
+                "other_government",
+                "workers_compensation",
+                "unknown"
+              ]
+            },
+            "provenance": {
+              "$ref": "#/$defs/provenance"
+            }
+          },
+          "additionalProperties": false
+        },
+        "funding_status": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "spd_or_eoc_document_id": {
+          "type": "string"
+        },
+        "state_jurisdiction": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "verify_locally_required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "denial_letter": {
+      "type": "object",
+      "required": [
+        "document_id",
+        "notice_date",
+        "received_date"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string"
+        },
+        "document_type": {
+          "type": "string",
+          "enum": [
+            "denial_letter",
+            "eob",
+            "era",
+            "remittance_advice",
+            "portal_notice",
+            "payer_call_note"
+          ]
+        },
+        "notice_date": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "received_date": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "appeal_instructions": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "representative_requirements": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "document_integrity_status": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "missing_pages",
+            "illegible",
+            "needs_original",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "required": [
+        "claim_id",
+        "claim_number",
+        "dates_of_service"
+      ],
+      "properties": {
+        "claim_id": {
+          "type": "string"
+        },
+        "claim_number": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "icn_or_dcn": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "claim_form_type": {
+          "type": "string",
+          "enum": [
+            "cms_1500",
+            "ub_04",
+            "electronic_837p",
+            "electronic_837i",
+            "unknown"
+          ]
+        },
+        "dates_of_service": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact_date"
+          }
+        },
+        "total_billed": {
+          "type": "number"
+        },
+        "total_denied": {
+          "type": "number"
+        },
+        "patient_responsibility": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "denied_service_line": {
+      "type": "object",
+      "required": [
+        "service_line_id",
+        "service_date",
+        "procedure_code"
+      ],
+      "properties": {
+        "service_line_id": {
+          "type": "string"
+        },
+        "service_date": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "procedure_code": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "modifier_codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact_string"
+          }
+        },
+        "diagnosis_codes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fact_string"
+          }
+        },
+        "revenue_code": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "units": {
+          "type": "number"
+        },
+        "billed_amount": {
+          "type": "number"
+        },
+        "denied_amount": {
+          "type": "number"
+        },
+        "authorization_number": {
+          "$ref": "#/$defs/fact_string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "denial_reason": {
+      "type": "object",
+      "required": [
+        "denial_reason_id",
+        "denial_type",
+        "payer_text"
+      ],
+      "properties": {
+        "denial_reason_id": {
+          "type": "string"
+        },
+        "denial_type": {
+          "type": "string",
+          "enum": [
+            "medical_necessity",
+            "experimental_investigational",
+            "prior_authorization",
+            "level_of_care",
+            "setting",
+            "out_of_network_or_network_adequacy",
+            "coding_bundling_modifier",
+            "missing_documentation",
+            "timely_filing",
+            "eligibility_or_cob",
+            "benefit_exclusion",
+            "duplicate",
+            "contractual_adjustment",
+            "patient_responsibility",
+            "administrative_defect",
+            "unknown"
+          ]
+        },
+        "payer_text": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "carc": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "rarc": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "policy_cited": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "model_classification_confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "human_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "deadline": {
+      "type": "object",
+      "required": [
+        "deadline_id",
+        "deadline_type",
+        "calculated_deadline",
+        "verification_status"
+      ],
+      "properties": {
+        "deadline_id": {
+          "type": "string"
+        },
+        "deadline_type": {
+          "type": "string",
+          "enum": [
+            "filing",
+            "payer_response",
+            "follow_up",
+            "external_review",
+            "state_fair_hearing",
+            "continuation_of_benefits",
+            "additional_information_response",
+            "legal_referral"
+          ]
+        },
+        "source_stated_deadline": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "calculated_deadline": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "calculation_basis": {
+          "type": "string"
+        },
+        "rule_source_id": {
+          "type": "string"
+        },
+        "deadline_confidence": {
+          "$ref": "#/$defs/confidence"
+        },
+        "verification_status": {
+          "type": "string",
+          "enum": [
+            "unverified",
+            "verified",
+            "conflict_requires_resolution",
+            "missing_source"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "appeal_level": {
+      "type": "object",
+      "required": [
+        "appeal_level_id",
+        "route"
+      ],
+      "properties": {
+        "appeal_level_id": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "corrected_claim",
+            "reopening",
+            "payer_reconsideration",
+            "peer_to_peer",
+            "internal_appeal",
+            "expedited_appeal",
+            "external_review",
+            "grievance_or_complaint",
+            "state_fair_hearing",
+            "medicare_redetermination",
+            "medicare_qic",
+            "omha_alj",
+            "medicare_appeals_council",
+            "federal_district_court_referral",
+            "legal_referral"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "planned",
+            "drafting",
+            "submitted",
+            "pending_response",
+            "decided",
+            "withdrawn",
+            "dismissed"
+          ]
+        },
+        "rationale": {
+          "type": "string"
+        },
+        "human_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_item": {
+      "type": "object",
+      "required": [
+        "evidence_item_id",
+        "evidence_type",
+        "description",
+        "provenance"
+      ],
+      "properties": {
+        "evidence_item_id": {
+          "type": "string"
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "denial_notice",
+            "plan_document",
+            "medical_policy",
+            "claim_file",
+            "clinical_record",
+            "physician_lmn",
+            "test_result",
+            "imaging_or_lab",
+            "procedure_note",
+            "authorization_proof",
+            "eligibility_proof",
+            "call_log",
+            "network_search",
+            "coding_support",
+            "corrected_claim_data",
+            "timely_filing_proof",
+            "guideline_or_literature",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "linked_denial_reason_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "linked_service_line_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "clinician_verified": {
+          "type": "boolean"
+        },
+        "phi_minimum_necessary_checked": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "appeal_draft": {
+      "type": "object",
+      "required": [
+        "appeal_draft_id",
+        "draft_status",
+        "body"
+      ],
+      "properties": {
+        "appeal_draft_id": {
+          "type": "string"
+        },
+        "draft_status": {
+          "type": "string",
+          "enum": [
+            "draft_for_human_review",
+            "reviewed_needs_changes",
+            "approved_for_submission",
+            "submitted_version",
+            "superseded"
+          ]
+        },
+        "body": {
+          "type": "string"
+        },
+        "fact_trace_complete": {
+          "type": "boolean"
+        },
+        "citation_trace_complete": {
+          "type": "boolean"
+        },
+        "review_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "submission_record": {
+      "type": "object",
+      "required": [
+        "submission_id",
+        "channel",
+        "submitted_at"
+      ],
+      "properties": {
+        "submission_id": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "payer_portal",
+            "fax",
+            "mail",
+            "certified_mail",
+            "email",
+            "phone",
+            "other"
+          ]
+        },
+        "submitted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "submitted_by": {
+          "type": "string"
+        },
+        "confirmation_number": {
+          "type": "string"
+        },
+        "proof_document_id": {
+          "type": "string"
+        },
+        "submitted_package_version_id": {
+          "type": "string"
+        },
+        "human_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "follow_up_activity": {
+      "type": "object",
+      "required": [
+        "activity_id",
+        "activity_type",
+        "activity_at"
+      ],
+      "properties": {
+        "activity_id": {
+          "type": "string"
+        },
+        "activity_type": {
+          "type": "string",
+          "enum": [
+            "call",
+            "portal_message",
+            "fax",
+            "mail",
+            "task",
+            "payer_request",
+            "extension_notice"
+          ]
+        },
+        "activity_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "agent_name": {
+          "type": "string"
+        },
+        "department": {
+          "type": "string"
+        },
+        "reference_number": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "next_action": {
+          "type": "string"
+        },
+        "next_action_due_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "human_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "payer_response": {
+      "type": "object",
+      "required": [
+        "payer_response_id",
+        "response_type",
+        "received_at"
+      ],
+      "properties": {
+        "payer_response_id": {
+          "type": "string"
+        },
+        "response_type": {
+          "type": "string",
+          "enum": [
+            "overturned",
+            "partially_overturned",
+            "upheld",
+            "dismissed",
+            "pended",
+            "additional_information_requested",
+            "no_response",
+            "paid_or_reprocessed"
+          ]
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "response_document_id": {
+          "type": "string"
+        },
+        "rationale": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "next_level_rights": {
+          "$ref": "#/$defs/fact_string"
+        },
+        "next_level_deadline": {
+          "$ref": "#/$defs/fact_date"
+        },
+        "human_verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "outcome_status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "overturned_paid",
+            "overturned_pending_payment",
+            "partially_paid",
+            "upheld_no_further_action",
+            "upheld_escalated",
+            "dismissed",
+            "withdrawn"
+          ]
+        },
+        "amount_recovered": {
+          "type": "number"
+        },
+        "payment_verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "patient_balance_corrected": {
+          "type": "boolean"
+        },
+        "closed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "prevention_insight": {
+      "type": "object",
+      "required": [
+        "insight_id",
+        "root_cause_category",
+        "recommended_action"
+      ],
+      "properties": {
+        "insight_id": {
+          "type": "string"
+        },
+        "root_cause_category": {
+          "type": "string",
+          "enum": [
+            "eligibility",
+            "authorization",
+            "coding",
+            "documentation",
+            "medical_policy",
+            "timely_filing",
+            "network",
+            "payer_error",
+            "contracting",
+            "workflow_gap",
+            "unknown"
+          ]
+        },
+        "recommended_action": {
+          "type": "string"
+        },
+        "owner_team": {
+          "type": "string"
+        },
+        "due_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "implemented_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_review": {
+      "type": "object",
+      "required": [
+        "deadline_verified",
+        "clinical_verified",
+        "authority_verified",
+        "phi_verified",
+        "submission_channel_verified"
+      ],
+      "properties": {
+        "deadline_verified": {
+          "type": "boolean"
+        },
+        "clinical_verified": {
+          "type": "boolean"
+        },
+        "coding_verified": {
+          "type": "boolean"
+        },
+        "authority_verified": {
+          "type": "boolean"
+        },
+        "phi_verified": {
+          "type": "boolean"
+        },
+        "submission_channel_verified": {
+          "type": "boolean"
+        },
+        "reviewer_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "updated_by": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+

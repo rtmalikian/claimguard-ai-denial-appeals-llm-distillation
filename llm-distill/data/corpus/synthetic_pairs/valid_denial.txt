@@ -1,0 +1,3 @@
+Training synthetic corpus pair CP-VALID-001.
+
+A Medicare Advantage example denies therapy units as not supported by documentation because progress notes do not show measurable functional change. The notice is synthetic and omits direct identifiers, account references, contact details, addresses, and exact calendar details. Reviewer action is to check plan coverage criteria, service-unit logic, and documentation gaps.

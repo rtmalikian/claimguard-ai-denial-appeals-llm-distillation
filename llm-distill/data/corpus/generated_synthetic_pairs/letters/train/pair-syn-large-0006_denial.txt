@@ -1,0 +1,20 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0006.
+
+CivicCare Advantage
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0006
+Coverage reference SYN-COVERAGE-0102
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: bullet_heavy_managed_care_notice
+- Typography profile: monospace_fax_extract
+- Length profile: compact
+- Format family: portal_message
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Portal status update
+
+Status: denied pending provider review
+Summary: Synthetic member placeholder [PATIENT_0006]; provider group BrightPath Pediatrics; service window 2026-Q2; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $1,297.00.
+Why this requires action: Determination rationale: the billed procedure and modifier combination needs coding review. This synthetic notice is for model training only and is not connected to any real person.
+Suggested channel: plan_reconsideration; verify channel before filing.

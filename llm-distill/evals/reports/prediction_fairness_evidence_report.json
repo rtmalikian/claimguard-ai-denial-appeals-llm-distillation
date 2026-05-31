@@ -1,0 +1,215 @@
+{
+  "blocked_item_count": 3,
+  "blocked_items": [
+    {
+      "blockers": [
+        "approved_outcome_dataset_missing",
+        "minimum_sample_size_not_met",
+        "calibration_run_not_completed",
+        "threshold_review_not_completed"
+      ],
+      "evidence": {
+        "approved_outcome_dataset_available": false,
+        "calibration_run_completed": false,
+        "human_review_policy_confirmed": true,
+        "minimum_sample_size_met": false,
+        "threshold_review_completed": false
+      },
+      "name": "Production denial-risk threshold is calibrated and reviewed on approved outcome data",
+      "requirement_id": "prediction_fairness_calibrated_threshold",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_demographic_grouping_not_reviewed",
+        "continuous_monitoring_not_configured",
+        "disparity_thresholds_not_documented",
+        "alerting_and_review_owner_not_configured",
+        "latest_monitoring_run_not_passed"
+      ],
+      "evidence": {
+        "alerting_and_review_owner_configured": false,
+        "approved_demographic_grouping_reviewed": false,
+        "continuous_monitoring_configured": false,
+        "disparity_thresholds_documented": false,
+        "latest_monitoring_run_passed": false
+      },
+      "name": "Continuous production fairness monitoring is configured, owned, and passing",
+      "requirement_id": "prediction_fairness_continuous_monitoring",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "legal_privacy_review_not_completed"
+      ],
+      "evidence": {
+        "audit_log_metadata_only_verified": true,
+        "legal_privacy_review_completed": false,
+        "model_card_exists": true,
+        "model_card_missing_marker_count": 0,
+        "model_card_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-model-card.md",
+        "model_card_present_marker_count": 8,
+        "model_card_required_marker_count": 8,
+        "model_card_updated": true,
+        "model_card_values_included": false,
+        "rollback_or_threshold_reversion_reviewed": true
+      },
+      "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
+      "requirement_id": "prediction_fairness_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
+  "generated_at": "2026-05-31T16:34:14.982370+00:00",
+  "notes": [
+    "This validator reads a local JSON evidence packet only and does not call external outcome, legal, privacy, alerting, or model-card systems.",
+    "Raw demographic values, production outcome rows, PHI, secrets, approval references, and individual identifiers must remain outside source control.",
+    "A template evidence file is expected to be safe_to_review=true but prediction_fairness_monitoring_ready=false until approved outcome data, calibration, monitoring, and governance reviews are complete."
+  ],
+  "objective": "Validate production prediction-threshold calibration and continuous fairness monitoring evidence without storing PHI, secrets, raw demographic values, approval references, or production outcome rows.",
+  "prediction_fairness_monitoring_ready": false,
+  "ready_item_count": 5,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_prediction_fairness_monitoring_evidence",
+        "evidence_status": "local_metric_controls_ready_production_outcome_data_blocked",
+        "version_configured": true
+      },
+      "name": "Prediction fairness monitoring evidence has the required structure",
+      "requirement_id": "prediction_fairness_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_phi_or_secret_values_attested": true,
+        "no_production_outcome_rows_attested": true,
+        "no_raw_demographic_values_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "values_redacted": true
+      },
+      "name": "Prediction fairness evidence contains no PHI, secrets, raw demographic values, or outcome rows",
+      "requirement_id": "prediction_fairness_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_outcome_dataset_missing",
+        "minimum_sample_size_not_met",
+        "calibration_run_not_completed",
+        "threshold_review_not_completed"
+      ],
+      "evidence": {
+        "approved_outcome_dataset_available": false,
+        "calibration_run_completed": false,
+        "human_review_policy_confirmed": true,
+        "minimum_sample_size_met": false,
+        "threshold_review_completed": false
+      },
+      "name": "Production denial-risk threshold is calibrated and reviewed on approved outcome data",
+      "requirement_id": "prediction_fairness_calibrated_threshold",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "calibration_checklist_exists": true,
+        "calibration_checklist_missing_marker_count": 0,
+        "calibration_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-calibration-checklist.md",
+        "calibration_checklist_present_marker_count": 14,
+        "calibration_checklist_required_marker_count": 14,
+        "calibration_checklist_values_included": false,
+        "source_control_calibration_checklist_documented": true
+      },
+      "name": "Source-controlled prediction fairness calibration checklist is documented",
+      "requirement_id": "prediction_fairness_calibration_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approved_demographic_grouping_not_reviewed",
+        "continuous_monitoring_not_configured",
+        "disparity_thresholds_not_documented",
+        "alerting_and_review_owner_not_configured",
+        "latest_monitoring_run_not_passed"
+      ],
+      "evidence": {
+        "alerting_and_review_owner_configured": false,
+        "approved_demographic_grouping_reviewed": false,
+        "continuous_monitoring_configured": false,
+        "disparity_thresholds_documented": false,
+        "latest_monitoring_run_passed": false
+      },
+      "name": "Continuous production fairness monitoring is configured, owned, and passing",
+      "requirement_id": "prediction_fairness_continuous_monitoring",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "monitoring_validation_checklist_exists": true,
+        "monitoring_validation_checklist_missing_marker_count": 0,
+        "monitoring_validation_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-monitoring-validation-checklist.md",
+        "monitoring_validation_checklist_present_marker_count": 12,
+        "monitoring_validation_checklist_required_marker_count": 12,
+        "monitoring_validation_checklist_values_included": false,
+        "source_control_monitoring_validation_checklist_documented": true
+      },
+      "name": "Source-controlled prediction fairness monitoring validation checklist is documented",
+      "requirement_id": "prediction_fairness_monitoring_validation_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "monitoring_runbook_exists": true,
+        "monitoring_runbook_missing_marker_count": 0,
+        "monitoring_runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-monitoring-runbook.md",
+        "monitoring_runbook_present_marker_count": 12,
+        "monitoring_runbook_required_marker_count": 12,
+        "monitoring_runbook_values_included": false,
+        "source_control_monitoring_runbook_documented": true
+      },
+      "name": "Source-controlled prediction fairness monitoring runbook is documented",
+      "requirement_id": "prediction_fairness_monitoring_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "legal_privacy_review_not_completed"
+      ],
+      "evidence": {
+        "audit_log_metadata_only_verified": true,
+        "legal_privacy_review_completed": false,
+        "model_card_exists": true,
+        "model_card_missing_marker_count": 0,
+        "model_card_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-model-card.md",
+        "model_card_present_marker_count": 8,
+        "model_card_required_marker_count": 8,
+        "model_card_updated": true,
+        "model_card_values_included": false,
+        "rollback_or_threshold_reversion_reviewed": true
+      },
+      "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
+      "requirement_id": "prediction_fairness_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

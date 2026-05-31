@@ -1,0 +1,21 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0018.
+
+Northstar Care Alliance
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0018
+Coverage reference SYN-COVERAGE-0306
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: bullet_heavy_managed_care_notice
+- Typography profile: mixed_heading_body_hierarchy
+- Length profile: compact
+- Format family: medicaid_managed_care_notice
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Managed care training notice
+
+Synthetic member placeholder [PATIENT_0018]; provider group Pinecrest Cardiology; service window 2026-Q2; service reviewed outpatient MRI lumbar spine; procedure code 72148; billed amount $2,941.00.
+
+Determination rationale: the plan classified the requested service as investigational pending evidence review. This synthetic notice is for model training only and is not connected to any real person.
+
+The synthetic appeal should preserve source-grounding and request plan-specific review.

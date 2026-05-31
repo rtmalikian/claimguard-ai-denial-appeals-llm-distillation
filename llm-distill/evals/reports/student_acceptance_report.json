@@ -1,0 +1,114 @@
+{
+  "blocked_reasons": [],
+  "checks": {
+    "base_benchmark": {
+      "dry_run": false,
+      "endpoint_available": true,
+      "endpoint_error_count": 0,
+      "errors": [],
+      "gate_failures": {
+        "draft_for_human_review": 0,
+        "human_review_required": 0,
+        "json_valid": 0,
+        "required_keys_present": 0
+      },
+      "model": "Qwen/Qwen3-4B-MLX-4bit",
+      "parse_error_count": 0,
+      "ready": true,
+      "record_count": 10,
+      "score_ratio": 0.9667
+    },
+    "fine_tune_run": {
+      "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+      "adapter_path_exists": true,
+      "blocked_reasons": [],
+      "data_total_phi_findings": 0,
+      "errors": [],
+      "manifest_training_allowed": true,
+      "mode": "run",
+      "preflight_errors": [],
+      "process_returncode": 0,
+      "ready": true,
+      "training_attempted": true,
+      "training_succeeded": true
+    },
+    "phi_scans": {
+      "base_benchmark": {
+        "exists": true,
+        "finding_count": 0,
+        "findings": [],
+        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json"
+      },
+      "fine_tune_report": {
+        "exists": true,
+        "finding_count": 0,
+        "findings": [],
+        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+      },
+      "student_benchmark": {
+        "exists": true,
+        "finding_count": 0,
+        "findings": [],
+        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json"
+      },
+      "workflow_report": {
+        "exists": true,
+        "finding_count": 0,
+        "findings": [],
+        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+      }
+    },
+    "student_benchmark": {
+      "dry_run": false,
+      "endpoint_available": true,
+      "endpoint_error_count": 0,
+      "errors": [],
+      "gate_failures": {
+        "draft_for_human_review": 0,
+        "human_review_required": 0,
+        "json_valid": 0,
+        "required_keys_present": 0
+      },
+      "model": "Qwen/Qwen3-4B-MLX-4bit",
+      "parse_error_count": 0,
+      "ready": true,
+      "record_count": 10,
+      "score_ratio": 0.9667
+    },
+    "student_vs_base": {
+      "base_score_ratio": 0.9667,
+      "max_allowed_regression": 0.02,
+      "ready": true,
+      "score_delta": 0.0,
+      "student_score_ratio": 0.9667
+    },
+    "workflow_baseline": {
+      "errors": [],
+      "failed_scenarios": [],
+      "forbidden_scenarios": [],
+      "passed_count": 10,
+      "ready": true,
+      "scenario_count": 10,
+      "score_ratio": 1.0
+    }
+  },
+  "generated_at": "2026-05-30T04:58:51.362950+00:00",
+  "inputs": {
+    "base_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json",
+    "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+    "student_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json",
+    "workflow_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+  },
+  "notes": [
+    "This gate does not train, quantize, download models, call endpoints, or inspect adapter weights.",
+    "A release-ready student requires reviewed-label training evidence and live base/student MLX benchmark reports.",
+    "Use this gate before any adapter promotion, quantization, or application default-model change."
+  ],
+  "release_ready": true,
+  "thresholds": {
+    "max_score_regression": 0.02,
+    "min_benchmark_records": 10,
+    "student_min_score": 0.95,
+    "workflow_min_score": 0.95
+  }
+}

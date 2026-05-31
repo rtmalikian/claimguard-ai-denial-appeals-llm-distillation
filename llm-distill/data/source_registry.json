@@ -1,0 +1,65 @@
+[
+  {
+    "source_id": "SRC-HCG-INTERNAL",
+    "title": "HealthCare.gov Internal Appeals",
+    "url": "https://www.healthcare.gov/appeal-insurance-company-decision/internal-appeals/",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-HCG-EXTERNAL",
+    "title": "HealthCare.gov External Review",
+    "url": "https://www.healthcare.gov/appeal-insurance-company-decision/external-review/",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-DOL-CLAIMS",
+    "title": "DOL/EBSA Filing a Claim for Your Health Benefits",
+    "url": "https://www.dol.gov/agencies/ebsa/about-ebsa/our-activities/resource-center/publications/filing-a-claim-for-your-health-benefits",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-MEDICARE-FFS-1",
+    "title": "CMS FFS Redetermination",
+    "url": "https://www.cms.gov/medicare/appeals-grievances/fee-for-service/first-level-appeal-redetermination-medicare-contractor",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-MEDICARE-MA-RECON",
+    "title": "CMS Medicare Advantage Reconsideration",
+    "url": "https://www.cms.gov/medicare/appeals-grievances/managed-care/reconsideration-advantage-health-plan-part-c",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-MEDICAID-CFR",
+    "title": "42 CFR Part 438 Subpart F",
+    "url": "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-C/part-438/subpart-F",
+    "source_type": "public_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  },
+  {
+    "source_id": "SRC-HIPAA-MIN",
+    "title": "HHS HIPAA Minimum Necessary Requirement",
+    "url": "https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/minimum-necessary-requirement/index.html",
+    "source_type": "privacy_rule",
+    "tier": 1,
+    "phi_status": "no_phi",
+    "license_status": "public_government_source"
+  }
+]

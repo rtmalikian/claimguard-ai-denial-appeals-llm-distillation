@@ -1,0 +1,108 @@
+{
+  "blocked_reasons": [],
+  "checks": {
+    "adapter_output": {
+      "exists_after_run": null,
+      "exists_before_run": false,
+      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
+    },
+    "data": {
+      "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus",
+      "errors": [],
+      "ready": true,
+      "split_reports": {
+        "test": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 1,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/test.jsonl",
+          "phi_findings": [],
+          "record_count": 1
+        },
+        "train": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 1,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/train.jsonl",
+          "phi_findings": [],
+          "record_count": 1
+        },
+        "valid": {
+          "errors": [],
+          "exists": true,
+          "expected_count": 1,
+          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/valid.jsonl",
+          "phi_findings": [],
+          "record_count": 1
+        }
+      },
+      "total_phi_findings": 0
+    },
+    "host": {
+      "machine": "arm64",
+      "processor": "arm",
+      "python": "3.14.5",
+      "system": "Darwin"
+    },
+    "manifest": {
+      "artifact": "claimguard_mlx_sft_corpus",
+      "data_safety": {
+        "data_tier": "approved_deidentified_corpus",
+        "external_model_calls_made": false,
+        "local_model_weights_written": false,
+        "phi_status": "no_phi",
+        "requires_checksum_match": true,
+        "requires_privacy_review": true,
+        "requires_training_eligible_manifest_records": true,
+        "requires_zero_phi_scan_findings": true,
+        "user_phi_allowed": false
+      },
+      "errors": [],
+      "manifest_blocked_reasons": [],
+      "model": "Qwen/Qwen3-4B-MLX-4bit",
+      "ready": true,
+      "training_allowed": true,
+      "warnings": []
+    },
+    "mlx_lm_lora": {
+      "available": true,
+      "error": null,
+      "path": ".venv-mlx/bin/mlx_lm.lora"
+    }
+  },
+  "command": [
+    ".venv-mlx/bin/mlx_lm.lora",
+    "--model",
+    "Qwen/Qwen3-4B-MLX-4bit",
+    "--train",
+    "--data",
+    "llm-distill/data/distillation/mlx_sft_corpus",
+    "--iters",
+    "60",
+    "--batch-size",
+    "1",
+    "--num-layers",
+    "8",
+    "--fine-tune-type",
+    "lora",
+    "--mask-prompt",
+    "--steps-per-report",
+    "10",
+    "--steps-per-eval",
+    "30",
+    "--adapter-path",
+    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
+  ],
+  "generated_at": "2026-05-30T23:10:16.532848+00:00",
+  "manifest": "llm-distill/data/distillation/mlx_sft_corpus/manifest.json",
+  "mode": "preflight",
+  "notes": [
+    "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
+    "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+    "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
+  ],
+  "preflight_errors": [],
+  "ready": true,
+  "training_attempted": false,
+  "training_succeeded": null
+}

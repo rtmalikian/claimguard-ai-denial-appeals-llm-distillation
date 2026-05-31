@@ -1,0 +1,45 @@
+Draft for human review.
+draft_for_human_review
+Synthetic corpus pair PAIR-SYN-LARGE-0783.
+
+Harborview Oncology Center
+Synthetic appeal draft for case reference SYN-CASE-0783
+Route metadata managed_care_appeal; appeal level second_level
+Synthetic formatting profile
+- Corpus role: appeal_letter
+- Layout profile: short_portal_update
+- Typography profile: sans_serif_portal_body
+- Length profile: long_review_packet
+- Format family: portal_appeal_message
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Portal message draft
+
+Summary: This supervised training draft responds to Oakline Community Health's synthetic denial for home health skilled nursing visit in service window 2026-Q3.
+
+Appeal basis: The provider staff reviewer should request reconsideration because submitted notes did not establish the plan criteria for the requested level of care. The packet should connect each assertion to the denial notice, source record, or coding rationale.
+
+Evidence to attach:
+- Verify the denial rationale for medical_necessity.
+- Attach source-grounded records for home health skilled nursing visit.
+- Confirm code G0299 and any modifier logic before submission.
+- Keep placeholders [PATIENT_0783], [AUTH_0783], and SYN-COVERAGE-3311 synthetic.
+
+Before any real-world use, verify payer channel, current deadline, authority, attachments, clinical statements, coding facts, and minimum necessary PHI scope. This synthetic draft is not filing-ready.
+
+Alternative short portal wording
+Please reconsider synthetic case SYN-CASE-0783. The provider staff reviewer will attach support for home health skilled nursing visit after validating payer-specific requirements. This portal wording is not filing-ready until the record is verified.
+
+Appeal rationale table
+| Topic | Synthetic review point |
+|---|---|
+| Denial type | medical_necessity |
+| Service | home health skilled nursing visit |
+| Route | managed_care_appeal |
+| Human gate | Verify facts, deadline, authority, and PHI scope |
+
+Source index for reviewer
+1. Synthetic denial notice SYN-CASE-0783.
+2. Coding rationale for procedure code G0299.
+3. Placeholder record summary with no real person or claim information.
+4. Payer-specific rule source to be verified outside this training fixture.

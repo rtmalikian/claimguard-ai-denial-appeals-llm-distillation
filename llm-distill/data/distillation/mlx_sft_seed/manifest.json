@@ -1,0 +1,82 @@
+{
+  "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
+  "artifact": "claimguard_mlx_sft_seed",
+  "blocked_reasons": [
+    "One or more records are pending large-teacher or human review."
+  ],
+  "data_safety": {
+    "data_tier": "synthetic",
+    "external_model_calls_made": false,
+    "local_model_weights_written": false,
+    "phi_status": "no_phi",
+    "user_phi_allowed": false
+  },
+  "format": "mlx_lm_chat_jsonl",
+  "micro_skill_counts": {
+    "MS01": 10,
+    "MS02": 10,
+    "MS03": 10,
+    "MS04": 1,
+    "MS05": 5,
+    "MS06": 10,
+    "MS07": 1,
+    "MS08": 10,
+    "MS09": 10,
+    "MS10": 10,
+    "MS11": 10,
+    "MS12": 1
+  },
+  "micro_skill_coverage_complete": true,
+  "missing_required_micro_skill_ids": [],
+  "model": "Qwen/Qwen3-4B-MLX-4bit",
+  "notes": [
+    "MLX-LM expects train.jsonl for training, optional valid.jsonl for validation, and test.jsonl for adapter evaluation.",
+    "Each generated JSONL row uses the chat dataset shape: {'messages': [...]}",
+    "The final assistant message is the completion and contains compact ClaimGuard JSON.",
+    "Use --mask-prompt so loss is applied to the assistant completion for chat SFT."
+  ],
+  "record_count": 10,
+  "required_micro_skill_ids": [
+    "MS01",
+    "MS02",
+    "MS03",
+    "MS04",
+    "MS05",
+    "MS06",
+    "MS07",
+    "MS08",
+    "MS09",
+    "MS10",
+    "MS11",
+    "MS12"
+  ],
+  "source_data": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+  "split_counts": {
+    "test": 1,
+    "train": 8,
+    "valid": 1
+  },
+  "teacher_review_status_counts": {
+    "pending_large_teacher_review": 10
+  },
+  "train_command": [
+    "mlx_lm.lora",
+    "--model",
+    "Qwen/Qwen3-4B-MLX-4bit",
+    "--train",
+    "--data",
+    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_seed",
+    "--iters",
+    "600",
+    "--batch-size",
+    "1",
+    "--num-layers",
+    "8",
+    "--fine-tune-type",
+    "lora",
+    "--mask-prompt",
+    "--adapter-path",
+    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed"
+  ],
+  "training_allowed": false
+}

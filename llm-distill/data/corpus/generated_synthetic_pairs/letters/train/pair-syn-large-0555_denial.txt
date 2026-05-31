@@ -1,0 +1,38 @@
+Training synthetic corpus pair PAIR-SYN-LARGE-0555.
+
+Clearwater Managed Care
+Synthetic adverse benefit determination
+Case reference SYN-CASE-0555
+Coverage reference SYN-COVERAGE-9435
+Synthetic formatting profile
+- Corpus role: denial_letter
+- Layout profile: short_portal_update
+- Typography profile: small_footer_legal_notice
+- Length profile: long_review_packet
+- Format family: eob_summary
+- Rendering note: source text is kept plain UTF-8 for PHI scanning; font and layout profile names document the intended stress-test rendering style.
+
+Explanation summary
+- Review status: denied
+- Service category: home_health
+- Synthetic member placeholder [PATIENT_0555]; provider group Westhaven Digestive Health; service window 2026-Q3; service reviewed home health skilled nursing visit; procedure code G0299; billed amount $7,910.00.
+- Determination rationale: coverage eligibility could not be confirmed for the service window. This synthetic notice is for model training only and is not connected to any real person.
+- Action: reconcile coding, coverage, and documentation before appeal submission.
+- Human review required before any real-world use.
+
+Reviewer action list
+- Verify the current payer rule before citing it.
+- Confirm the appeal channel and representative authority.
+- Use only minimum necessary placeholders in any training response.
+- Keep any generated appeal draft marked for human review.
+
+Source packet review
+The review queue could not confirm that Westhaven Digestive Health supplied all plan-required support for home health skilled nursing visit. Staff should compare the service category, code, and submitted record summary before preparing any appeal response.
+
+Service-line table
+| Field | Synthetic value |
+|---|---|
+| Service category | home_health |
+| Procedure code | G0299 |
+| Review amount | $7,910.00 |
+| Route metadata | managed_care_appeal |

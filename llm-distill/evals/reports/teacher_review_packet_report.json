@@ -1,0 +1,321 @@
+{
+  "approved_count": 10,
+  "export_error_count": 0,
+  "export_errors": [],
+  "export_requested": true,
+  "exported_response_count": 10,
+  "generated_at": "2026-05-30T03:25:32.938726+00:00",
+  "mode": "export_responses",
+  "notes": [
+    "This script builds and validates an offline review packet; it does not call teacher endpoints or approve labels.",
+    "Completed review packets should use synthetic/public/de-identified data only and a pseudonymous reviewer_id.",
+    "Response export writes ingestion-compatible JSONL only after approved records pass schema, safety, and PHI checks."
+  ],
+  "packet_input": "llm-distill/data/distillation/teacher_review_packet.jsonl",
+  "packet_output": "llm-distill/data/distillation/teacher_review_packet.jsonl",
+  "packet_phi_scan": {
+    "exists": true,
+    "finding_count": 0,
+    "findings": [],
+    "path": "llm-distill/data/distillation/teacher_review_packet.jsonl"
+  },
+  "packet_record_count": 10,
+  "pending_count": 0,
+  "pending_custom_ids": [],
+  "record_summaries": [
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs01",
+      "example_id": "cg-vs01-commercial_or_unknown_medical_necessity",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "medical_necessity",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "formal_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs02",
+      "example_id": "cg-vs02-urgent_pre_service",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS05",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "medical_necessity",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 5,
+        "recommended_route": "expedited_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs03",
+      "example_id": "cg-vs03-self_funded_erisa_medical_necessity",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS05",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "medical_necessity",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "formal_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs04",
+      "example_id": "cg-vs04-medicare_ffs_redetermination",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS05",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "unknown",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "medicare_ffs_redetermination",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs05",
+      "example_id": "cg-vs05-medicare_advantage_pre_service",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS05",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "unknown",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 5,
+        "recommended_route": "expedited_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs06",
+      "example_id": "cg-vs06-medicaid_managed_care_service_reduction",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS05",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "unknown",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 5,
+        "recommended_route": "medicaid_continuation_and_mco_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs07",
+      "example_id": "cg-vs07-commercial_out_of_network",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "out_of_network",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "formal_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs08",
+      "example_id": "cg-vs08-coding_modifier_corrected_claim",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS06",
+        "MS07",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "coding_billing",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "corrected_claim_or_reopening",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs09",
+      "example_id": "cg-vs09-provider_authority_missing",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS04",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11"
+      ],
+      "output_summary": {
+        "denial_type": "missing_documentation",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 4,
+        "recommended_route": "formal_internal_appeal",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    },
+    {
+      "approved_for_sft": true,
+      "custom_id": "teacher-label-vs10",
+      "example_id": "cg-vs10-upheld_final_adverse_response",
+      "micro_skill_ids": [
+        "MS01",
+        "MS02",
+        "MS03",
+        "MS06",
+        "MS08",
+        "MS09",
+        "MS10",
+        "MS11",
+        "MS12"
+      ],
+      "output_summary": {
+        "denial_type": "medical_necessity",
+        "draft_section_count": 1,
+        "human_review_required": true,
+        "is_object": true,
+        "missing_required_keys": [],
+        "quality_check_count": 5,
+        "recommended_route": "external_review_or_next_level",
+        "required_key_count": 14
+      },
+      "review_status": "large_teacher_reviewed"
+    }
+  ],
+  "required_review_checks": [
+    "citations_supported",
+    "draft_marked_for_human_review",
+    "human_review_gate_preserved",
+    "minimum_necessary",
+    "no_phi_pii",
+    "output_schema_valid",
+    "source_grounded",
+    "unsafe_claims_absent"
+  ],
+  "response_export_ready": true,
+  "response_output": "llm-distill/data/distillation/teacher_responses_from_review.jsonl",
+  "response_phi_scan": {
+    "exists": true,
+    "finding_count": 0,
+    "findings": [],
+    "path": "llm-distill/data/distillation/teacher_responses_from_review.jsonl"
+  },
+  "review_packet_ready": true,
+  "seed_input": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+  "seed_record_count": 10,
+  "teacher_model": "codex_gpt5_synthetic_review",
+  "training_ready": true,
+  "validation_error_count": 0,
+  "validation_errors": [],
+  "warnings": []
+}

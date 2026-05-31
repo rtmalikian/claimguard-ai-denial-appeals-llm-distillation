@@ -1,0 +1,3 @@
+Training synthetic corpus pair CP-TRAIN-001.
+
+A commercial plan example denies advanced imaging because the request packet lacks prior approval evidence and medical necessity support. The notice lists no names, contacts, exact dates, account references, addresses, or live payer portal identifiers. It states that review staff should compare the requested service, diagnosis context, guideline criteria, and supplied chart summary before issuing any draft.

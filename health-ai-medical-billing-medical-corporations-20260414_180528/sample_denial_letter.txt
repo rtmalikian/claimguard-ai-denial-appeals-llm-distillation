@@ -1,0 +1,77 @@
+INSURANCE CLAIM DENIAL NOTICE
+================================
+
+Date: January 15, 2024
+
+Patient Name: John Smith
+Date of Birth: March 15, 1975
+Policy Number: BCB-9876543
+Group Number: GRP-55221
+Claim Number: CLM-2024-001567
+
+Insurance Company: Blue Cross Blue Shield of California
+Address: Claims Appeals Department, P.O. Box 60007, Los Angeles, CA 60007
+
+================================
+NOTICE OF DENIAL
+================================
+
+Dear John Smith,
+
+We have reviewed your claim for medical services rendered on December 20, 2023.
+
+CLAIM DETAILS:
+--------------
+Service Date: December 20, 2023
+Provider: Dr. Sarah Johnson, MD
+Facility: Downtown Medical Center
+Service Description: Evaluation and Management - Established Patient
+CPT Code: 99214
+Diagnosis Code: M54.5 (Low back pain)
+
+Amount Billed: $250.00
+Allowed Amount: $175.00
+Your Responsibility: $50.00 (deductible/coinsurance)
+
+REASON FOR DENIAL:
+------------------
+Code CO16 - Missing Documentation
+
+The claim for CPT code 99214 has been denied because the medical record 
+documentation submitted does not support the level of service billed. 
+Specifically, the documentation lacks:
+
+1. A detailed history of present illness (HPI)
+2. Documentation of the complexity of medical decision making
+3. Duration and continuity of the chief complaint
+
+Without sufficient documentation, we are unable to verify that the level 
+of service billed was medically necessary.
+
+APPEAL RIGHTS:
+--------------
+If you disagree with this decision, you have the right to appeal. 
+To file an appeal:
+
+1. Write to: Blue Cross Blue Shield Appeals Department
+             P.O. Box 60007, Los Angeles, CA 60007
+
+2. Fax to: 1-800-555-0123
+
+3. Appeal must be filed within 180 days of this notice
+
+4. Include your name, claim number, and a written statement explaining 
+   why you believe the claim should be paid
+
+5. You may submit additional medical records or documentation to 
+   support your appeal
+
+For assistance, call: 1-800-555-BCBS (2227)
+
+Sincerely,
+
+Claims Review Department
+Blue Cross Blue Shield of California
+
+================================
+This is an automated notice. Please do not ignore.

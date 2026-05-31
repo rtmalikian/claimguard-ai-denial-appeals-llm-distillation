@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.claimguard.mlx-student</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/ABSOLUTE/PATH/TO/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/mlx_lm.server</string>
+    <string>--model</string>
+    <string>Qwen/Qwen3-4B-MLX-4bit</string>
+    <string>--adapter-path</string>
+    <string>/ABSOLUTE/PATH/TO/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed</string>
+    <string>--host</string>
+    <string>127.0.0.1</string>
+    <string>--port</string>
+    <string>8080</string>
+    <string>--max-tokens</string>
+    <string>1800</string>
+    <string>--chat-template-args</string>
+    <string>{"enable_thinking": false}</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/ABSOLUTE/PATH/TO/Claimguard_AI_Insurance_Denials</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/tmp/claimguard-mlx-student.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/claimguard-mlx-student.err.log</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>CLAIMGUARD_RUNTIME_PROFILE</key>
+    <string>student_denial_workflow_local_only</string>
+  </dict>
+</dict>
+</plist>

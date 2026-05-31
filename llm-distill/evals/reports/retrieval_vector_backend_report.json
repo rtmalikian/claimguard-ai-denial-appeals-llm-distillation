@@ -1,0 +1,205 @@
+{
+  "blocked_item_count": 3,
+  "blocked_items": [
+    {
+      "blockers": [
+        "semantic_embedding_backend_not_configured",
+        "embedding_model_not_configured",
+        "embedding_model_not_approved",
+        "production_vector_backend_not_configured",
+        "hash_fallback_not_disabled_for_production"
+      ],
+      "evidence": {
+        "contains_secrets": false,
+        "embedding_model_approved": false,
+        "embedding_model_configured": false,
+        "hash_fallback_disabled_for_production": false,
+        "production_vector_backend_configured": false,
+        "semantic_backend_configured": false
+      },
+      "name": "Production semantic embedding and vector backend configuration is attested",
+      "requirement_id": "retrieval_vector_backend_configuration",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "active_retrieval_chunks_not_indexed",
+        "stored_hash_embeddings_still_present",
+        "reindex_job_not_completed",
+        "reindex_audit_not_checked"
+      ],
+      "evidence": {
+        "active_retrieval_chunks_indexed": false,
+        "reindex_audit_checked": false,
+        "reindex_job_completed": false,
+        "stored_hash_embeddings_absent": false
+      },
+      "name": "Retrieval chunks are indexed with production semantic embeddings",
+      "requirement_id": "retrieval_vector_backend_index_state",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "vector_backend_health_not_checked",
+        "retrieval_quality_smoke_not_passed"
+      ],
+      "evidence": {
+        "backup_restore_reviewed": true,
+        "disable_or_rollback_path_reviewed": true,
+        "retrieval_quality_smoke_passed": false,
+        "vector_backend_health_checked": false
+      },
+      "name": "Vector backend health, quality, backup, and rollback validation are attested",
+      "requirement_id": "retrieval_vector_backend_runtime_validation",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
+  "generated_at": "2026-05-31T14:29:26.754345+00:00",
+  "notes": [
+    "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
+    "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
+    "A template evidence file is expected to be safe_to_review=true but vector_backend_ready=false until configuration, reindex, governance, and runtime evidence are complete."
+  ],
+  "objective": "Validate production retrieval vector backend evidence without storing PHI, secrets, source text, vector values, or production document content.",
+  "ready_item_count": 5,
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_retrieval_vector_backend_evidence",
+        "evidence_status": "local_governance_and_rollback_controls_ready_infrastructure_blocked",
+        "version_configured": true
+      },
+      "name": "Retrieval vector backend evidence has the required structure",
+      "requirement_id": "retrieval_vector_backend_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_phi_or_secret_values_attested": true,
+        "no_source_text_or_vector_values_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "values_redacted": true
+      },
+      "name": "Vector backend evidence contains no PHI, secrets, source text, or vector values",
+      "requirement_id": "retrieval_vector_backend_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "semantic_embedding_backend_not_configured",
+        "embedding_model_not_configured",
+        "embedding_model_not_approved",
+        "production_vector_backend_not_configured",
+        "hash_fallback_not_disabled_for_production"
+      ],
+      "evidence": {
+        "contains_secrets": false,
+        "embedding_model_approved": false,
+        "embedding_model_configured": false,
+        "hash_fallback_disabled_for_production": false,
+        "production_vector_backend_configured": false,
+        "semantic_backend_configured": false
+      },
+      "name": "Production semantic embedding and vector backend configuration is attested",
+      "requirement_id": "retrieval_vector_backend_configuration",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 8,
+        "raw_runbook_text_included": false,
+        "required_marker_count": 8,
+        "runbook_exists": true,
+        "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-backend-runbook.md",
+        "source_control_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled retrieval vector backend runbook is documented",
+      "requirement_id": "retrieval_vector_backend_operator_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "checklist_exists": true,
+        "checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-reindex-checklist.md",
+        "missing_marker_count": 0,
+        "present_marker_count": 14,
+        "raw_checklist_text_included": false,
+        "required_marker_count": 14,
+        "source_control_reindex_checklist_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled retrieval vector reindex checklist is documented",
+      "requirement_id": "retrieval_vector_backend_reindex_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "active_retrieval_chunks_not_indexed",
+        "stored_hash_embeddings_still_present",
+        "reindex_job_not_completed",
+        "reindex_audit_not_checked"
+      ],
+      "evidence": {
+        "active_retrieval_chunks_indexed": false,
+        "reindex_audit_checked": false,
+        "reindex_job_completed": false,
+        "stored_hash_embeddings_absent": false
+      },
+      "name": "Retrieval chunks are indexed with production semantic embeddings",
+      "requirement_id": "retrieval_vector_backend_index_state",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "audit_dashboard_verified": true,
+        "encrypted_storage_verified": true,
+        "retention_delete_verified": true,
+        "role_scoped_access_verified": true,
+        "source_control_runbook_documented": true,
+        "source_text_redaction_verified": true
+      },
+      "name": "Vector backend access, retention, audit, and redaction controls are verified",
+      "requirement_id": "retrieval_vector_backend_governance",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "vector_backend_health_not_checked",
+        "retrieval_quality_smoke_not_passed"
+      ],
+      "evidence": {
+        "backup_restore_reviewed": true,
+        "disable_or_rollback_path_reviewed": true,
+        "retrieval_quality_smoke_passed": false,
+        "vector_backend_health_checked": false
+      },
+      "name": "Vector backend health, quality, backup, and rollback validation are attested",
+      "requirement_id": "retrieval_vector_backend_runtime_validation",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true,
+  "vector_backend_ready": false
+}

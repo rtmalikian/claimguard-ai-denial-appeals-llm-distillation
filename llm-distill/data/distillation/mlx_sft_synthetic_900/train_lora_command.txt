@@ -1,0 +1,33 @@
+# ClaimGuard MLX-LM LoRA Command
+
+status=training_allowed
+
+Install training dependencies outside this repository:
+
+python3 -m pip install "mlx-lm[train]"
+
+Training command:
+
+mlx_lm.lora \
+  --model \
+  Qwen/Qwen3-4B-MLX-4bit \
+  --train \
+  --data \
+  llm-distill/data/distillation/mlx_sft_synthetic_900 \
+  --iters \
+  120 \
+  --batch-size \
+  1 \
+  --num-layers \
+  8 \
+  --fine-tune-type \
+  lora \
+  --mask-prompt \
+  --steps-per-report \
+  20 \
+  --steps-per-eval \
+  40 \
+  --adapter-path \
+  llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900
+
+Do not run this command on pending seed labels. Replace labels with reviewed large-teacher or human-approved outputs first.

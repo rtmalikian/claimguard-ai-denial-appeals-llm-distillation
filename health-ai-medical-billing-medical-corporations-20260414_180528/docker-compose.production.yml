@@ -1,0 +1,97 @@
+name: claimguard-production
+
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-claimguard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for production}
+      POSTGRES_DB: ${POSTGRES_DB:-claimguard}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-claimguard} -d $${POSTGRES_DB:-claimguard}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: runtime
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-claimguard}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD for production}@db:5432/${POSTGRES_DB:-claimguard}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY for production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      ENCRYPTION_KEYS: ${ENCRYPTION_KEYS:?Set ENCRYPTION_KEYS for production}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-ClaimGuard Admin}
+      BOOTSTRAP_ADMIN_SYNC_FROM_ENV: ${BOOTSTRAP_ADMIN_SYNC_FROM_ENV:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Set CORS_ALLOWED_ORIGINS for production}
+      LLM_PROVIDER: ${LLM_PROVIDER:-nvidia_nim}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:?Set NVIDIA_API_KEY for production NVIDIA runtime}
+      NVIDIA_BASE_URL: ${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}
+      NVIDIA_MODEL: ${NVIDIA_MODEL:-nvidia/llama-3.3-nemotron-super-49b-v1.5}
+      NVIDIA_OCR_MODEL: ${NVIDIA_OCR_MODEL:-nvidia/nemotron-parse}
+      NVIDIA_TIMEOUT: ${NVIDIA_TIMEOUT:-120}
+      MLX_BASE_URL: ${MLX_BASE_URL:-http://host.docker.internal:8080/v1}
+      MLX_MODEL: ${MLX_MODEL:-Qwen/Qwen3-4B-MLX-4bit}
+      MLX_FALLBACK_MODEL: ${MLX_FALLBACK_MODEL:-Qwen/Qwen3-1.7B}
+      MLX_TIMEOUT: ${MLX_TIMEOUT:-120}
+      OCR_ENGINE: ${OCR_ENGINE:-nvidia_nemotron_parse}
+      OCR_TIMEOUT: ${OCR_TIMEOUT:-120}
+      CLAIMGUARD_STUDENT_USE_BY_DEFAULT: ${CLAIMGUARD_STUDENT_USE_BY_DEFAULT:-false}
+      CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED: ${CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED:-false}
+      CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE: ${CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE:-}
+      CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED: ${CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED:-false}
+      CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA: ${CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA:-true}
+      CLAIMGUARD_STUDENT_ENABLE_AUTO_LAUNCH: ${CLAIMGUARD_STUDENT_ENABLE_AUTO_LAUNCH:-false}
+      USER_DATA_MODEL_IMPROVEMENT_ENABLED: ${USER_DATA_MODEL_IMPROVEMENT_ENABLED:-false}
+      USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED: ${USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED:-false}
+      USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED: ${USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED:-false}
+      USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION: ${USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION:-}
+      USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE: ${USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE:-}
+      USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT: ${USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT:-llm-distill/evals/reports/model_improvement_evidence_report.json}
+      PREDICTION_FAIRNESS_EVIDENCE_REPORT: ${PREDICTION_FAIRNESS_EVIDENCE_REPORT:-llm-distill/evals/reports/prediction_fairness_evidence_report.json}
+      RETRIEVAL_EMBEDDING_BACKEND: ${RETRIEVAL_EMBEDDING_BACKEND:-hash}
+      RETRIEVAL_EMBEDDING_MODEL: ${RETRIEVAL_EMBEDDING_MODEL:-claimguard-hash-embedding-v1}
+      RETRIEVAL_EMBEDDING_MODEL_APPROVED: ${RETRIEVAL_EMBEDDING_MODEL_APPROVED:-false}
+      RETRIEVAL_VECTOR_BACKEND: ${RETRIEVAL_VECTOR_BACKEND:-encrypted_local_metadata}
+      RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED: ${RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED:-false}
+      RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION: ${RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend.production
+      target: runtime
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_PRODUCTION_FRONTEND_PORT:-8080}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:

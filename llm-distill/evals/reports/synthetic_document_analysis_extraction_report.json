@@ -1,0 +1,30 @@
+{
+  "artifact": "synthetic_document_analysis_extraction_audit",
+  "blocker_count": 0,
+  "blockers": [],
+  "evidence": {
+    "checked_denial_count": 900,
+    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+    "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "minimum_required_denial_count": 800,
+    "missing_claim_amount_count": 0,
+    "missing_denial_reason_count": 0,
+    "missing_file_count": 0,
+    "missing_payer_name_count": 0,
+    "missing_procedure_code_count": 0,
+    "phi_finding_count": 0,
+    "read_error_count": 0,
+    "sample_failures": [],
+    "unexpected_patient_name_count": 0,
+    "unexpected_policy_number_count": 0
+  },
+  "generated_at": "2026-05-31T05:04:44.222236+00:00",
+  "notes": [
+    "This audit calls the local DocumentAnalysisService field extractor only.",
+    "It does not call NVIDIA, teacher endpoints, model servers, OCR services, or production APIs.",
+    "The generated denial notices remain synthetic stress-test data and are not production corpus evidence."
+  ],
+  "ready": true,
+  "warning_count": 0,
+  "warnings": []
+}
