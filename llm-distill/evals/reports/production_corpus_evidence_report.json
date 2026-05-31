@@ -43,7 +43,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-05-31T17:27:21.456902+00:00",
+  "generated_at": "2026-05-31T17:37:09.732850+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -51,7 +51,7 @@
   ],
   "objective": "Validate production denial/appeal corpus evidence without storing PHI, secrets, approval values, source paths, checksums, or raw documents.",
   "production_corpus_ready": false,
-  "ready_item_count": 5,
+  "ready_item_count": 6,
   "requirements": [
     {
       "blockers": [],
@@ -90,6 +90,7 @@
         "no_phi_review_attested": true,
         "privacy_review_attested": true,
         "residual_risk_review_attested": true,
+        "source_control_collection_license_checklist_documented": true,
         "source_control_review_runbook_documented": true,
         "source_license_scope_documented": true,
         "training_scope_reviewed": true
@@ -113,6 +114,23 @@
       },
       "name": "Source-controlled production corpus review runbook is documented",
       "requirement_id": "production_corpus_operator_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "collection_license_checklist_exists": true,
+        "collection_license_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-collection-license-checklist.md",
+        "missing_marker_count": 0,
+        "present_marker_count": 25,
+        "raw_checklist_text_included": false,
+        "required_marker_count": 25,
+        "source_control_collection_license_checklist_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled production corpus collection/license checklist is documented",
+      "requirement_id": "production_corpus_collection_license_checklist",
       "status": "ready",
       "warnings": []
     },

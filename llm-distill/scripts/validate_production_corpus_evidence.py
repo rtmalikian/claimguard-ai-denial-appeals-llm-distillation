@@ -95,6 +95,33 @@ PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS = (
     "no PHI",
     "production_corpus_ready=false",
 )
+COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS = (
+    "ClaimGuard AI is architected by Raphael Malikian",
+    "Current status: corpus collection and licensing review not complete for production.",
+    "source inventory required",
+    "source category documented required",
+    "license terms reviewed outside source control required",
+    "terms-of-use review required",
+    "payer policy reuse restrictions reviewed required",
+    "public source scope documented required",
+    "real de-identified source scope documented required",
+    "collection owner documented outside source control required",
+    "privacy review required",
+    "license review required",
+    "residual-risk review required",
+    "training scope review required",
+    "no-PHI review required",
+    "source license scope documented required",
+    "boolean-only evidence",
+    "no raw denial letters",
+    "no raw appeal letters",
+    "no source paths",
+    "no source URLs",
+    "no checksums",
+    "no approval reference values",
+    "no PHI",
+    "production_corpus_ready=false",
+)
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -239,6 +266,7 @@ def corpus_review_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("corpus_review", {})
     required_flags = {
         "source_control_review_runbook_documented": "source_control_review_runbook_not_documented",
+        "source_control_collection_license_checklist_documented": "source_control_collection_license_checklist_not_documented",
         "privacy_review_attested": "privacy_review_not_attested",
         "license_review_attested": "license_review_not_attested",
         "residual_risk_review_attested": "residual_risk_review_not_attested",
@@ -311,6 +339,61 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
             "raw_runbook_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
+def collection_license_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("corpus_review", {})
+    checklist_configured = bool_value(
+        section,
+        "source_control_collection_license_checklist_documented",
+    )
+    configured_path = str_value(
+        section,
+        "source_control_collection_license_checklist_path",
+    )
+    checklist_path = resolve_path(configured_path, evidence_path) if configured_path else None
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS)
+    if not checklist_configured:
+        blockers.append("source_control_collection_license_checklist_not_documented")
+    if checklist_path is None:
+        blockers.append("source_control_collection_license_checklist_path_missing")
+    elif not checklist_path.exists():
+        blockers.append("source_control_collection_license_checklist_missing")
+    else:
+        try:
+            checklist_text = checklist_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            checklist_text = ""
+            blockers.append("source_control_collection_license_checklist_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS
+            if marker in checklist_text
+        )
+        missing_marker_count = (
+            len(COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_collection_license_checklist_required_markers_missing")
+
+    return requirement(
+        requirement_id="production_corpus_collection_license_checklist",
+        name="Source-controlled production corpus collection/license checklist is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_collection_license_checklist_documented": checklist_configured,
+            "collection_license_checklist_path": str(checklist_path) if checklist_path else None,
+            "collection_license_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "required_marker_count": len(COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_checklist_text_included": False,
             "values_redacted": True,
         },
     )
@@ -457,6 +540,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         no_values_requirement(evidence_path, evidence),
         corpus_review_requirement(evidence),
         operator_runbook_requirement(evidence_path, evidence),
+        collection_license_checklist_requirement(evidence_path, evidence),
         pair_source_checklist_requirement(evidence_path, evidence),
         manifest_pair_requirement(evidence_path, evidence),
     ]

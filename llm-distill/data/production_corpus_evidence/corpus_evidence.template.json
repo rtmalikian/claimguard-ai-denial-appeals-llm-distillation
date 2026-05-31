@@ -9,6 +9,8 @@
   "corpus_review": {
     "source_control_review_runbook_documented": true,
     "source_control_review_runbook_path": "llm-distill/docs/production-corpus-review-runbook.md",
+    "source_control_collection_license_checklist_documented": true,
+    "source_control_collection_license_checklist_path": "llm-distill/docs/production-corpus-collection-license-checklist.md",
     "privacy_review_attested": true,
     "license_review_attested": true,
     "residual_risk_review_attested": true,

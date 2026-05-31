@@ -764,7 +764,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
   report readiness, approved non-synthetic paired corpus evidence,
   dedicated production-corpus evidence report readiness, and
   source-controlled corpus review runbook documentation plus source-controlled
-  pair/source checklist documentation. The student cutover
+  collection/license checklist documentation and pair/source checklist
+  documentation. The student cutover
   section now also requires source-controlled runtime owner handoff checklist
   documentation while keeping private runtime owner assignment and approval
   references outside source control. The validator now also
@@ -856,6 +857,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   quarantine, de-identification, Safe Harbor/Expert Determination, approved
   non-synthetic pair, outside-source-control review, and
   `production_corpus_ready=false` markers without emitting the runbook text.
+  The validator now also verifies the source-controlled collection/license
+  checklist at `llm-distill/docs/production-corpus-collection-license-checklist.md`
+  exists with required source inventory, source category, license terms,
+  terms-of-use, payer policy reuse restriction, public/real de-identified source
+  scope, collection owner, privacy/license/residual-risk/training-scope/no-PHI,
+  no raw documents, no source paths/URLs, no checksums, no approval reference
+  values, no PHI, and `production_corpus_ready=false` markers without emitting
+  the checklist text.
   The validator now also verifies the source-controlled pair/source checklist
   at `llm-distill/docs/production-corpus-pair-source-checklist.md` exists with
   required denial/appeal roles, shared pair id, outside-source-control pair and
@@ -1440,6 +1449,23 @@ from `backups/20260531-103843-production-corpus-pair-source-checklist/`;
 remove `llm-distill/docs/production-corpus-pair-source-checklist.md` if
 rolling back the source-controlled production corpus pair/source checklist
 evidence slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`llm-distill/scripts/validate_production_corpus_evidence.py`,
+`llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`,
+`llm-distill/data/production_corpus_evidence/corpus_evidence.template.json`,
+`llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`,
+`llm-distill/evals/reports/production_corpus_evidence_report.json`,
+`llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`,
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`
+from `backups/20260531-103408-production-corpus-collection-license-checklist/`;
+remove `llm-distill/docs/production-corpus-collection-license-checklist.md` if
+rolling back the source-controlled production corpus collection/license
+checklist evidence slice.
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json`,
 `llm-distill/scripts/validate_model_improvement_evidence.py`,

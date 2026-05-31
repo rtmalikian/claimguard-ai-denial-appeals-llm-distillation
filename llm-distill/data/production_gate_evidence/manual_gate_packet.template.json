@@ -50,6 +50,7 @@
     "manifest_record_ids": [],
     "production_corpus_evidence_report_ready": false,
     "source_control_review_runbook_documented": true,
+    "source_control_collection_license_checklist_documented": true,
     "source_control_pair_source_checklist_documented": true,
     "privacy_review_attested": true,
     "license_review_attested": true,

@@ -218,11 +218,12 @@ checked-in report; the report is safe to review but not production-ready, and
 the PHIplan audit blocks until approved non-synthetic paired denial/appeal
 manifest evidence is complete. Current checked-in manifest review attestations
 are ready for source-controlled review runbook documentation,
+source-controlled collection/license checklist documentation,
 source-controlled pair/source checklist documentation, privacy, license,
-residual-risk, training-scope, no-PHI, and source/license scope without storing
-raw documents, source paths, checksums, approval references, PHI, or secrets;
-the remaining corpus gate is an approved non-synthetic paired denial/appeal
-source with outside-source-control pair/source review.
+residual-risk, training-scope, no-PHI, and source/license scope without
+storing raw documents, source paths, checksums, approval references, PHI, or
+secrets; the remaining corpus gate is an approved non-synthetic paired
+denial/appeal source with outside-source-control pair/source review.
 User-data model-improvement evidence now also has a boolean-only template,
 validator, and checked-in report; the report is safe to review but not
 production-ready, and the PHIplan audit blocks until legal approval, BAA
@@ -820,6 +821,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   attestations and source-controlled review runbook documentation ready while
   keeping approved non-synthetic paired denial/appeal source and
   outside-source-control review gates blocked
+- [x] Production corpus evidence validates source-controlled
+  collection/license checklist documentation with required source inventory,
+  source category, license terms, terms-of-use, payer policy reuse
+  restrictions, public/real de-identified source scope, collection owner,
+  privacy, license, residual-risk, training-scope, no-PHI, boolean-only, and
+  no-raw-value markers while keeping actual corpus collection approval blocked
 - [x] Production corpus evidence validates source-controlled pair/source
   checklist documentation with required denial/appeal roles, shared pair id,
   outside-source-control pair/source review, privacy, license, residual-risk,
@@ -1398,9 +1405,11 @@ query indexes.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through
   the production corpus review workflow. Local progress: production corpus
   evidence now requires the checked-in operator runbook at
-  `llm-distill/docs/production-corpus-review-runbook.md` plus the checked-in
-  pair/source checklist at
-  `llm-distill/docs/production-corpus-pair-source-checklist.md` and keeps
+  `llm-distill/docs/production-corpus-review-runbook.md`, the checked-in
+  collection/license checklist at
+  `llm-distill/docs/production-corpus-collection-license-checklist.md`, and
+  the checked-in pair/source checklist at
+  `llm-distill/docs/production-corpus-pair-source-checklist.md`; it keeps
   `production_corpus_ready=false` until private pair/source review is complete.
 - [ ] Configure real legal approval reference, BAA confirmation, and consent
   notice version before enabling user-data model improvement. Local progress:
@@ -1409,7 +1418,10 @@ query indexes.
   `model_improvement_ready=false` until private approval, consent, BAA, and
   explicit request gates are complete.
 - [ ] Add full corpus collection and licensing review before any training data
-  build.
+  build. Local progress: source-controlled collection/license checklist
+  documentation is now required and validated, but real collection inventory,
+  license terms, source terms, and approval records must remain outside source
+  control until reviewed.
 - [x] Run live MLX-LM latency, tokens/sec, and memory benchmarks on the M1 iMac.
 - [x] Add synthetic supervised seed records and teacher-label request batches.
 - [x] Export synthetic seed records to MLX-LM chat-format SFT splits with
