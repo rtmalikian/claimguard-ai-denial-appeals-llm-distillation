@@ -30,6 +30,9 @@ DEFAULT_CALIBRATION_CHECKLIST = (
 DEFAULT_MONITORING_VALIDATION_CHECKLIST = (
     DISTILL_DIR / "docs" / "prediction-fairness-monitoring-validation-checklist.md"
 )
+DEFAULT_LEGAL_PRIVACY_CHECKLIST = (
+    DISTILL_DIR / "docs" / "prediction-fairness-legal-privacy-checklist.md"
+)
 MODEL_CARD_REQUIRED_MARKERS = [
     "Current status: not production-ready.",
     "Human-review routing threshold only.",
@@ -82,6 +85,29 @@ MONITORING_VALIDATION_CHECKLIST_REQUIRED_MARKERS = [
     "boolean-only evidence",
     "production outcome rows must stay outside source control",
     "no raw demographic values",
+    "prediction_fairness_monitoring_ready=false",
+]
+LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS = [
+    "ClaimGuard AI is architected by Raphael Malikian",
+    "Current status: legal/privacy review not complete for production fairness monitoring.",
+    "legal/privacy review required",
+    "approved outcome dataset required",
+    "approved demographic grouping review required",
+    "minimum sample size required",
+    "human-review routing only",
+    "no auto-denial threshold",
+    "production outcome rows must stay outside source control",
+    "raw demographic values must stay outside source control",
+    "approval references must stay outside source control",
+    "rollback or threshold reversion required",
+    "boolean-only evidence",
+    "no raw demographic values",
+    "no production outcome rows",
+    "no individual identifiers",
+    "no approval reference values",
+    "no legal document text",
+    "no BAA document text",
+    "no consent document text",
     "prediction_fairness_monitoring_ready=false",
 ]
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
@@ -447,10 +473,66 @@ def monitoring_runbook_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def legal_privacy_checklist_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("governance_controls", {})
+    documented = bool_value(
+        section,
+        "source_control_legal_privacy_checklist_documented",
+    )
+    checklist_path = resolve_repo_path(
+        section.get("legal_privacy_checklist_path"),
+        DEFAULT_LEGAL_PRIVACY_CHECKLIST,
+    )
+    checklist_exists = checklist_path.exists()
+    checklist_marker_count = 0
+    missing_checklist_markers: list[str] = []
+    blockers: list[str] = []
+    if not documented:
+        blockers.append("source_control_legal_privacy_checklist_not_documented")
+    if documented:
+        if not checklist_exists:
+            blockers.append("legal_privacy_checklist_document_missing")
+        else:
+            checklist_text = checklist_path.read_text(encoding="utf-8")
+            missing_checklist_markers = [
+                marker
+                for marker in LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS
+                if marker.lower() not in checklist_text.lower()
+            ]
+            checklist_marker_count = (
+                len(LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS)
+                - len(missing_checklist_markers)
+            )
+            if missing_checklist_markers:
+                blockers.append("legal_privacy_checklist_required_markers_missing")
+    return requirement(
+        requirement_id="prediction_fairness_legal_privacy_checklist",
+        name="Source-controlled prediction fairness legal/privacy checklist is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_legal_privacy_checklist_documented": documented,
+            "legal_privacy_checklist_path": str(checklist_path),
+            "legal_privacy_checklist_exists": checklist_exists,
+            "legal_privacy_checklist_required_marker_count": len(
+                LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS
+            ),
+            "legal_privacy_checklist_present_marker_count": checklist_marker_count,
+            "legal_privacy_checklist_missing_marker_count": len(
+                missing_checklist_markers
+            ),
+            "legal_privacy_checklist_values_included": False,
+        },
+    )
+
+
 def governance_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("governance_controls", {})
     required_flags = {
         "legal_privacy_review_completed": "legal_privacy_review_not_completed",
+        "source_control_legal_privacy_checklist_documented": (
+            "source_control_legal_privacy_checklist_not_documented"
+        ),
         "model_card_updated": "model_card_not_updated",
         "rollback_or_threshold_reversion_reviewed": "rollback_or_threshold_reversion_not_reviewed",
         "audit_log_metadata_only_verified": "audit_log_metadata_only_not_verified",
@@ -511,6 +593,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         continuous_monitoring_requirement(evidence),
         monitoring_validation_checklist_requirement(evidence),
         monitoring_runbook_requirement(evidence),
+        legal_privacy_checklist_requirement(evidence),
         governance_controls_requirement(evidence),
     ]
     if errors:

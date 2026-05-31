@@ -389,6 +389,7 @@ def prediction_fairness_monitoring_requirement(packet: dict[str, Any]) -> dict[s
         "alerting_and_review_owner_configured": "alerting_and_review_owner_not_configured",
         "latest_monitoring_run_passed": "latest_monitoring_run_not_passed",
         "legal_privacy_review_completed": "legal_privacy_review_not_attested",
+        "source_control_legal_privacy_checklist_documented": "prediction_fairness_source_control_legal_privacy_checklist_not_documented",
         "source_control_monitoring_runbook_documented": "prediction_fairness_source_control_monitoring_runbook_not_documented",
         "source_control_monitoring_validation_checklist_documented": "prediction_fairness_source_control_monitoring_validation_checklist_not_documented",
         "model_card_updated": "model_card_not_updated",

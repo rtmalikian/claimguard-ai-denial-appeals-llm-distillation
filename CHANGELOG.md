@@ -2,6 +2,103 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 10:18:55 PDT - Prediction fairness legal/privacy checklist evidence
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan production prediction-fairness track by adding a
+  source-controlled legal/privacy checklist and requiring prediction-fairness
+  evidence plus the manual production-gate packet to prove that checklist
+  exists, while preserving the blocked production state until approved outcome
+  data, calibration, monitoring, and legal/privacy review are complete outside
+  source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/root/PHIplan.md` | Documented the prediction fairness legal/privacy checklist sub-gate, manual packet propagation, and remaining external fairness blockers. | Restore backup over `PHIplan.md`. |
+| `llm-distill/scripts/validate_prediction_fairness_evidence.py` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/scripts/validate_prediction_fairness_evidence.py` | Added `prediction_fairness_legal_privacy_checklist` validation for checklist existence, required marker counts, and no raw checklist value emission. | Restore backup over the same path. |
+| `llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json` | Added boolean/path evidence for the source-controlled legal/privacy checklist while leaving `legal_privacy_review_completed=false`. | Restore backup over the same path. |
+| `llm-distill/evals/reports/prediction_fairness_evidence_report.json` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/evals/reports/prediction_fairness_evidence_report.json` | Refreshed fairness evidence; legal/privacy checklist requirement is ready while `prediction_fairness_monitoring_ready=false`, `safe_to_review=true`, and `blocked=3`. | Restore backup over the same path or rerun `validate_prediction_fairness_evidence.py`. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added the source-controlled legal/privacy checklist documentation flag to manual prediction-fairness validation. | Restore backup over the same path. |
+| `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added `source_control_legal_privacy_checklist_documented=true` to the manual prediction-fairness section. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness with `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py` | Added coverage for legal/privacy checklist readiness and incomplete-checklist blocking without raw checklist value emission. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual gate coverage for required prediction-fairness legal/privacy checklist documentation. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation notes and checklist with the legal/privacy checklist evidence sub-gate. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/root/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/docs/prediction-fairness-legal-privacy-checklist.md`:
+  source-controlled checklist requiring legal/privacy review, approved outcome
+  dataset, approved demographic grouping, minimum sample size, human-review-only
+  routing, no auto-denial threshold, approval references outside source
+  control, rollback/threshold reversion, boolean-only evidence, no raw
+  demographic values, no production outcome rows, no individual identifiers,
+  no legal/BAA/consent text, and
+  `prediction_fairness_monitoring_ready=false`.
+
+Rollback for the added checklist: delete it after restoring the modified files
+from backup.
+
+### Validation
+- `find backups/20260531-102420-prediction-fairness-legal-privacy-checklist -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_prediction_fairness_evidence.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`:
+  passed.
+- `python3 llm-distill/scripts/validate_prediction_fairness_evidence.py`:
+  passed and refreshed the checked-in fairness report with
+  `prediction_fairness_monitoring_ready=False`, `safe_to_review=True`, and
+  `blocked=3`; the legal/privacy checklist requirement is ready with zero
+  missing markers and no checklist values emitted.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`:
+  passed and refreshed the manual packet report with
+  `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`:
+  passed and refreshed top-level PHIplan readiness with
+  `production_ready=False`, `safe_current_state=True`, `blocked=6`, and
+  `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_prediction_fairness_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`
+  from the application directory: passed, 46 tests with one pre-existing
+  SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_prediction_fairness_evidence.py --report /private/tmp/claimguard-prediction-fairness-legal-privacy-report.json --fail-on-blocked`:
+  exited 2 as expected because approved outcome data, calibration, continuous
+  monitoring, and real legal/privacy review remain incomplete.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report /private/tmp/claimguard-prediction-fairness-legal-privacy-manual-report.json --fail-on-blocked`:
+  exited 2 as expected because student cutover, user-data model improvement,
+  production corpus, retrieval-vector backend, and production fairness
+  monitoring gates remain incomplete.
+- JSON load checks passed for the updated templates and checked-in reports.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...` over changed
+  validators, tests, evidence templates, checked-in reports, and temporary
+  blocked-mode reports: passed with no findings.
+- Documentation PHI scan over the new checklist, `PHIplan.md`, and
+  `implementation.md` returned only expected findings for Raphael's required
+  attribution email plus historical DOB/MRN/member-label strings; no matched
+  values were printed.
+- Secret-pattern scan over the changed files found no high-confidence API-key,
+  token, cloud credential, or private-key patterns.
+
+### Failed Or Avoided Approaches
+- Avoided marking legal/privacy review complete, adding approval references,
+  storing legal/BAA/consent documents, adding outcome rows, adding raw
+  demographic values, changing prediction thresholds, configuring monitoring,
+  or claiming production fairness readiness.
+
+### Notes
+- Rollback: delete
+  `llm-distill/docs/prediction-fairness-legal-privacy-checklist.md`, restore
+  every modified file from
+  `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/`, then
+  rerun validators only if refreshed reports are needed after rollback.
+- This slice adds local source-controlled legal/privacy procedure evidence; it
+  does not complete the full PHIplan objective.
+
 ## 2026-05-31 10:11:34 PDT - MLX runtime owner handoff checklist evidence
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

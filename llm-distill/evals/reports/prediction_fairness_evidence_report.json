@@ -54,7 +54,8 @@
         "model_card_required_marker_count": 8,
         "model_card_updated": true,
         "model_card_values_included": false,
-        "rollback_or_threshold_reversion_reviewed": true
+        "rollback_or_threshold_reversion_reviewed": true,
+        "source_control_legal_privacy_checklist_documented": true
       },
       "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
       "requirement_id": "prediction_fairness_governance_controls",
@@ -63,7 +64,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
-  "generated_at": "2026-05-31T16:34:14.982370+00:00",
+  "generated_at": "2026-05-31T17:17:59.770435+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external outcome, legal, privacy, alerting, or model-card systems.",
     "Raw demographic values, production outcome rows, PHI, secrets, approval references, and individual identifiers must remain outside source control.",
@@ -71,7 +72,7 @@
   ],
   "objective": "Validate production prediction-threshold calibration and continuous fairness monitoring evidence without storing PHI, secrets, raw demographic values, approval references, or production outcome rows.",
   "prediction_fairness_monitoring_ready": false,
-  "ready_item_count": 5,
+  "ready_item_count": 6,
   "requirements": [
     {
       "blockers": [],
@@ -190,6 +191,22 @@
       "warnings": []
     },
     {
+      "blockers": [],
+      "evidence": {
+        "legal_privacy_checklist_exists": true,
+        "legal_privacy_checklist_missing_marker_count": 0,
+        "legal_privacy_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/prediction-fairness-legal-privacy-checklist.md",
+        "legal_privacy_checklist_present_marker_count": 21,
+        "legal_privacy_checklist_required_marker_count": 21,
+        "legal_privacy_checklist_values_included": false,
+        "source_control_legal_privacy_checklist_documented": true
+      },
+      "name": "Source-controlled prediction fairness legal/privacy checklist is documented",
+      "requirement_id": "prediction_fairness_legal_privacy_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
       "blockers": [
         "legal_privacy_review_not_completed"
       ],
@@ -203,7 +220,8 @@
         "model_card_required_marker_count": 8,
         "model_card_updated": true,
         "model_card_values_included": false,
-        "rollback_or_threshold_reversion_reviewed": true
+        "rollback_or_threshold_reversion_reviewed": true,
+        "source_control_legal_privacy_checklist_documented": true
       },
       "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
       "requirement_id": "prediction_fairness_governance_controls",

@@ -407,11 +407,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/docs/prediction-fairness-calibration-checklist.md`, and
   source-controlled monitoring validation checklist at
   `llm-distill/docs/prediction-fairness-monitoring-validation-checklist.md`
+  plus source-controlled legal/privacy checklist at
+  `llm-distill/docs/prediction-fairness-legal-privacy-checklist.md`
   exist with required safety markers for human-review-only threshold use, no
   auto-denial threshold, approved outcome data, sample size, calibration,
   continuous monitoring, demographic grouping review, alert ownership, latest
-  run evidence, rollback, boolean-only evidence, no raw demographic/outcome
-  values, and
+  run evidence, legal/privacy review, approval references outside source
+  control, rollback, boolean-only evidence, no raw demographic/outcome values,
+  no legal/BAA/consent document text, and
   `prediction_fairness_monitoring_ready=false`. The PHIplan
   production-readiness audit blocks
   on that report until approved outcome data, monitoring ownership, latest run
@@ -786,8 +789,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   monitoring configuration, disparity thresholds, alerting ownership, latest
   monitoring-run evidence, legal/privacy review, source-controlled calibration
   checklist documentation, source-controlled monitoring runbook documentation,
-  source-controlled monitoring validation checklist documentation, model-card
-  update and required-marker verification evidence, rollback review, and
+  source-controlled monitoring validation checklist documentation,
+  source-controlled legal/privacy checklist documentation, model-card update
+  and required-marker verification evidence, rollback review, and
   metadata-only audit verification without
   storing raw demographic values, production outcome rows, PHI, secrets,
   approval references, or individual identifiers. The
@@ -1455,6 +1459,23 @@ and
 from `backups/20260531-073351-prediction-fairness-calibration-checklist/`;
 remove `llm-distill/docs/prediction-fairness-calibration-checklist.md` if
 rolling back the source-controlled prediction fairness calibration checklist
+evidence slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`llm-distill/scripts/validate_prediction_fairness_evidence.py`,
+`llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json`,
+`llm-distill/evals/reports/prediction_fairness_evidence_report.json`,
+`llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`,
+`llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`,
+`llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`,
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from `backups/20260531-102420-prediction-fairness-legal-privacy-checklist/`;
+remove `llm-distill/docs/prediction-fairness-legal-privacy-checklist.md` if
+rolling back the source-controlled prediction fairness legal/privacy checklist
 evidence slice.
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,

@@ -26,6 +26,8 @@
   },
   "governance_controls": {
     "legal_privacy_review_completed": false,
+    "source_control_legal_privacy_checklist_documented": true,
+    "legal_privacy_checklist_path": "llm-distill/docs/prediction-fairness-legal-privacy-checklist.md",
     "source_control_monitoring_runbook_documented": true,
     "monitoring_runbook_path": "llm-distill/docs/prediction-fairness-monitoring-runbook.md",
     "model_card_updated": true,

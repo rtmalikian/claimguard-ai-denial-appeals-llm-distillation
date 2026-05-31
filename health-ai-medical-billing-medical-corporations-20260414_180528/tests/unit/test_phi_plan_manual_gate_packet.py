@@ -100,6 +100,7 @@ def _ready_packet() -> dict:
             "alerting_and_review_owner_configured": True,
             "latest_monitoring_run_passed": True,
             "legal_privacy_review_completed": True,
+            "source_control_legal_privacy_checklist_documented": True,
             "source_control_monitoring_runbook_documented": True,
             "source_control_monitoring_validation_checklist_documented": True,
             "model_card_updated": True,
@@ -257,6 +258,10 @@ def test_template_packet_is_safe_to_review_but_not_ready():
         "prediction_fairness_source_control_monitoring_validation_checklist_not_documented"
         not in fairness_requirement["blockers"]
     )
+    assert (
+        "prediction_fairness_source_control_legal_privacy_checklist_not_documented"
+        not in fairness_requirement["blockers"]
+    )
     assert "model_card_not_updated" not in fairness_requirement["blockers"]
     assert "model_card_required_markers_not_verified" not in fairness_requirement["blockers"]
     assert fairness_requirement["evidence"]["model_card_updated"] is True
@@ -273,6 +278,12 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert (
         fairness_requirement["evidence"][
             "source_control_monitoring_validation_checklist_documented"
+        ]
+        is True
+    )
+    assert (
+        fairness_requirement["evidence"][
+            "source_control_legal_privacy_checklist_documented"
         ]
         is True
     )
@@ -599,6 +610,28 @@ def test_prediction_fairness_monitoring_validation_checklist_documentation_is_re
     assert report["production_gate_ready"] is False
     assert fairness_requirement["blockers"] == [
         "prediction_fairness_source_control_monitoring_validation_checklist_not_documented"
+    ]
+
+
+def test_prediction_fairness_legal_privacy_checklist_documentation_is_required(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["prediction_fairness_monitoring"][
+        "source_control_legal_privacy_checklist_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    fairness_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_prediction_fairness_monitoring_evidence"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert fairness_requirement["blockers"] == [
+        "prediction_fairness_source_control_legal_privacy_checklist_not_documented"
     ]
 
 

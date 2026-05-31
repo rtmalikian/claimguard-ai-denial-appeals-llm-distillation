@@ -62,6 +62,10 @@ def _ready_evidence() -> dict:
         },
         "governance_controls": {
             "legal_privacy_review_completed": True,
+            "source_control_legal_privacy_checklist_documented": True,
+            "legal_privacy_checklist_path": (
+                "llm-distill/docs/prediction-fairness-legal-privacy-checklist.md"
+            ),
             "source_control_monitoring_runbook_documented": True,
             "monitoring_runbook_path": "llm-distill/docs/prediction-fairness-monitoring-runbook.md",
             "model_card_updated": True,
@@ -97,6 +101,11 @@ def test_template_is_safe_to_review_but_not_production_ready():
         if item["requirement_id"]
         == "prediction_fairness_monitoring_validation_checklist"
     )
+    legal_privacy_checklist_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "prediction_fairness_legal_privacy_checklist"
+    )
 
     assert report["safe_to_review"] is True
     assert report["prediction_fairness_monitoring_ready"] is False
@@ -104,7 +113,9 @@ def test_template_is_safe_to_review_but_not_production_ready():
     assert "prediction_fairness_calibration_checklist" not in blocked_ids
     assert "prediction_fairness_continuous_monitoring" in blocked_ids
     assert "prediction_fairness_monitoring_validation_checklist" not in blocked_ids
+    assert "prediction_fairness_legal_privacy_checklist" not in blocked_ids
     assert "prediction_fairness_governance_controls" in blocked_ids
+    assert "source_control_legal_privacy_checklist_not_documented" not in governance_requirement["blockers"]
     assert "model_card_not_updated" not in governance_requirement["blockers"]
     assert "model_card_document_missing" not in governance_requirement["blockers"]
     assert governance_requirement["evidence"]["model_card_exists"] is True
@@ -162,6 +173,31 @@ def test_template_is_safe_to_review_but_not_production_ready():
     assert (
         monitoring_validation_checklist_requirement["evidence"][
             "monitoring_validation_checklist_values_included"
+        ]
+        is False
+    )
+    assert legal_privacy_checklist_requirement["status"] == "ready"
+    assert (
+        legal_privacy_checklist_requirement["evidence"][
+            "source_control_legal_privacy_checklist_documented"
+        ]
+        is True
+    )
+    assert (
+        legal_privacy_checklist_requirement["evidence"][
+            "legal_privacy_checklist_exists"
+        ]
+        is True
+    )
+    assert (
+        legal_privacy_checklist_requirement["evidence"][
+            "legal_privacy_checklist_missing_marker_count"
+        ]
+        == 0
+    )
+    assert (
+        legal_privacy_checklist_requirement["evidence"][
+            "legal_privacy_checklist_values_included"
         ]
         is False
     )
@@ -342,6 +378,49 @@ def test_monitoring_validation_checklist_markers_are_required_when_documented(tm
         > 0
     )
     assert "approved demographic grouping review required" not in json.dumps(
+        checklist_requirement,
+        sort_keys=True,
+    )
+
+
+def test_legal_privacy_checklist_markers_are_required_when_documented(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "fairness_missing_legal_privacy_checklist_markers.json"
+    checklist_path = tmp_path / "prediction-fairness-legal-privacy-checklist.md"
+    checklist_path.write_text(
+        "Current status: legal/privacy review not complete for production fairness monitoring.\n",
+        encoding="utf-8",
+    )
+    evidence = _ready_evidence()
+    evidence["governance_controls"]["legal_privacy_checklist_path"] = str(
+        checklist_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    checklist_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "prediction_fairness_legal_privacy_checklist"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["prediction_fairness_monitoring_ready"] is False
+    assert (
+        "legal_privacy_checklist_required_markers_missing"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        checklist_requirement["evidence"]["legal_privacy_checklist_exists"]
+        is True
+    )
+    assert (
+        checklist_requirement["evidence"][
+            "legal_privacy_checklist_missing_marker_count"
+        ]
+        > 0
+    )
+    assert "approved outcome dataset required" not in json.dumps(
         checklist_requirement,
         sort_keys=True,
     )

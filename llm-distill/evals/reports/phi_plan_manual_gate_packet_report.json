@@ -127,6 +127,7 @@
         "prediction_fairness_evidence_report_ready": false,
         "rollback_or_threshold_reversion_reviewed": true,
         "source_control_calibration_checklist_documented": true,
+        "source_control_legal_privacy_checklist_documented": true,
         "source_control_monitoring_runbook_documented": true,
         "source_control_monitoring_validation_checklist_documented": true,
         "threshold_review_completed": false
@@ -137,7 +138,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:10:36.297988+00:00",
+  "generated_at": "2026-05-31T17:17:59.791592+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -317,6 +318,7 @@
         "prediction_fairness_evidence_report_ready": false,
         "rollback_or_threshold_reversion_reviewed": true,
         "source_control_calibration_checklist_documented": true,
+        "source_control_legal_privacy_checklist_documented": true,
         "source_control_monitoring_runbook_documented": true,
         "source_control_monitoring_validation_checklist_documented": true,
         "threshold_review_completed": false
