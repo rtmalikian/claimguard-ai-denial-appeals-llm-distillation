@@ -1,4 +1,3 @@
-import json
 from types import SimpleNamespace
 
 from sqlalchemy import create_engine
@@ -14,6 +13,7 @@ from app.schemas.denial_workflow import (
     RetrievalSearchRequest,
     RetrievalSourceCreateRequest,
 )
+from app.services.retrieval import EmbeddingResult, hash_embedding
 from app.services.denial_workflow import DenialWorkflowService
 from app.services.retrieval_store import RetrievalStoreService
 
@@ -26,6 +26,19 @@ SEMANTIC_SETTINGS = SimpleNamespace(
     RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=True,
     RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=True,
 )
+
+
+class SyntheticSemanticEmbeddingProvider:
+    model_name = "synthetic-semantic-embedding-v1"
+    backend_name = "semantic"
+    dimensions = 128
+
+    def embed(self, text: str) -> EmbeddingResult:
+        return EmbeddingResult(
+            vector=hash_embedding(text, dimensions=self.dimensions),
+            model=self.model_name,
+            backend=self.backend_name,
+        )
 
 
 @pytest.fixture()
@@ -45,6 +58,16 @@ def db_session():
 def store(db_session):
     encryption = EncryptionService(keys=[generate_fernet_key()], app_env="test")
     return RetrievalStoreService(db_session, encryption=encryption)
+
+
+@pytest.fixture()
+def semantic_store(db_session):
+    encryption = EncryptionService(keys=[generate_fernet_key()], app_env="test")
+    return RetrievalStoreService(
+        db_session,
+        encryption=encryption,
+        embedding_provider=SyntheticSemanticEmbeddingProvider(),
+    )
 
 
 def test_create_source_encrypts_title_url_and_chunks(db_session, store):
@@ -158,8 +181,10 @@ def test_vector_readiness_blocks_hash_fallback_until_semantic_backend_configured
     assert "stored_hash_embeddings_require_reindex" in status.blockers
 
 
-def test_vector_readiness_passes_when_semantic_backend_and_reindexed_chunks_exist(db_session, store):
-    store.create_source(
+def test_vector_readiness_passes_when_semantic_provider_indexes_chunks(
+    db_session, semantic_store
+):
+    response = semantic_store.create_source(
         RetrievalSourceCreateRequest(
             title="Synthetic Semantic Vector Source",
             source_type="public_rule",
@@ -172,21 +197,16 @@ def test_vector_readiness_passes_when_semantic_backend_and_reindexed_chunks_exis
         )
     )
     stored_chunk = db_session.query(RetrievalSourceChunk).one()
-    stored_chunk.extra_metadata_encrypted = store.encryption.encrypt(
-        json.dumps(
-            {
-                "chunk_size": 900,
-                "embedding": [0.0] * 128,
-                "embedding_model": "synthetic-semantic-embedding-v1",
-                "overlap": 120,
-            },
-            separators=(",", ":"),
-            sort_keys=True,
-        )
-    )
-    db_session.commit()
+    metadata = semantic_store._decrypt_metadata(stored_chunk.extra_metadata_encrypted)
 
-    status = store.vector_readiness(settings_like=SEMANTIC_SETTINGS)
+    assert response.embedding_model == "synthetic-semantic-embedding-v1"
+    assert metadata["embedding_backend"] == "semantic"
+    assert metadata["embedding_dimensions"] == 128
+    assert metadata["embedding_model"] == "synthetic-semantic-embedding-v1"
+    assert isinstance(metadata["embedding"], list)
+    assert "synthetic-semantic-embedding-v1" not in stored_chunk.extra_metadata_encrypted
+
+    status = semantic_store.vector_readiness(settings_like=SEMANTIC_SETTINGS)
 
     assert status.production_ready is True
     assert status.hash_fallback_in_use is False
@@ -198,6 +218,32 @@ def test_vector_readiness_passes_when_semantic_backend_and_reindexed_chunks_exis
     assert status.stored_embedding_models == {"synthetic-semantic-embedding-v1": 1}
     assert status.sources_requiring_reindex_count == 0
     assert status.blockers == []
+
+
+def test_embedding_search_uses_injected_semantic_provider(semantic_store):
+    created = semantic_store.create_source(
+        RetrievalSourceCreateRequest(
+            title="Synthetic Semantic Search Source",
+            source_type="public_rule",
+            document_text=(
+                "Synthetic source. semantic vector appeal deadline evidence "
+                "for approved retrieval source search."
+            ),
+            phi_status="no_phi",
+            license_status="synthetic_internal",
+        )
+    )
+
+    results = semantic_store.search(
+        RetrievalSearchRequest(
+            query="semantic appeal deadline evidence",
+            search_mode="embedding",
+            top_k=3,
+        )
+    ).results
+
+    assert results
+    assert results[0].source_id == created.source_id
 
 
 @pytest.mark.asyncio

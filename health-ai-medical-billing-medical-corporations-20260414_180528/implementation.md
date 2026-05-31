@@ -38,7 +38,16 @@ status for restricted, retired, or expired documents. Default student use is
 now gated by explicit Raphael cutover approval, a non-secret approval
 reference, supervised MLX runtime configuration, runtime health, release
 evidence, and a rollback-to-NVIDIA flag that keeps deterministic fallback
-authoritative without code changes. The safe corpus manifest now also includes
+authoritative without code changes. Retrieval source ingestion now has an
+injectable embedding provider boundary: the default provider remains the
+development hash fallback, but private production semantic embedding adapters
+can be wired into `RetrievalStoreService` without storing provider URLs,
+credentials, raw source text, or vector values in source control. Denial
+Workflow retrieval reuses that store provider for query embeddings when
+supplied, while production retrieval readiness remains blocked until a real
+approved semantic provider, vector backend, reindex evidence, health check,
+and quality smoke test are configured outside source control. The safe corpus
+manifest now also includes
 PHI-clean public/government appeal-process and privacy source notes for all
 seven no-PHI source-registry entries, with a coverage audit proving checksum
 coverage, required safety/use markers, zero PHI findings, and training
@@ -878,6 +887,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] MLX runtime supervisor validator requires the source-controlled owner
   handoff checklist to exist before any private runtime owner assignment can
   clear the student cutover documentation sub-gate
+- [x] Retrieval source ingestion has an injectable semantic embedding provider
+  boundary while keeping the default hash fallback and production vector
+  blockers in place until private backend/reindex evidence is ready
 - [x] Admin-only Prometheus metrics endpoint with aggregate counts, PHIplan
   production-gate safety flags, and no raw PHI/document labels or approval
   reference values
@@ -962,7 +974,7 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   default student use
 - [ ] Keep document-surface inspection and the file-ingestion surface audit
   ready for any additional future automated file-ingestion workflow beyond
-  claim-document upload and EDI 837 batch upload
+  claim-document upload, EDI 837 batch upload, and EDI 835 remittance upload
 - [ ] Clear `llm-distill/evals/reports/phi_plan_production_readiness_report.json`
   blockers before treating PHIplan production readiness as complete
 - [ ] Complete and validate the manual production-gate packet with no raw
@@ -1412,6 +1424,7 @@ query indexes.
   `llm-distill/docs/retrieval-vector-reindex-checklist.md`, and runtime smoke
   checklist at
   `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` while keeping
+  the injectable semantic embedding provider boundary ready in code and
   private semantic backend configuration, chunk reindexing, health, and quality
   checks blocked until real production evidence exists.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through

@@ -222,6 +222,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   or PHI. The default local hash embedding path remains safe for development
   but blocks PHIplan production readiness until a real semantic embedding
   backend/vector store is configured and stored chunks are reindexed.
+- Add a retrieval embedding provider boundary so production semantic embedding
+  adapters can be injected without hardcoding service URLs, credentials, raw
+  source text, or vector values in source control. `app/services/retrieval.py`
+  now defines metadata-bearing embedding results and a default
+  `HashEmbeddingProvider`; `RetrievalStoreService` stores encrypted embedding
+  metadata from the configured provider, and Denial Workflow retrieval uses the
+  store provider for query embeddings when one is supplied. The checked-in
+  provider remains the development hash fallback by default, so production
+  retrieval remains blocked until a private approved semantic provider,
+  production vector backend, reindex evidence, health check, and quality smoke
+  evidence are configured outside source control.
 - Add a retrieval-vector startup configuration guard in
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py`.
   Startup now validates that production environments are not using the
@@ -1050,9 +1061,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   reviewed outside source control, then rerun
   `llm-distill/scripts/validate_production_corpus_evidence.py`.
 - When adding future automated file-ingestion workflows beyond
-  `/api/v1/claims/upload-document` and `/api/v1/claims/batch-upload`, extend
-  document-surface inspection and keep the file-ingestion surface audit ready
-  before production use.
+  `/api/v1/claims/upload-document`, `/api/v1/claims/batch-upload`, and
+  `/api/v1/claims/remittance-upload`, extend document-surface inspection and
+  keep the file-ingestion surface audit ready before production use.
 - If building a corpus-derived adapter, run the MLX fine-tune training path
   against the guarded corpus manifest from a local macOS session with Metal
   access only after `llm-distill/scripts/validate_production_corpus_evidence.py`
@@ -1106,6 +1117,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production calibrated-threshold/fairness-monitoring promotion.
 
 ## Rollback
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/services/denial_workflow.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_store.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`, and
+`llm-distill/docs/retrieval-vector-backend-runbook.md` from
+`backups/20260531-110228-semantic-retrieval-provider-boundary/` if rolling back
+the semantic retrieval provider boundary.
 
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,

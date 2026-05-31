@@ -3,12 +3,47 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Protocol
 
 
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_-]*", re.IGNORECASE)
 DEFAULT_EMBEDDING_DIMENSIONS = 128
 HASH_EMBEDDING_MODEL = "claimguard-hash-embedding-v1"
+
+
+@dataclass(frozen=True)
+class EmbeddingResult:
+    vector: list[float]
+    model: str
+    backend: str
+
+    @property
+    def dimensions(self) -> int:
+        return len(self.vector)
+
+
+class EmbeddingProvider(Protocol):
+    model_name: str
+    backend_name: str
+    dimensions: int
+
+    def embed(self, text: str) -> EmbeddingResult:
+        ...
+
+
+class HashEmbeddingProvider:
+    model_name = HASH_EMBEDDING_MODEL
+    backend_name = "hash"
+
+    def __init__(self, *, dimensions: int = DEFAULT_EMBEDDING_DIMENSIONS):
+        self.dimensions = dimensions
+
+    def embed(self, text: str) -> EmbeddingResult:
+        return EmbeddingResult(
+            vector=hash_embedding(text, dimensions=self.dimensions),
+            model=self.model_name,
+            backend=self.backend_name,
+        )
 
 
 @dataclass
@@ -165,19 +200,23 @@ class HashEmbeddingRetrievalIndex:
         chunks: list[SourceChunk] | None = None,
         *,
         dimensions: int = DEFAULT_EMBEDDING_DIMENSIONS,
+        embedding_provider: EmbeddingProvider | None = None,
     ):
         self.chunks = chunks or []
-        self.dimensions = dimensions
+        self.embedding_provider = embedding_provider or HashEmbeddingProvider(
+            dimensions=dimensions
+        )
+        self.dimensions = self.embedding_provider.dimensions
         self._embeddings = [self._chunk_embedding(chunk) for chunk in self.chunks]
 
     def _chunk_embedding(self, chunk: SourceChunk) -> list[float]:
         stored = chunk.extra_metadata.get("embedding")
         if isinstance(stored, list) and len(stored) == self.dimensions:
             return [float(value) for value in stored]
-        return hash_embedding(chunk.text, dimensions=self.dimensions)
+        return self.embedding_provider.embed(chunk.text).vector
 
     def search(self, query: str, *, top_k: int = 5) -> list[dict]:
-        query_embedding = hash_embedding(query, dimensions=self.dimensions)
+        query_embedding = self.embedding_provider.embed(query).vector
         if not any(query_embedding):
             return []
 
@@ -198,12 +237,14 @@ class HybridRetrievalIndex:
         dimensions: int = DEFAULT_EMBEDDING_DIMENSIONS,
         keyword_weight: float = 0.55,
         embedding_weight: float = 0.45,
+        embedding_provider: EmbeddingProvider | None = None,
     ):
         self.chunks = chunks or []
         self.keyword_index = KeywordRetrievalIndex(self.chunks)
         self.embedding_index = HashEmbeddingRetrievalIndex(
             self.chunks,
             dimensions=dimensions,
+            embedding_provider=embedding_provider,
         )
         self.keyword_weight = keyword_weight
         self.embedding_weight = embedding_weight

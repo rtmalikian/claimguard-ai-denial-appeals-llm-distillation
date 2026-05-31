@@ -23,13 +23,14 @@ from app.schemas.denial_workflow import (
 )
 from app.services.retrieval import (
     DEFAULT_EMBEDDING_DIMENSIONS,
+    EmbeddingProvider,
     HASH_EMBEDDING_MODEL,
     HashEmbeddingRetrievalIndex,
+    HashEmbeddingProvider,
     HybridRetrievalIndex,
     KeywordRetrievalIndex,
     SourceChunk,
     chunk_document,
-    hash_embedding,
 )
 from app.utils.model_improvement import validate_model_improvement_opt_in
 from app.utils.phi import scan_text_for_phi, validate_declared_phi_status
@@ -107,9 +108,11 @@ class RetrievalStoreService:
         self,
         db: Session,
         encryption: EncryptionService | None = None,
+        embedding_provider: EmbeddingProvider | None = None,
     ):
         self.db = db
         self.encryption = encryption or encryption_service
+        self.embedding_provider = embedding_provider or HashEmbeddingProvider()
 
     def create_source(
         self,
@@ -193,6 +196,7 @@ class RetrievalStoreService:
         self.db.flush()
 
         for index, chunk in enumerate(chunks, start=1):
+            embedding_result = self.embedding_provider.embed(chunk.text)
             source.chunks.append(
                 RetrievalSourceChunk(
                     chunk_id=chunk.chunk_id,
@@ -204,8 +208,10 @@ class RetrievalStoreService:
                         json.dumps(
                             {
                                 "chunk_size": request.chunk_size,
-                                "embedding": hash_embedding(chunk.text),
-                                "embedding_model": HASH_EMBEDDING_MODEL,
+                                "embedding": embedding_result.vector,
+                                "embedding_backend": embedding_result.backend,
+                                "embedding_dimensions": embedding_result.dimensions,
+                                "embedding_model": embedding_result.model,
                                 "overlap": request.overlap,
                             },
                             separators=(",", ":"),
@@ -253,9 +259,15 @@ class RetrievalStoreService:
         if request.search_mode == "keyword":
             index = KeywordRetrievalIndex(chunks)
         elif request.search_mode == "embedding":
-            index = HashEmbeddingRetrievalIndex(chunks)
+            index = HashEmbeddingRetrievalIndex(
+                chunks,
+                embedding_provider=self.embedding_provider,
+            )
         else:
-            index = HybridRetrievalIndex(chunks)
+            index = HybridRetrievalIndex(
+                chunks,
+                embedding_provider=self.embedding_provider,
+            )
         results = [
             RetrievedSourceSnippet(**item)
             for item in index.search(request.query, top_k=request.top_k)
@@ -309,6 +321,8 @@ class RetrievalStoreService:
                     license_status=source.license_status,
                     extra_metadata={
                         "embedding": embedding,
+                        "embedding_backend": metadata.get("embedding_backend"),
+                        "embedding_dimensions": metadata.get("embedding_dimensions"),
                         "embedding_model": metadata.get("embedding_model"),
                     },
                 )
@@ -649,11 +663,12 @@ class RetrievalStoreService:
 
     def _metadata_embedding(self, metadata: dict) -> list[float]:
         decoded = metadata.get("embedding")
-        if not isinstance(decoded, list):
+        if not isinstance(decoded, list) or not decoded:
             return [0.0] * DEFAULT_EMBEDDING_DIMENSIONS
-        if len(decoded) != DEFAULT_EMBEDDING_DIMENSIONS:
+        try:
+            return [float(item) for item in decoded]
+        except (TypeError, ValueError):
             return [0.0] * DEFAULT_EMBEDDING_DIMENSIONS
-        return [float(item) for item in decoded]
 
     def _settings_value(self, settings_like, name: str, default: str) -> str:
         value = getattr(settings_like, name, default)

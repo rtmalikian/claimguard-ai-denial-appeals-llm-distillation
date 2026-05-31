@@ -618,10 +618,15 @@ class DenialWorkflowService:
                     license_status=source.license_status,
                 )
             )
+        embedding_provider = None
         if self.db is not None:
             store = self.retrieval_store or RetrievalStoreService(self.db)
+            embedding_provider = getattr(store, "embedding_provider", None)
             chunks.extend(store.load_source_chunks(current_user=self.current_user))
-        index = HybridRetrievalIndex(chunks)
+        index = HybridRetrievalIndex(
+            chunks,
+            embedding_provider=embedding_provider,
+        )
         query = f"{denial_type} {plan_type} {route} deadline appeal evidence policy citation"
         return [RetrievedSourceSnippet(**item) for item in index.search(query, top_k=5)]
 

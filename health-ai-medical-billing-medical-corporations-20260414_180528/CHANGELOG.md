@@ -2,6 +2,71 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 11:07:30 PDT - Semantic retrieval provider boundary
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: move the production retrieval/vector PHIplan track forward by adding
+  an injectable embedding-provider boundary for retrieval source indexing and
+  query embeddings, while keeping the checked-in default hash fallback and
+  production vector blockers in place until a private approved semantic
+  provider, vector backend, reindex, health check, and quality smoke evidence
+  are complete.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-110228-semantic-retrieval-provider-boundary/root/PHIplan.md` | Documented the retrieval embedding provider boundary, updated the three-route file-ingestion baseline, and added rollback instructions. | Restore backup over `../PHIplan.md`. |
+| `app/services/retrieval.py` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval.py` | Added `EmbeddingResult`, `EmbeddingProvider`, and `HashEmbeddingProvider`, and let embedding/hybrid indexes use an injected provider for query embeddings. | Restore backup over the same path. |
+| `app/services/retrieval_store.py` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py` | Added an injectable embedding provider, encrypted provider metadata for new chunks, and semantic-provider use for embedding/hybrid searches. | Restore backup over the same path. |
+| `app/services/denial_workflow.py` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/denial_workflow.py` | Reused a configured retrieval-store embedding provider for Denial Workflow hybrid retrieval queries. | Restore backup over the same path. |
+| `tests/unit/test_retrieval_store.py` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_store.py` | Added synthetic semantic-provider tests for encrypted metadata, vector readiness, and embedding search. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation notes and open retrieval-vector progress. | Restore backup over the same path. |
+| `../llm-distill/docs/retrieval-vector-backend-runbook.md` | `backups/20260531-110228-semantic-retrieval-provider-boundary/llm-distill/docs/retrieval-vector-backend-runbook.md` | Added operator guidance for wiring private semantic adapters through the provider boundary without storing URLs, credentials, source text, or vectors. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-110228-semantic-retrieval-provider-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-110228-semantic-retrieval-provider-boundary/root/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- None.
+
+### Validation
+- `find backups/20260531-110228-semantic-retrieval-provider-boundary -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/services/retrieval.py app/services/retrieval_store.py app/services/denial_workflow.py tests/unit/test_retrieval_store.py`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_store.py -q -p no:cacheprovider`:
+  passed, 7 tests with pre-existing SQLAlchemy/Pydantic deprecation warnings.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_store.py tests/unit/test_retrieval_vector_startup_config.py tests/unit/test_retrieval_vector_backend_evidence.py -q -p no:cacheprovider`:
+  passed, 18 tests with pre-existing SQLAlchemy/Pydantic deprecation warnings.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py --report /private/tmp/claimguard-semantic-provider-vector-report.json`:
+  passed with `vector_backend_ready=False`, `safe_to_review=True`, and
+  `blocked=3`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-semantic-provider-phi-plan-readiness-report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- PHI scan over changed retrieval code/tests and temporary reports passed with
+  no findings.
+- Broader PHI scan over changed docs and Denial Workflow code returned only
+  expected existing label-style findings and required Raphael attribution
+  emails; no matched values were printed.
+- High-confidence secret-pattern scan over changed files returned no matches.
+
+### Failed Or Avoided Approaches
+- Avoided adding a real embedding service URL, credentials, vector-store URL,
+  raw vector values to responses, source text to reports, production corpus
+  data, or any claim that retrieval vector production readiness is complete.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-110228-semantic-retrieval-provider-boundary/`, then rerun
+  the retrieval-vector and PHIplan readiness validators only if refreshed
+  reports are needed after rollback.
+- This slice adds a code boundary needed for future semantic retrieval; it does
+  not complete the full PHIplan objective.
+
 ## 2026-05-31 10:55:38 PDT - Guarded EDI 835 remittance upload surface
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
