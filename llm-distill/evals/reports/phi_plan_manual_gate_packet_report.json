@@ -67,6 +67,7 @@
         "privacy_review_attested": true,
         "production_corpus_evidence_report_ready": false,
         "residual_risk_review_attested": true,
+        "source_control_pair_source_checklist_documented": true,
         "source_control_review_runbook_documented": true,
         "training_scope_reviewed": true
       },
@@ -138,7 +139,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:17:59.791592+00:00",
+  "generated_at": "2026-05-31T17:27:23.749183+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -258,6 +259,7 @@
         "privacy_review_attested": true,
         "production_corpus_evidence_report_ready": false,
         "residual_risk_review_attested": true,
+        "source_control_pair_source_checklist_documented": true,
         "source_control_review_runbook_documented": true,
         "training_scope_reviewed": true
       },

@@ -70,6 +70,31 @@ RUNBOOK_REQUIRED_MARKERS = (
     "Pair ids reviewed outside source control required",
     "production_corpus_ready=false",
 )
+PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS = (
+    "ClaimGuard AI is architected by Raphael Malikian",
+    "Current status: approved non-synthetic pair not complete for production.",
+    "approved non-synthetic denial/appeal pair required",
+    "denial letter role required",
+    "appeal letter role required",
+    "shared pair id required",
+    "pair ids reviewed outside source control required",
+    "source documents reviewed outside source control required",
+    "privacy review required",
+    "license review required",
+    "residual-risk review required",
+    "training scope review required",
+    "no-PHI review required",
+    "source license scope documented required",
+    "boolean-only evidence",
+    "no raw denial letters",
+    "no raw appeal letters",
+    "no source paths",
+    "no source URLs",
+    "no checksums",
+    "no approval reference values",
+    "no PHI",
+    "production_corpus_ready=false",
+)
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -291,6 +316,58 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     )
 
 
+def pair_source_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("pairing_requirements", {})
+    checklist_configured = bool_value(
+        section,
+        "source_control_pair_source_checklist_documented",
+    )
+    configured_path = str_value(section, "source_control_pair_source_checklist_path")
+    checklist_path = resolve_path(configured_path, evidence_path) if configured_path else None
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS)
+    if not checklist_configured:
+        blockers.append("source_control_pair_source_checklist_not_documented")
+    if checklist_path is None:
+        blockers.append("source_control_pair_source_checklist_path_missing")
+    elif not checklist_path.exists():
+        blockers.append("source_control_pair_source_checklist_missing")
+    else:
+        try:
+            checklist_text = checklist_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            checklist_text = ""
+            blockers.append("source_control_pair_source_checklist_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS
+            if marker in checklist_text
+        )
+        missing_marker_count = (
+            len(PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_pair_source_checklist_required_markers_missing")
+
+    return requirement(
+        requirement_id="production_corpus_pair_source_checklist",
+        name="Source-controlled production corpus pair/source checklist is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_pair_source_checklist_documented": checklist_configured,
+            "pair_source_checklist_path": str(checklist_path) if checklist_path else None,
+            "pair_source_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "required_marker_count": len(PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_checklist_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
 def manifest_records(path: Path) -> tuple[list[dict[str, Any]], list[str]]:
     payload, errors = load_json(path)
     if errors:
@@ -380,6 +457,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         no_values_requirement(evidence_path, evidence),
         corpus_review_requirement(evidence),
         operator_runbook_requirement(evidence_path, evidence),
+        pair_source_checklist_requirement(evidence_path, evidence),
         manifest_pair_requirement(evidence_path, evidence),
     ]
     if errors:

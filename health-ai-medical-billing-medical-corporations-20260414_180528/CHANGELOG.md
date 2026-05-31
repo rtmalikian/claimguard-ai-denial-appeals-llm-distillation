@@ -2,6 +2,93 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 10:28:48 PDT - Production corpus pair/source checklist evidence
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the `../PHIplan.md` production corpus track by adding a
+  source-controlled pair/source checklist and making the production-corpus and
+  manual-gate validators prove the checklist exists, while keeping approved
+  non-synthetic denial/appeal pair evidence and outside-source-control
+  pair/source review blocked.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-103843-production-corpus-pair-source-checklist/root/PHIplan.md` | Documented the pair/source checklist sub-gate, manual packet propagation, and remaining private corpus blockers. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260531-103843-production-corpus-pair-source-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation notes, checklist, and open corpus item with the pair/source checklist evidence sub-gate. | Restore backup over `implementation.md`. |
+| `../llm-distill/scripts/validate_production_corpus_evidence.py` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/scripts/validate_production_corpus_evidence.py` | Added pair/source checklist validation for existence, required marker counts, and no raw checklist text emission. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added the source-controlled pair/source checklist documentation flag to manual production-corpus validation. | Restore backup over the same path. |
+| `../llm-distill/data/production_corpus_evidence/corpus_evidence.template.json` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json` | Added boolean/path evidence for the source-controlled pair/source checklist while leaving `production_corpus_ready=false`. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added `source_control_pair_source_checklist_documented=true` to the manual production-corpus section. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/production_corpus_evidence_report.json` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/evals/reports/production_corpus_evidence_report.json` | Refreshed corpus evidence with the pair/source checklist requirement ready and production corpus still blocked. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-103843-production-corpus-pair-source-checklist/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness with `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_production_corpus_evidence.py` | `backups/20260531-103843-production-corpus-pair-source-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py` | Added pair/source checklist readiness and missing-marker tests. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-103843-production-corpus-pair-source-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual gate coverage for required production-corpus pair/source checklist documentation. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-103843-production-corpus-pair-source-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-103843-production-corpus-pair-source-checklist/root/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/docs/production-corpus-pair-source-checklist.md`:
+  source-controlled checklist requiring an approved non-synthetic
+  denial/appeal pair, denial and appeal roles, shared pair id, pair/source
+  review outside source control, privacy, license, residual-risk,
+  training-scope, no-PHI, source-license-scope, boolean-only evidence, no raw
+  denial/appeal letters, no source paths/URLs, no checksums, no approval
+  reference values, no PHI, and `production_corpus_ready=false`.
+
+Rollback for the added checklist: delete it after restoring the modified files
+above.
+
+### Validation
+- `find backups/20260531-103843-production-corpus-pair-source-checklist -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_production_corpus_evidence.py ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_production_corpus_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py`:
+  passed.
+- `python3 ../llm-distill/scripts/validate_production_corpus_evidence.py`:
+  passed and refreshed the corpus report with
+  `production_corpus_ready=False`, `safe_to_review=True`, and `blocked=1`; the
+  pair/source checklist requirement is ready.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`:
+  passed and refreshed the manual packet report with
+  `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`:
+  passed and refreshed top-level PHIplan readiness with
+  `production_ready=False`, `safe_current_state=True`, `blocked=6`, and
+  `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_production_corpus_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 45 tests with one pre-existing SQLAlchemy deprecation warning.
+- Blocked-mode production-corpus and manual packet validators exited 2 as
+  expected, proving production readiness remains blocked.
+- JSON load checks passed for the updated templates, checked-in reports, and
+  temporary blocked-mode reports.
+- PHI scan over changed validators, tests, evidence templates, checked-in
+  reports, and temporary blocked-mode reports passed with no findings.
+- Documentation PHI scan returned only expected findings for Raphael's required
+  attribution email plus historical DOB/MRN/member-label strings; no matched
+  values were printed.
+- Secret-pattern scan over the changed files found no high-confidence API-key,
+  token, cloud credential, or private-key patterns.
+
+### Failed Or Avoided Approaches
+- Avoided marking any non-synthetic pair approved, adding source paths, adding
+  checksums, storing approval reference values, storing raw denial/appeal
+  documents, changing manifest contents, or claiming production corpus
+  readiness.
+
+### Notes
+- Rollback: delete
+  `../llm-distill/docs/production-corpus-pair-source-checklist.md`, restore
+  every modified file from
+  `backups/20260531-103843-production-corpus-pair-source-checklist/`, then
+  rerun validators only if refreshed reports are needed after rollback.
+- This slice adds local source-controlled pair/source procedure evidence; it
+  does not complete the full PHIplan objective.
+
 ## 2026-05-31 10:18:55 PDT - Prediction fairness legal/privacy checklist evidence
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

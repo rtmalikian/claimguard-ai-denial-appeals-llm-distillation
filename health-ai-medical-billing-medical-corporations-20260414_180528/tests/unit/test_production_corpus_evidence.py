@@ -73,6 +73,10 @@ def _ready_evidence(manifest_path: Path) -> dict:
             "contains_raw_document_content": False,
         },
         "pairing_requirements": {
+            "source_control_pair_source_checklist_documented": True,
+            "source_control_pair_source_checklist_path": (
+                "llm-distill/docs/production-corpus-pair-source-checklist.md"
+            ),
             "minimum_approved_non_synthetic_pair_count": 1,
             "denial_and_appeal_roles_required": True,
             "pair_ids_reviewed_outside_source_control": True,
@@ -99,6 +103,7 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert "production_corpus_no_phi_secret_or_document_values" not in blocked_ids
     assert "production_corpus_manual_review_attestations" not in blocked_ids
     assert "production_corpus_operator_runbook" not in blocked_ids
+    assert "production_corpus_pair_source_checklist" not in blocked_ids
     assert "production_corpus_manifest_pair_evidence" in blocked_ids
     runbook_requirement = next(
         item
@@ -110,6 +115,21 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert runbook_requirement["evidence"]["runbook_exists"] is True
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
+    checklist_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "production_corpus_pair_source_checklist"
+    )
+    assert checklist_requirement["status"] == "ready"
+    assert (
+        checklist_requirement["evidence"][
+            "source_control_pair_source_checklist_documented"
+        ]
+        is True
+    )
+    assert checklist_requirement["evidence"]["pair_source_checklist_exists"] is True
+    assert checklist_requirement["evidence"]["missing_marker_count"] == 0
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
     corpus_review_requirement = next(
         item
         for item in report["requirements"]
@@ -226,3 +246,40 @@ def test_production_corpus_evidence_blocks_incomplete_runbook_without_emitting_t
     assert "source_control_review_runbook_required_markers_missing" in runbook_requirement["blockers"]
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     assert raw_runbook_text not in serialized
+
+
+def test_production_corpus_evidence_blocks_incomplete_pair_source_checklist_without_emitting_text(
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "manifest.json"
+    evidence_path = tmp_path / "corpus_evidence.json"
+    incomplete_checklist = tmp_path / "production-corpus-pair-source-checklist.md"
+    raw_checklist_text = "ClaimGuard AI is architected by Raphael Malikian"
+    incomplete_checklist.write_text(raw_checklist_text, encoding="utf-8")
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    evidence = _ready_evidence(manifest_path)
+    evidence["pairing_requirements"]["source_control_pair_source_checklist_path"] = str(
+        incomplete_checklist
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "production_corpus_pair_source_checklist"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_pair_source_checklist_required_markers_missing"
+        in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert raw_checklist_text not in serialized

@@ -322,6 +322,7 @@ def production_corpus_requirement(packet: dict[str, Any]) -> dict[str, Any]:
         blockers.append("production_corpus_evidence_report_not_ready")
     for key, blocker in {
         "source_control_review_runbook_documented": "production_corpus_source_control_review_runbook_not_documented",
+        "source_control_pair_source_checklist_documented": "production_corpus_pair_source_checklist_not_documented",
         "privacy_review_attested": "privacy_review_not_attested",
         "license_review_attested": "license_review_not_attested",
         "residual_risk_review_attested": "residual_risk_review_not_attested",
@@ -340,6 +341,7 @@ def production_corpus_requirement(packet: dict[str, Any]) -> dict[str, Any]:
             "manifest_record_id_count": len(manifest_record_ids),
             "production_corpus_evidence_report_ready": bool_value(section, "production_corpus_evidence_report_ready"),
             "source_control_review_runbook_documented": bool_value(section, "source_control_review_runbook_documented"),
+            "source_control_pair_source_checklist_documented": bool_value(section, "source_control_pair_source_checklist_documented"),
             "privacy_review_attested": bool_value(section, "privacy_review_attested"),
             "license_review_attested": bool_value(section, "license_review_attested"),
             "residual_risk_review_attested": bool_value(section, "residual_risk_review_attested"),

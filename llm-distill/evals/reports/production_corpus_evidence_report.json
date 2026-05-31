@@ -43,7 +43,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-05-31T13:47:28.637589+00:00",
+  "generated_at": "2026-05-31T17:27:21.456902+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -51,7 +51,7 @@
   ],
   "objective": "Validate production denial/appeal corpus evidence without storing PHI, secrets, approval values, source paths, checksums, or raw documents.",
   "production_corpus_ready": false,
-  "ready_item_count": 4,
+  "ready_item_count": 5,
   "requirements": [
     {
       "blockers": [],
@@ -113,6 +113,23 @@
       },
       "name": "Source-controlled production corpus review runbook is documented",
       "requirement_id": "production_corpus_operator_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "pair_source_checklist_exists": true,
+        "pair_source_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-pair-source-checklist.md",
+        "present_marker_count": 23,
+        "raw_checklist_text_included": false,
+        "required_marker_count": 23,
+        "source_control_pair_source_checklist_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled production corpus pair/source checklist is documented",
+      "requirement_id": "production_corpus_pair_source_checklist",
       "status": "ready",
       "warnings": []
     },

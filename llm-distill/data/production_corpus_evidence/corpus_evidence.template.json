@@ -19,6 +19,8 @@
     "contains_raw_document_content": false
   },
   "pairing_requirements": {
+    "source_control_pair_source_checklist_documented": true,
+    "source_control_pair_source_checklist_path": "llm-distill/docs/production-corpus-pair-source-checklist.md",
     "minimum_approved_non_synthetic_pair_count": 1,
     "denial_and_appeal_roles_required": true,
     "pair_ids_reviewed_outside_source_control": false,
