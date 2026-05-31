@@ -2,6 +2,110 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 15:24:22 PDT - Manual gate private packet renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan manual production-gate path by adding a safe
+  renderer for the final private manual gate packet, without storing approval
+  values, governance references, manifest record ids, PHI, secrets, source
+  text, vector values, raw demographic values, production outcome rows, or
+  production document content in source control, and without marking the
+  checked-in manual gate packet production-ready.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/PHIplan.md` | Documented the private manual gate packet renderer and remaining external/manual blockers. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/docs/technical-llm-distillation-analysis.md` | Added the manual gate private packet renderer to the technical tool list and focused tests. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added deployment guidance for rendering the private manual gate packet outside source control. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the private manual gate packet renderer and remaining manual gates. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added validator coverage for private manual packet renderer documentation and marker checks. | Restore backup over the same path. |
+| `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added boolean/path evidence for the private manual gate packet renderer. | Restore backup over the same path. |
+| `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added checklist coverage and operator steps for the private manual gate packet renderer. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, `ready_item_count=6`, and `blocked_item_count=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added a private manual packet renderer requirement and source marker checks without emitting renderer text. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`: renders
+  the final PHIplan manual gate packet only to a private path, refuses
+  repository output, requires explicit manual-gate and dependent-report
+  attestations before approved mode, reads private manifest record ids and
+  governance references from environment variables, writes `0600`, and prints
+  redacted booleans/counts only.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py`:
+  covers conservative dry-run output, explicit attestation requirements,
+  private manifest record handling, source-control output rejection, redacted
+  approved output, private-packet validation, and `0600` file permissions.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer -type f | sort`:
+  passed; 12 existing files were backed up before editing.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...` over the new renderer, modified validator, and focused tests:
+  passed.
+- `python3 -m json.tool llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`:
+  passed.
+- Focused pytest for `test_phi_plan_manual_gate_private_packet_renderer.py`
+  and `test_phi_plan_manual_gate_packet.py`: passed, 42 tests.
+- Combined focused pytest over manual gate private renderer, manual gate
+  packet, and PHIplan production-readiness audit: passed, 54 tests with one
+  pre-existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py --dry-run --output /private/tmp/claimguard-phi-plan-manual-gate-test.json`:
+  passed and printed only redacted booleans/counts.
+- Synthetic approved-mode private packet dry run with dummy private manifest
+  record ids and governance reference environment variables set: passed and
+  did not print the dummy values.
+- Conservative and approved renderer write smokes passed, wrote private packet
+  files with `0600` permissions, validated the approved private packet with
+  `production_gate_ready=true`, and removed the temporary files.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`,
+  `ready_item_count=6`, and `blocked_item_count=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`,
+  `blocked_item_count=6`, and `warning_item_count=1`; the local development
+  `ENCRYPTION_KEYS` warning was emitted and no key material was written to
+  reports.
+- `--fail-on-blocked` checks for the manual gate packet and PHIplan readiness
+  intentionally returned exit status 2 while staying `safe_to_review=true` or
+  `safe_current_state=true`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, and refreshed reports: passed with no findings.
+- Broader documentation PHI scan over changed docs and both changelogs returned
+  expected metadata-only findings for required Raphael Malikian attribution
+  emails and pre-existing label text such as `dob`, `mrn`, `member_id`, and
+  `claim_number`; manual inspection found no raw PHI/PII values, production
+  claim data, or secrets introduced in this slice.
+- Strict high-confidence token-format secret scan over changed files returned
+  no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a checked-in private manual gate packet, storing approval
+  values, governance references, manifest record ids, source paths, vectors,
+  raw demographic values, production outcome rows, PHI, secrets, credentials,
+  production claim data, or production document content, weakening manual
+  gates, or claiming external production approvals/evidence exist.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-151618-manual-gate-private-packet-renderer/`,
+  delete `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`
+  and
+  `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py`,
+  then rerun the manual-gate and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice makes the final private manual gate packet rendering path
+  concrete and testable; it does not complete the full PHIplan objective.
+
 ## 2026-05-31 15:08:45 PDT - MLX runtime supervisor private evidence renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

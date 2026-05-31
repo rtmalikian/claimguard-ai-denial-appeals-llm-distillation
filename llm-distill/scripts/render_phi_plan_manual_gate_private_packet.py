@@ -1,0 +1,478 @@
+#!/usr/bin/env python3
+"""Render a private PHIplan manual gate packet without printing values."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_TEMPLATE = (
+    REPO_ROOT
+    / "llm-distill"
+    / "data"
+    / "production_gate_evidence"
+    / "manual_gate_packet.template.json"
+)
+DEFAULT_OUTPUT = Path("/private/tmp/claimguard-phi-plan-manual-gate.private.packet.json")
+DEFAULT_MANIFEST_RECORD_IDS_ENV = "PHI_PLAN_MANUAL_GATE_MANIFEST_RECORD_IDS"
+DEFAULT_MANUAL_REVIEW_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_REVIEW_REFERENCE"
+DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV = (
+    "PHI_PLAN_MANUAL_GATE_DEPENDENT_EVIDENCE_REFERENCE"
+)
+DEFAULT_RELEASE_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_RELEASE_REFERENCE"
+DEFAULT_PRIVATE_PACKET_RENDERER_PATH = (
+    "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
+)
+ACCEPTED_PRODUCTION_SOURCE_TYPES = {
+    "real_deidentified_pair",
+    "real_world_deidentified_pair",
+    "public_government_deidentified_pair",
+    "public_government_denial_appeal_pair",
+    "approved_public_denial_appeal_pair",
+}
+REQUIRED_ATTESTATIONS = {
+    "student_cutover_attested": "student cutover attestation is required",
+    "student_runtime_attested": "student runtime attestation is required",
+    "model_improvement_attested": "model-improvement attestation is required",
+    "production_corpus_attested": "production corpus attestation is required",
+    "retrieval_vector_attested": "retrieval vector attestation is required",
+    "prediction_fairness_attested": "prediction fairness attestation is required",
+    "file_ingestion_surface_attested": "file-ingestion surface attestation is required",
+    "dependent_reports_ready_attested": "dependent report readiness attestation is required",
+    "no_raw_values_attested": "no raw values attestation is required",
+}
+ALLOWED_ENV_KEYS = {
+    DEFAULT_MANIFEST_RECORD_IDS_ENV,
+    DEFAULT_MANUAL_REVIEW_REFERENCE_ENV,
+    DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
+    DEFAULT_RELEASE_REFERENCE_ENV,
+}
+FORBIDDEN_ENV_KEY_FRAGMENTS = {
+    "api_key",
+    "authorization",
+    "credential",
+    "password",
+    "raw",
+    "secret",
+    "token",
+}
+SAFE_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
+SAFE_RECORD_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,127}$")
+ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+
+
+class RenderError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class RenderConfig:
+    output_path: Path
+    template_path: Path = DEFAULT_TEMPLATE
+    approved_production_gate: bool = False
+    approved_non_synthetic_pair_count: int = 0
+    approved_source_types: tuple[str, ...] = ()
+    manifest_record_ids_env: str = DEFAULT_MANIFEST_RECORD_IDS_ENV
+    manual_review_reference_env: str = DEFAULT_MANUAL_REVIEW_REFERENCE_ENV
+    dependent_evidence_reference_env: str = DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV
+    release_reference_env: str = DEFAULT_RELEASE_REFERENCE_ENV
+    student_cutover_attested: bool = False
+    student_runtime_attested: bool = False
+    model_improvement_attested: bool = False
+    production_corpus_attested: bool = False
+    retrieval_vector_attested: bool = False
+    prediction_fairness_attested: bool = False
+    file_ingestion_surface_attested: bool = False
+    dependent_reports_ready_attested: bool = False
+    no_raw_values_attested: bool = False
+    dry_run: bool = False
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def _validate_env_key(name: str) -> None:
+    if name not in ALLOWED_ENV_KEYS and not ENV_KEY_RE.match(name):
+        raise RenderError("unexpected environment key requested")
+    if any(fragment in name.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS):
+        raise RenderError("secret-like environment key requested")
+
+
+def _validate_private_reference(value: str, label: str) -> None:
+    if not value:
+        raise RenderError(f"{label} env var is required for approved gate")
+    if "\n" in value or "\r" in value or "\t" in value or " " in value:
+        raise RenderError(f"{label} must not contain whitespace or control characters")
+    if "#" in value:
+        raise RenderError(f"{label} must not contain comment delimiters")
+    if not SAFE_REFERENCE_RE.match(value):
+        raise RenderError(f"{label} contains unsupported characters")
+
+
+def _load_private_reference(env_name: str, label: str) -> str:
+    _validate_env_key(env_name)
+    value = os.environ.get(env_name, "").strip()
+    _validate_private_reference(value, label)
+    return value
+
+
+def _load_private_references(config: RenderConfig) -> list[str]:
+    reference_specs = [
+        (config.manual_review_reference_env, "manual gate review reference"),
+        (
+            config.dependent_evidence_reference_env,
+            "dependent evidence packet reference",
+        ),
+        (config.release_reference_env, "release review reference"),
+    ]
+    return [
+        _load_private_reference(env_name, label)
+        for env_name, label in reference_specs
+    ]
+
+
+def _validate_record_id(value: str) -> None:
+    if not SAFE_RECORD_ID_RE.match(value):
+        raise RenderError("manifest record id contains unsupported characters")
+
+
+def _load_manifest_record_ids(config: RenderConfig) -> list[str]:
+    _validate_env_key(config.manifest_record_ids_env)
+    raw_value = os.environ.get(config.manifest_record_ids_env, "").strip()
+    if not raw_value:
+        raise RenderError("manifest record ids env var is required for approved gate")
+    if "\n" in raw_value or "\r" in raw_value or "\t" in raw_value or "#" in raw_value:
+        raise RenderError("manifest record ids contain unsupported characters")
+    if raw_value.startswith("["):
+        try:
+            parsed = json.loads(raw_value)
+        except json.JSONDecodeError as exc:
+            raise RenderError("manifest record ids must be valid JSON or comma-separated") from exc
+        if not isinstance(parsed, list):
+            raise RenderError("manifest record ids JSON must be a list")
+        record_ids = [str(item).strip() for item in parsed]
+    else:
+        record_ids = [item.strip() for item in raw_value.split(",")]
+    if not record_ids or any(not item for item in record_ids):
+        raise RenderError("manifest record ids must be non-empty")
+    for record_id in record_ids:
+        _validate_record_id(record_id)
+    return record_ids
+
+
+def _validate_approved_attestations(config: RenderConfig) -> None:
+    missing = [
+        message
+        for flag, message in REQUIRED_ATTESTATIONS.items()
+        if getattr(config, flag) is not True
+    ]
+    if missing:
+        raise RenderError("approved production gate requires explicit attestations")
+    if config.approved_non_synthetic_pair_count < 1:
+        raise RenderError("approved non-synthetic pair count must be at least 1")
+    unknown_source_types = sorted(
+        set(config.approved_source_types) - ACCEPTED_PRODUCTION_SOURCE_TYPES
+    )
+    if not config.approved_source_types:
+        raise RenderError("at least one approved source type is required")
+    if unknown_source_types:
+        raise RenderError("approved source type is not accepted")
+
+
+def _load_template(template_path: Path) -> dict[str, Any]:
+    resolved = template_path.resolve()
+    if not resolved.exists():
+        raise RenderError("manual gate packet template is missing")
+    try:
+        payload = json.loads(resolved.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RenderError("manual gate packet template is not valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("manual gate packet template must be a JSON object")
+    if payload.get("artifact") != "claimguard_phi_plan_manual_gate_packet":
+        raise RenderError("manual gate packet template artifact is invalid")
+    return payload
+
+
+def _mark_source_control_renderer(packet: dict[str, Any]) -> None:
+    packet["source_control_private_packet_renderer_documented"] = True
+    packet["private_packet_renderer_path"] = DEFAULT_PRIVATE_PACKET_RENDERER_PATH
+
+
+def _blocked_packet(template: dict[str, Any]) -> tuple[dict[str, Any], int, int]:
+    packet = json.loads(json.dumps(template))
+    packet["packet_status"] = "private_renderer_default_production_gate_ready_false"
+    packet["prepared_at"] = datetime.now(timezone.utc).isoformat()
+    packet["no_phi_or_secret_values_attested"] = True
+    _mark_source_control_renderer(packet)
+    return packet, 0, 0
+
+
+def _approved_packet(
+    template: dict[str, Any],
+    config: RenderConfig,
+) -> tuple[dict[str, Any], int, int]:
+    _validate_approved_attestations(config)
+    private_reference_count = len(_load_private_references(config))
+    manifest_record_ids = _load_manifest_record_ids(config)
+    minimum_record_count = config.approved_non_synthetic_pair_count * 2
+    if len(manifest_record_ids) < minimum_record_count:
+        raise RenderError("manifest record ids are missing for approved pairs")
+
+    packet = json.loads(json.dumps(template))
+    packet["packet_status"] = "private_manual_production_gate_ready"
+    packet["prepared_at"] = datetime.now(timezone.utc).isoformat()
+    packet["no_phi_or_secret_values_attested"] = True
+    _mark_source_control_renderer(packet)
+
+    student = packet["student_default_cutover"]
+    student.update(
+        {
+            "requested": True,
+            "raphael_approval_attested": True,
+            "approval_reference_configured": True,
+            "supervisor_evidence_report_ready": True,
+            "supervised_runtime_owner_configured": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_env_renderer_documented": True,
+            "source_control_runtime_supervisor_private_evidence_renderer_documented": True,
+            "source_control_runtime_validation_checklist_documented": True,
+            "source_control_runtime_owner_handoff_checklist_documented": True,
+            "supervised_runtime_runbook_reviewed": True,
+            "rollback_to_nvidia_reviewed": True,
+            "scope_limited_to_denial_workflow_and_appeals": True,
+        }
+    )
+
+    model = packet["user_data_model_improvement"]
+    model.update(
+        {
+            "requested": True,
+            "source_control_approval_runbook_documented": True,
+            "source_control_private_env_renderer_documented": True,
+            "legal_approval_attested": True,
+            "baa_confirmed": True,
+            "consent_notice_version_configured": True,
+            "approval_reference_configured": True,
+            "model_improvement_evidence_report_ready": True,
+            "data_use_scope_documented": True,
+            "per_request_attestations_required": True,
+        }
+    )
+
+    corpus = packet["production_corpus"]
+    corpus.update(
+        {
+            "approved_non_synthetic_pair_count": config.approved_non_synthetic_pair_count,
+            "approved_source_types": list(config.approved_source_types),
+            "manifest_record_ids": manifest_record_ids,
+            "production_corpus_evidence_report_ready": True,
+            "source_control_review_runbook_documented": True,
+            "source_control_collection_license_checklist_documented": True,
+            "source_control_pair_source_checklist_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "privacy_review_attested": True,
+            "license_review_attested": True,
+            "residual_risk_review_attested": True,
+            "training_scope_reviewed": True,
+        }
+    )
+
+    retrieval = packet["retrieval_vector_backend"]
+    retrieval.update(
+        {
+            "vector_backend_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_reindex_checklist_documented": True,
+            "source_control_runtime_smoke_checklist_documented": True,
+            "source_control_private_env_renderer_documented": True,
+            "semantic_backend_configured": True,
+            "production_vector_backend_configured": True,
+            "retrieval_chunks_reindexed": True,
+            "governance_controls_reviewed": True,
+            "runtime_validation_reviewed": True,
+        }
+    )
+
+    fairness = packet["prediction_fairness_monitoring"]
+    fairness.update(
+        {
+            "prediction_fairness_evidence_report_ready": True,
+            "approved_outcome_dataset_available": True,
+            "minimum_sample_size_met": True,
+            "threshold_review_completed": True,
+            "source_control_calibration_checklist_documented": True,
+            "approved_demographic_grouping_reviewed": True,
+            "continuous_monitoring_configured": True,
+            "disparity_thresholds_documented": True,
+            "alerting_and_review_owner_configured": True,
+            "latest_monitoring_run_passed": True,
+            "legal_privacy_review_completed": True,
+            "source_control_legal_privacy_checklist_documented": True,
+            "source_control_monitoring_runbook_documented": True,
+            "source_control_monitoring_validation_checklist_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "model_card_updated": True,
+            "model_card_required_markers_verified": True,
+            "rollback_or_threshold_reversion_reviewed": True,
+            "audit_log_metadata_only_verified": True,
+        }
+    )
+
+    file_ingestion = packet["file_ingestion_surface_audit"]
+    file_ingestion.update(
+        {
+            "file_ingestion_surface_report_ready": True,
+            "metadata_only_surface_inspection_attested": True,
+            "safe_audit_marker_coverage_attested": True,
+        }
+    )
+    return packet, private_reference_count, len(manifest_record_ids)
+
+
+def _json_file_text(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
+def render_private_packet(config: RenderConfig) -> dict[str, Any]:
+    output_path = config.output_path.resolve()
+    if path_is_within(output_path, REPO_ROOT):
+        raise RenderError("refusing_to_write_inside_source_control")
+
+    template = _load_template(config.template_path)
+    if config.approved_production_gate:
+        packet, private_reference_count, manifest_record_id_count = _approved_packet(
+            template,
+            config,
+        )
+    else:
+        packet, private_reference_count, manifest_record_id_count = _blocked_packet(
+            template
+        )
+
+    summary = {
+        "dry_run": config.dry_run,
+        "rendered": not config.dry_run,
+        "approved_production_gate_requested": config.approved_production_gate,
+        "production_gate_ready": config.approved_production_gate,
+        "student_cutover_attested": config.student_cutover_attested,
+        "student_runtime_attested": config.student_runtime_attested,
+        "model_improvement_attested": config.model_improvement_attested,
+        "production_corpus_attested": config.production_corpus_attested,
+        "retrieval_vector_attested": config.retrieval_vector_attested,
+        "prediction_fairness_attested": config.prediction_fairness_attested,
+        "file_ingestion_surface_attested": config.file_ingestion_surface_attested,
+        "dependent_reports_ready_attested": config.dependent_reports_ready_attested,
+        "approved_non_synthetic_pair_count": (
+            config.approved_non_synthetic_pair_count
+            if config.approved_production_gate
+            else 0
+        ),
+        "approved_source_type_count": (
+            len(config.approved_source_types)
+            if config.approved_production_gate
+            else 0
+        ),
+        "manifest_record_id_count": manifest_record_id_count,
+        "private_reference_count": private_reference_count,
+        "manual_gate_private_packet_renderer_documented": True,
+        "output_path_in_source_control": False,
+        "approval_reference_value_included": False,
+        "private_reference_values_included": False,
+        "manifest_record_ids_included_in_summary": False,
+        "raw_packet_values_included": False,
+        "raw_document_content_included": False,
+        "raw_report_evidence_included": False,
+        "values_redacted": True,
+        "file_mode": "0600" if not config.dry_run else None,
+    }
+    if not config.dry_run:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        fd = os.open(output_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(_json_file_text(packet))
+        output_path.chmod(0o600)
+    return summary
+
+
+def build_config(args: argparse.Namespace) -> RenderConfig:
+    return RenderConfig(
+        output_path=args.output,
+        template_path=args.template,
+        approved_production_gate=args.approved_production_gate,
+        approved_non_synthetic_pair_count=args.approved_non_synthetic_pair_count,
+        approved_source_types=tuple(args.approved_source_type or ()),
+        manifest_record_ids_env=args.manifest_record_ids_env,
+        manual_review_reference_env=args.manual_review_reference_env,
+        dependent_evidence_reference_env=args.dependent_evidence_reference_env,
+        release_reference_env=args.release_reference_env,
+        student_cutover_attested=args.student_cutover_attested,
+        student_runtime_attested=args.student_runtime_attested,
+        model_improvement_attested=args.model_improvement_attested,
+        production_corpus_attested=args.production_corpus_attested,
+        retrieval_vector_attested=args.retrieval_vector_attested,
+        prediction_fairness_attested=args.prediction_fairness_attested,
+        file_ingestion_surface_attested=args.file_ingestion_surface_attested,
+        dependent_reports_ready_attested=args.dependent_reports_ready_attested,
+        no_raw_values_attested=args.no_raw_values_attested,
+        dry_run=args.dry_run,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--template", type=Path, default=DEFAULT_TEMPLATE)
+    parser.add_argument("--approved-production-gate", action="store_true")
+    parser.add_argument("--approved-non-synthetic-pair-count", type=int, default=0)
+    parser.add_argument(
+        "--approved-source-type",
+        action="append",
+        choices=sorted(ACCEPTED_PRODUCTION_SOURCE_TYPES),
+    )
+    parser.add_argument("--manifest-record-ids-env", default=DEFAULT_MANIFEST_RECORD_IDS_ENV)
+    parser.add_argument(
+        "--manual-review-reference-env",
+        default=DEFAULT_MANUAL_REVIEW_REFERENCE_ENV,
+    )
+    parser.add_argument(
+        "--dependent-evidence-reference-env",
+        default=DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
+    )
+    parser.add_argument("--release-reference-env", default=DEFAULT_RELEASE_REFERENCE_ENV)
+    parser.add_argument("--student-cutover-attested", action="store_true")
+    parser.add_argument("--student-runtime-attested", action="store_true")
+    parser.add_argument("--model-improvement-attested", action="store_true")
+    parser.add_argument("--production-corpus-attested", action="store_true")
+    parser.add_argument("--retrieval-vector-attested", action="store_true")
+    parser.add_argument("--prediction-fairness-attested", action="store_true")
+    parser.add_argument("--file-ingestion-surface-attested", action="store_true")
+    parser.add_argument("--dependent-reports-ready-attested", action="store_true")
+    parser.add_argument("--no-raw-values-attested", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args(argv)
+
+    try:
+        summary = render_private_packet(build_config(args))
+    except RenderError as exc:
+        print(json.dumps({"error": str(exc), "values_redacted": True}, sort_keys=True))
+        return 2
+    print(json.dumps(summary, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

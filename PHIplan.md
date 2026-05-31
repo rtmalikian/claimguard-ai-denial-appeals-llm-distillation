@@ -829,10 +829,23 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` exists with
   required markers for student cutover approval, user-data model-improvement
   approval, non-synthetic denial/appeal pair evidence, semantic vector backend
-  readiness, production fairness evidence, file-ingestion surface audit
-  readiness, boolean-only evidence, no approval references in source control,
-  no PHI or production document content, and `production_gate_ready=false`
-  without emitting checklist text. The packet also
+  readiness, production fairness evidence, the manual gate private packet
+  renderer, file-ingestion surface audit readiness, boolean-only evidence, no
+  approval references in source control, no PHI or production document content,
+  and `production_gate_ready=false` without emitting checklist text. The manual
+  gate path now also includes
+  `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`, a
+  renderer for the final private manual production-gate packet. It refuses
+  output inside source control, requires explicit student cutover,
+  student-runtime, model-improvement, production-corpus, retrieval-vector,
+  prediction-fairness, file-ingestion, dependent-report-readiness, and
+  no-raw-value attestations before approved mode, reads private manifest record
+  ids and governance references from environment variables, writes private
+  output with `0600` permissions, and prints only redacted booleans/counts. This
+  prepares the final manual gate packet handoff without storing approval
+  values, manifest record ids, PHI, source text, vectors, raw demographic
+  values, production outcome rows, or production document content in source
+  control. The packet also
   requires retrieval-vector backend readiness through
   `vector_backend_evidence_report_ready`, source-controlled runbook
   documentation, source-controlled reindex checklist documentation,

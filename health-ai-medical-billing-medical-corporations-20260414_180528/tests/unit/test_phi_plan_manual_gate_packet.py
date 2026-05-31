@@ -42,6 +42,10 @@ def _ready_packet() -> dict:
         "no_phi_or_secret_values_attested": True,
         "source_control_manual_gate_checklist_documented": True,
         "manual_gate_checklist_path": "llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
+        "source_control_private_packet_renderer_documented": True,
+        "private_packet_renderer_path": (
+            "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
+        ),
         "student_default_cutover": {
             "requested": True,
             "raphael_approval_attested": True,
@@ -174,6 +178,7 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert checklist_requirement["evidence"]["manual_gate_checklist_values_included"] is False
     assert "manual_gate_packet_no_phi_or_secret_values" not in blocked_ids
     assert "manual_gate_packet_completion_checklist" not in blocked_ids
+    assert "manual_gate_private_packet_renderer" not in blocked_ids
     assert "manual_student_cutover_private_env_renderer" not in blocked_ids
     assert "manual_student_default_cutover_evidence" in blocked_ids
     assert "manual_user_data_model_improvement_evidence" in blocked_ids
@@ -224,6 +229,29 @@ def test_template_packet_is_safe_to_review_but_not_ready():
             "source_control_runtime_owner_handoff_checklist_documented"
         ]
         is True
+    )
+    private_packet_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "manual_gate_private_packet_renderer"
+    )
+    assert private_packet_renderer_requirement["status"] == "ready"
+    assert (
+        private_packet_renderer_requirement["evidence"][
+            "source_control_private_packet_renderer_documented"
+        ]
+        is True
+    )
+    assert (
+        private_packet_renderer_requirement["evidence"][
+            "private_packet_renderer_exists"
+        ]
+        is True
+    )
+    assert private_packet_renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert (
+        private_packet_renderer_requirement["evidence"]["raw_renderer_text_included"]
+        is False
     )
     private_renderer_requirement = next(
         item
@@ -438,6 +466,54 @@ def test_manual_gate_checklist_markers_are_required_without_raw_marker_output(tm
     assert checklist_requirement["evidence"]["manual_gate_checklist_missing_marker_count"] == 1
     assert checklist_requirement["evidence"]["manual_gate_checklist_values_included"] is False
     assert missing_marker not in serialized_requirement
+
+
+def test_manual_gate_private_packet_renderer_documentation_is_required(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["source_control_private_packet_renderer_documented"] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_packet_renderer"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert renderer_requirement["blockers"] == [
+        "manual_gate_private_packet_renderer_not_documented"
+    ]
+
+
+def test_manual_gate_private_packet_renderer_markers_are_required_without_raw_output(
+    tmp_path,
+):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    incomplete_renderer = tmp_path / "render_phi_plan_manual_gate_private_packet.py"
+    raw_renderer_text = "RenderConfig"
+    incomplete_renderer.write_text(raw_renderer_text, encoding="utf-8")
+    packet = _ready_packet()
+    packet["private_packet_renderer_path"] = str(incomplete_renderer)
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    serialized_report = json.dumps(report, sort_keys=True)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_packet_renderer"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert renderer_requirement["blockers"] == [
+        "manual_gate_private_packet_renderer_markers_missing"
+    ]
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert raw_renderer_text not in serialized_report
 
 
 def test_model_improvement_report_flag_is_required(tmp_path):

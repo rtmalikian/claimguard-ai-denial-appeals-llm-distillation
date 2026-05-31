@@ -319,6 +319,36 @@ dataset, threshold-review, monitoring, alert-owner, latest-run, and
 legal/privacy references in a private shell or approved secret path, not in
 docs, screenshots, logs, or committed files.
 
+Only render the final manual production-gate packet after all dependent
+evidence reports, private governance references, and manual attestations are
+complete outside source control:
+
+```bash
+# Set PHI_PLAN_MANUAL_GATE_* reference variables and
+# PHI_PLAN_MANUAL_GATE_MANIFEST_RECORD_IDS in a private shell first.
+python3 ../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py \
+  --approved-production-gate \
+  --approved-non-synthetic-pair-count 1 \
+  --approved-source-type real_deidentified_pair \
+  --student-cutover-attested \
+  --student-runtime-attested \
+  --model-improvement-attested \
+  --production-corpus-attested \
+  --retrieval-vector-attested \
+  --prediction-fairness-attested \
+  --file-ingestion-surface-attested \
+  --dependent-reports-ready-attested \
+  --no-raw-values-attested \
+  --output /path/to/private-phi-plan-manual-gate-packet.json
+```
+
+The helper refuses source-control output, writes the private packet with `0600`
+permissions, and prints only redacted booleans/counts. Keep manifest record
+IDs, governance references, approval values, source paths, vectors, raw
+demographic values, production outcome rows, PHI, secrets, and production
+document content out of docs, screenshots, logs, tests, reports, and committed
+files.
+
 ## Pre-Deployment Validation
 
 Run these checks in a sandbox or approved staging environment:

@@ -342,10 +342,19 @@ The manual production-gate packet validator now also verifies
 source-controlled manual gate checklist with required markers for student
 cutover approval, user-data model-improvement approval, approved
 non-synthetic denial/appeal pair evidence, semantic vector backend readiness,
-production fairness evidence, file-ingestion surface audit readiness,
-boolean-only evidence, approval references outside source control, no PHI or
-production document content, and `production_gate_ready=false` without
-emitting checklist text.
+production fairness evidence, manual gate private packet rendering,
+file-ingestion surface audit readiness, boolean-only evidence, approval
+references outside source control, no PHI or production document content, and
+`production_gate_ready=false` without emitting checklist text. The manual gate
+path now also includes
+`llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`, a
+source-controlled private packet renderer that refuses repository output,
+requires explicit student cutover, student runtime, model-improvement,
+production-corpus, retrieval-vector, prediction-fairness, file-ingestion,
+dependent-report-readiness, and no-raw-value attestations before approved
+mode, reads private manifest record ids and governance references from
+environment variables only, writes `0600` private output, and reports redacted
+booleans/counts while preserving all external manual-gate blockers.
 The manual production-gate packet now also carries the boolean
 `model_improvement_evidence_report_ready` flag so the packet cannot pass
 user-data model-improvement approval unless the dedicated evidence report has
@@ -768,6 +777,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   retrieval-vector, prediction-fairness, file-ingestion surface, boolean-only,
   no-approval-reference, no-PHI, and `production_gate_ready=false` markers
   before marking the checklist sub-gate ready
+- [x] Manual production-gate packet now has a source-controlled private packet
+  renderer that refuses repository output, requires explicit manual gate and
+  dependent-report attestations for approved mode, reads private manifest record
+  ids and governance references from environment variables only, writes `0600`
+  private output, and reports redacted booleans/counts while preserving external
+  manual-gate blockers
 - [x] Boolean-only MLX runtime supervisor template, validator, and report wired
   into manual gate and PHIplan production-readiness blockers
 - [x] MLX runtime supervisor operator-control evidence attests restart-policy
@@ -1061,9 +1076,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   blockers before treating PHIplan production readiness as complete
 - [ ] Complete and validate the manual production-gate packet with no raw
   approval references, PHI, secrets, or production document content, including
-  the source-controlled manual gate checklist and the dedicated
-  model-improvement, production-corpus, retrieval-vector, and
-  prediction-fairness evidence-report readiness flags
+  the source-controlled manual gate checklist, the private manual-packet
+  renderer, and the dedicated model-improvement, production-corpus,
+  retrieval-vector, and prediction-fairness evidence-report readiness flags
 
 ### ❌ Not Implemented (Required for Production)
 - JWT Authentication & RBAC

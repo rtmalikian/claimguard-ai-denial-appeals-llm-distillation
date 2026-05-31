@@ -343,6 +343,9 @@ Safety and validation:
 - `llm-distill/scripts/render_retrieval_vector_private_env.py` for private
   retrieval/vector env rendering after semantic backend, reindex, health,
   quality-smoke, and rollback gates are complete.
+- `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` for
+  private manual production-gate packet rendering after every dependent
+  evidence report and external/manual attestation is complete.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual
@@ -372,6 +375,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
   tests/unit/test_retrieval_vector_private_env_renderer.py \
   tests/unit/test_retrieval_vector_backend_evidence.py \
   tests/unit/test_prediction_fairness_private_evidence_renderer.py \
+  tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py \
   tests/unit/test_prediction_fairness_evidence.py \
   tests/unit/test_phi_plan_manual_gate_packet.py \
   tests/unit/test_phi_plan_production_readiness_audit.py \

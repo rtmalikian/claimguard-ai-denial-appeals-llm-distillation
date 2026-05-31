@@ -146,7 +146,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T22:08:16.755802+00:00",
+  "generated_at": "2026-05-31T22:23:57.745871+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -155,7 +155,7 @@
   "objective": "Validate the manual PHIplan production-gate packet without storing approval reference values, PHI, secrets, or production document content.",
   "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
   "production_gate_ready": false,
-  "ready_item_count": 5,
+  "ready_item_count": 6,
   "requirements": [
     {
       "blockers": [],
@@ -190,13 +190,31 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 17,
-        "manual_gate_checklist_required_marker_count": 17,
+        "manual_gate_checklist_present_marker_count": 18,
+        "manual_gate_checklist_required_marker_count": 18,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
       "name": "Source-controlled PHIplan manual production-gate checklist is documented",
       "requirement_id": "manual_gate_packet_completion_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approval_reference_value_included": false,
+        "missing_marker_count": 0,
+        "present_marker_count": 13,
+        "private_output_required": true,
+        "private_packet_renderer_exists": true,
+        "private_packet_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
+        "raw_renderer_text_included": false,
+        "required_marker_count": 13,
+        "source_control_private_packet_renderer_documented": true
+      },
+      "name": "Source-controlled manual gate private packet renderer is available",
+      "requirement_id": "manual_gate_private_packet_renderer",
       "status": "ready",
       "warnings": []
     },

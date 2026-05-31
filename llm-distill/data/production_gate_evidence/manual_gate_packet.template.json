@@ -6,6 +6,8 @@
   "no_phi_or_secret_values_attested": true,
   "source_control_manual_gate_checklist_documented": true,
   "manual_gate_checklist_path": "llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
+  "source_control_private_packet_renderer_documented": true,
+  "private_packet_renderer_path": "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
   "student_default_cutover": {
     "requested": false,
     "raphael_approval_attested": false,

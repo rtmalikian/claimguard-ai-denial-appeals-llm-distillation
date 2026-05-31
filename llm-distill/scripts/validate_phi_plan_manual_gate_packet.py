@@ -22,8 +22,12 @@ DEFAULT_MANUAL_GATE_CHECKLIST = (
 DEFAULT_STUDENT_CUTOVER_PRIVATE_ENV_RENDERER = (
     DISTILL_DIR / "scripts" / "render_student_cutover_private_env.py"
 )
+DEFAULT_MANUAL_GATE_PRIVATE_PACKET_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_phi_plan_manual_gate_private_packet.py"
+)
 MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "Current status: manual production gate not ready.",
+    "manual production gate private packet renderer required",
     "student default cutover approval required",
     "student cutover private environment renderer required",
     "student runtime supervisor private evidence renderer required",
@@ -53,6 +57,21 @@ STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS = [
     "student_denial_workflow_local_only",
     "approval_reference_value_included",
     "raw_env_values_included",
+    "0600",
+    "values_redacted",
+]
+MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS = [
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "claimguard_phi_plan_manual_gate_packet",
+    "PHI_PLAN_MANUAL_GATE_MANIFEST_RECORD_IDS",
+    "PHI_PLAN_MANUAL_GATE_REVIEW_REFERENCE",
+    "manual_gate_private_packet_renderer_documented",
+    "approved_non_synthetic_pair_count",
+    "manifest_record_ids_included_in_summary",
+    "approval_reference_value_included",
+    "raw_document_content_included",
+    "raw_report_evidence_included",
     "0600",
     "values_redacted",
 ]
@@ -263,6 +282,56 @@ def manual_gate_checklist_requirement(packet: dict[str, Any]) -> dict[str, Any]:
                 missing_checklist_markers
             ),
             "manual_gate_checklist_values_included": False,
+        },
+    )
+
+
+def manual_gate_private_packet_renderer_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    documented = bool_value(packet, "source_control_private_packet_renderer_documented")
+    renderer_path = resolve_repo_path(
+        packet.get("private_packet_renderer_path"),
+        DEFAULT_MANUAL_GATE_PRIVATE_PACKET_RENDERER,
+    )
+    renderer_exists = renderer_path.exists()
+    marker_count = 0
+    missing_markers: list[str] = []
+    blockers: list[str] = []
+    if not documented:
+        blockers.append("manual_gate_private_packet_renderer_not_documented")
+    if documented:
+        if not renderer_exists:
+            blockers.append("manual_gate_private_packet_renderer_missing")
+        else:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+            missing_markers = [
+                marker
+                for marker in MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS
+                if marker not in renderer_text
+            ]
+            marker_count = (
+                len(MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS)
+                - len(missing_markers)
+            )
+            if missing_markers:
+                blockers.append("manual_gate_private_packet_renderer_markers_missing")
+
+    return requirement(
+        requirement_id="manual_gate_private_packet_renderer",
+        name="Source-controlled manual gate private packet renderer is available",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_packet_renderer_documented": documented,
+            "private_packet_renderer_path": str(renderer_path),
+            "private_packet_renderer_exists": renderer_exists,
+            "required_marker_count": len(
+                MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS
+            ),
+            "present_marker_count": marker_count,
+            "missing_marker_count": len(missing_markers),
+            "raw_renderer_text_included": False,
+            "approval_reference_value_included": False,
+            "private_output_required": True,
         },
     )
 
@@ -547,6 +616,7 @@ def build_report(packet_path: Path) -> dict[str, Any]:
         packet_format_requirement(packet),
         no_phi_or_secret_values_requirement(packet_path, packet),
         manual_gate_checklist_requirement(packet if isinstance(packet, dict) else {}),
+        manual_gate_private_packet_renderer_requirement(packet if isinstance(packet, dict) else {}),
         student_cutover_private_env_renderer_requirement(packet if isinstance(packet, dict) else {}),
         student_cutover_requirement(packet if isinstance(packet, dict) else {}),
         model_improvement_requirement(packet if isinstance(packet, dict) else {}),
