@@ -2,6 +2,101 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 10:02:07 PDT - Retrieval vector runtime smoke checklist evidence
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the `../PHIplan.md` retrieval-vector backend track by adding a
+  source-controlled runtime smoke checklist and making the vector evidence and
+  manual production-gate validators prove the checklist exists, while keeping
+  private vector configuration, reindexing, health checks, quality smoke checks,
+  and external approvals blocked.
+- Confirmed the GitHub README already links to
+  `docs/technical-llm-distillation-analysis.md`, including LLM distillation
+  analysis statistics and tools used.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/root/PHIplan.md` | Documented the retrieval-vector runtime smoke checklist sub-gate and remaining private runtime/reindex/health blockers. | Restore backup over `../PHIplan.md`. |
+| `../llm-distill/scripts/validate_retrieval_vector_backend.py` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/scripts/validate_retrieval_vector_backend.py` | Added runtime smoke checklist validation for existence, required marker counts, and no raw checklist text emission. | Restore backup over the same path. |
+| `../llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | Added boolean/path evidence for the source-controlled runtime smoke checklist while leaving vector health and retrieval quality smoke flags false. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/retrieval_vector_backend_report.json` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed vector backend evidence with the runtime smoke checklist requirement ready and production readiness still blocked. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added the retrieval runtime smoke checklist documentation flag to manual gate packet validation. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added `source_control_runtime_smoke_checklist_documented=true` to the manual retrieval-vector backend section. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness with `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_retrieval_vector_backend_evidence.py` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | Added coverage for runtime smoke checklist readiness and incomplete-checklist blocking without raw checklist text emission. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual gate coverage for required runtime smoke checklist documentation. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation notes and checklist with the runtime smoke checklist evidence sub-gate. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-095527-retrieval-runtime-smoke-checklist/root/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md`:
+  source-controlled runtime smoke procedure requiring approved semantic model,
+  production vector backend, hash-fallback disablement, active chunk reindexing,
+  stored hash absence, vector health check, retrieval quality smoke check,
+  backup restore review, rollback/disable path review, metadata-only audit,
+  boolean-only evidence, no raw source text, no raw vector values, no embedding
+  service URLs, and `vector_backend_ready=false`.
+
+Rollback for the added checklist: delete it after restoring the modified files
+above.
+
+### Validation
+- `find backups/20260531-095527-retrieval-runtime-smoke-checklist -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_retrieval_vector_backend.py ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py`:
+  passed.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py`:
+  passed and refreshed the checked-in vector backend report with
+  `vector_backend_ready=False`, `safe_to_review=True`, and `blocked=3`; the
+  runtime smoke checklist requirement is ready.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`:
+  passed and refreshed the manual packet report with
+  `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`:
+  passed and refreshed top-level PHIplan readiness with
+  `production_ready=False`, `safe_current_state=True`, `blocked=6`, and
+  `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 43 tests with one pre-existing SQLAlchemy deprecation warning.
+- Blocked-mode vector and manual packet validators exited 2 as expected,
+  proving production readiness remains blocked.
+- JSON load checks passed for the updated templates and checked-in reports.
+- PHI scan over changed validators, tests, evidence templates, checked-in
+  reports, and temporary blocked-mode reports passed with no findings.
+- Documentation PHI scan returned only expected findings for Raphael's required
+  attribution email plus historical DOB/MRN/member-label strings; no matched
+  values were printed.
+- Secret-pattern scan over the changed files found no high-confidence API-key,
+  token, cloud credential, or private-key patterns.
+- README link verification passed for
+  `docs/technical-llm-distillation-analysis.md`, and the target document
+  includes `Analysis Statistics` and `Tools Used` sections.
+
+### Failed Or Avoided Approaches
+- An initial large patch attempt failed against stale test context before any
+  file changes were applied; the implementation was split into smaller patches
+  after verifying `git status` remained clean.
+- Avoided marking retrieval vector backend evidence ready, configuring a real
+  semantic/vector backend, running live vector calls, storing embedding service
+  URLs, storing vectors/source text, changing runtime flags, or claiming
+  production readiness.
+
+### Notes
+- Rollback: delete
+  `../llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md`, restore
+  every modified file from
+  `backups/20260531-095527-retrieval-runtime-smoke-checklist/`, then rerun the
+  validators only if refreshed reports are needed after rollback.
+- This slice adds local source-controlled runtime smoke procedure evidence; it
+  does not complete the full PHIplan objective.
+
 ## 2026-05-31 09:49:36 PDT - GitHub publication ignore guardrails
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>  

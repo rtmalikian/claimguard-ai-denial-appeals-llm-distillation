@@ -731,6 +731,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   retrieval
 - [x] Boolean-only retrieval vector backend evidence template, validator, and
   report wired into PHIplan production-readiness blockers
+- [x] Retrieval vector backend evidence validates source-controlled operator
+  runbook, reindex checklist, and runtime smoke checklist procedures without
+  storing source text, vector values, service URLs, credentials, PHI, or
+  production document content
 - [x] Boolean-only production corpus evidence template, validator, and report
   wired into PHIplan production-readiness blockers
 - [x] Boolean-only user-data model-improvement evidence template, validator,
@@ -1352,9 +1356,13 @@ query indexes.
   or credentials; the readiness API and PHIplan production-readiness audit
   expose the same metadata-only blockers without emitting URL or credential
   values. Retrieval-vector backend evidence now also requires the checked-in
-  operator runbook at `llm-distill/docs/retrieval-vector-backend-runbook.md`
-  while keeping private semantic backend configuration, chunk reindexing,
-  health, and quality checks blocked until real production evidence exists.
+  operator runbook at `llm-distill/docs/retrieval-vector-backend-runbook.md`,
+  reindex checklist at
+  `llm-distill/docs/retrieval-vector-reindex-checklist.md`, and runtime smoke
+  checklist at
+  `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` while keeping
+  private semantic backend configuration, chunk reindexing, health, and quality
+  checks blocked until real production evidence exists.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through
   the production corpus review workflow. Local progress: production corpus
   evidence now requires the checked-in operator runbook at

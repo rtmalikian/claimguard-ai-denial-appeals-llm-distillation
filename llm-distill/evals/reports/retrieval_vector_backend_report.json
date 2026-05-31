@@ -58,14 +58,14 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-05-31T14:29:26.754345+00:00",
+  "generated_at": "2026-05-31T17:00:52.098662+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
     "A template evidence file is expected to be safe_to_review=true but vector_backend_ready=false until configuration, reindex, governance, and runtime evidence are complete."
   ],
   "objective": "Validate production retrieval vector backend evidence without storing PHI, secrets, source text, vector values, or production document content.",
-  "ready_item_count": 5,
+  "ready_item_count": 6,
   "requirements": [
     {
       "blockers": [],
@@ -180,6 +180,23 @@
       },
       "name": "Vector backend access, retention, audit, and redaction controls are verified",
       "requirement_id": "retrieval_vector_backend_governance",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "checklist_exists": true,
+        "checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md",
+        "missing_marker_count": 0,
+        "present_marker_count": 17,
+        "raw_checklist_text_included": false,
+        "required_marker_count": 17,
+        "source_control_runtime_smoke_checklist_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled retrieval vector runtime smoke checklist is documented",
+      "requirement_id": "retrieval_vector_backend_runtime_smoke_checklist",
       "status": "ready",
       "warnings": []
     },

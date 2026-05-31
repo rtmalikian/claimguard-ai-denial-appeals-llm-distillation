@@ -67,6 +67,10 @@ def _ready_evidence() -> dict:
             "source_text_redaction_verified": True,
         },
         "runtime_validation": {
+            "source_control_runtime_smoke_checklist_documented": True,
+            "source_control_runtime_smoke_checklist_path": (
+                "llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md"
+            ),
             "vector_backend_health_checked": True,
             "retrieval_quality_smoke_passed": True,
             "backup_restore_reviewed": True,
@@ -95,6 +99,7 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert "retrieval_vector_backend_operator_runbook" not in blocked_ids
     assert "retrieval_vector_backend_reindex_checklist" not in blocked_ids
     assert "retrieval_vector_backend_index_state" in blocked_ids
+    assert "retrieval_vector_backend_runtime_smoke_checklist" not in blocked_ids
     assert "retrieval_vector_backend_runtime_validation" in blocked_ids
     runbook_requirement = next(
         item
@@ -119,6 +124,21 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert checklist_requirement["evidence"]["checklist_exists"] is True
     assert checklist_requirement["evidence"]["missing_marker_count"] == 0
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    runtime_smoke_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "retrieval_vector_backend_runtime_smoke_checklist"
+    )
+    assert runtime_smoke_requirement["status"] == "ready"
+    assert (
+        runtime_smoke_requirement["evidence"][
+            "source_control_runtime_smoke_checklist_documented"
+        ]
+        is True
+    )
+    assert runtime_smoke_requirement["evidence"]["checklist_exists"] is True
+    assert runtime_smoke_requirement["evidence"]["missing_marker_count"] == 0
+    assert runtime_smoke_requirement["evidence"]["raw_checklist_text_included"] is False
     governance_requirement = next(
         item
         for item in report["requirements"]
@@ -231,6 +251,38 @@ def test_vector_backend_evidence_blocks_incomplete_reindex_checklist_without_emi
     assert report["vector_backend_ready"] is False
     assert (
         "source_control_reindex_checklist_required_markers_missing"
+        in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert raw_checklist_text not in serialized
+
+
+def test_vector_backend_evidence_blocks_incomplete_runtime_smoke_checklist_without_emitting_text(
+    tmp_path,
+):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    incomplete_checklist = tmp_path / "retrieval-vector-runtime-smoke-checklist.md"
+    raw_checklist_text = "ClaimGuard AI is architected by Raphael Malikian"
+    incomplete_checklist.write_text(raw_checklist_text, encoding="utf-8")
+    evidence = _ready_evidence()
+    evidence["runtime_validation"]["source_control_runtime_smoke_checklist_path"] = str(
+        incomplete_checklist
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_runtime_smoke_checklist"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_runtime_smoke_checklist_required_markers_missing"
         in checklist_requirement["blockers"]
     )
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False

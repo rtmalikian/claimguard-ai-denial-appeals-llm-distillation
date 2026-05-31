@@ -353,6 +353,7 @@ def retrieval_vector_backend_requirement(packet: dict[str, Any]) -> dict[str, An
         "vector_backend_evidence_report_ready": "retrieval_vector_backend_evidence_report_not_ready",
         "source_control_runbook_documented": "retrieval_vector_source_control_runbook_not_documented",
         "source_control_reindex_checklist_documented": "retrieval_reindex_checklist_not_documented",
+        "source_control_runtime_smoke_checklist_documented": "retrieval_runtime_smoke_checklist_not_documented",
         "semantic_backend_configured": "semantic_backend_not_attested",
         "production_vector_backend_configured": "production_vector_backend_not_attested",
         "retrieval_chunks_reindexed": "retrieval_chunks_not_reindexed",

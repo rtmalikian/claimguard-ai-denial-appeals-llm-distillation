@@ -90,6 +90,7 @@
         "semantic_backend_configured": false,
         "source_control_reindex_checklist_documented": true,
         "source_control_runbook_documented": true,
+        "source_control_runtime_smoke_checklist_documented": true,
         "vector_backend_evidence_report_ready": false
       },
       "name": "Manual packet attests retrieval vector backend evidence and production readiness",
@@ -135,7 +136,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T16:45:00.715011+00:00",
+  "generated_at": "2026-05-31T17:00:52.098384+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -278,6 +279,7 @@
         "semantic_backend_configured": false,
         "source_control_reindex_checklist_documented": true,
         "source_control_runbook_documented": true,
+        "source_control_runtime_smoke_checklist_documented": true,
         "vector_backend_evidence_report_ready": false
       },
       "name": "Manual packet attests retrieval vector backend evidence and production readiness",

@@ -255,6 +255,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   active-chunk reindex, stored-hash absence, reindex job, reindex audit,
   health-check, quality-smoke, boolean-only, no-raw-source-text, and
   `vector_backend_ready=false` markers without emitting the checklist text.
+  The validator now also verifies the source-controlled runtime smoke checklist
+  at `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` exists
+  with required approved-model, production-vector-backend,
+  hash-fallback-disable, active-chunk reindex, stored-hash absence,
+  vector-health, retrieval-quality, backup-restore, rollback/disable,
+  metadata-only audit, boolean-only, no-raw-source-text, no-raw-vector-value,
+  no-service-URL, and `vector_backend_ready=false` markers without emitting the
+  checklist text. Production vector backend readiness still blocks until
+  private semantic backend configuration, production vector store configuration,
+  reindex completion, vector health checks, and retrieval quality smoke checks
+  are actually complete outside source control.
 - Add corpus endpoints under `/api/v1/denial-workflow/corpus` for status,
   manifest validation, machine de-identification, manual review decision, and
   import of approved de-identified documents into the encrypted retrieval store.
@@ -760,10 +771,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   without emitting checklist text. The packet also
   requires retrieval-vector backend readiness through
   `vector_backend_evidence_report_ready`, source-controlled runbook
-  documentation, semantic backend configuration, production vector backend
-  configuration, chunk reindexing, governance review, and runtime validation
-  review without storing approval reference values, PHI, secrets, source text,
-  vector values, backend URLs, or production document content. The manual
+  documentation, source-controlled reindex checklist documentation,
+  source-controlled runtime smoke checklist documentation, semantic backend
+  configuration, production vector backend configuration, chunk reindexing,
+  governance review, and runtime validation review without storing approval
+  reference values, PHI, secrets, source text, vector values, backend URLs, or
+  production document content. The manual
   packet now also requires
   `prediction_fairness_evidence_report_ready`, approved outcome-data and
   sample-size attestations, threshold review, demographic grouping review,

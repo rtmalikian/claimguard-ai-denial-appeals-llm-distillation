@@ -80,6 +80,7 @@ def _ready_packet() -> dict:
             "vector_backend_evidence_report_ready": True,
             "source_control_runbook_documented": True,
             "source_control_reindex_checklist_documented": True,
+            "source_control_runtime_smoke_checklist_documented": True,
             "semantic_backend_configured": True,
             "production_vector_backend_configured": True,
             "retrieval_chunks_reindexed": True,
@@ -195,10 +196,17 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert "retrieval_governance_controls_not_reviewed" not in vector_requirement["blockers"]
     assert "retrieval_vector_source_control_runbook_not_documented" not in vector_requirement["blockers"]
     assert "retrieval_reindex_checklist_not_documented" not in vector_requirement["blockers"]
+    assert "retrieval_runtime_smoke_checklist_not_documented" not in vector_requirement["blockers"]
     assert vector_requirement["evidence"]["governance_controls_reviewed"] is True
     assert vector_requirement["evidence"]["source_control_runbook_documented"] is True
     assert (
         vector_requirement["evidence"]["source_control_reindex_checklist_documented"]
+        is True
+    )
+    assert (
+        vector_requirement["evidence"][
+            "source_control_runtime_smoke_checklist_documented"
+        ]
         is True
     )
     corpus_requirement = next(
@@ -458,6 +466,30 @@ def test_retrieval_vector_backend_reindex_checklist_documentation_is_required(tm
     assert report["production_gate_ready"] is False
     assert vector_requirement["blockers"] == [
         "retrieval_reindex_checklist_not_documented"
+    ]
+
+
+def test_retrieval_vector_backend_runtime_smoke_checklist_documentation_is_required(
+    tmp_path,
+):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["retrieval_vector_backend"][
+        "source_control_runtime_smoke_checklist_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    vector_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_retrieval_vector_backend_evidence"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert vector_requirement["blockers"] == [
+        "retrieval_runtime_smoke_checklist_not_documented"
     ]
 
 

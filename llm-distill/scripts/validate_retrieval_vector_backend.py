@@ -68,6 +68,25 @@ REINDEX_CHECKLIST_REQUIRED_MARKERS = (
     "no raw source text",
     "vector_backend_ready=false",
 )
+RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS = (
+    "ClaimGuard AI is architected by Raphael Malikian",
+    "Current status: not runtime-smoked for production.",
+    "approved semantic embedding model required",
+    "production vector backend required",
+    "hash fallback disabled for production required",
+    "active retrieval chunks reindexed required",
+    "stored hash embeddings absent required",
+    "vector backend health check required",
+    "retrieval quality smoke check required",
+    "backup restore review required",
+    "rollback or disable path required",
+    "metadata-only audit required",
+    "boolean-only evidence",
+    "no raw source text",
+    "no raw vector values",
+    "no embedding service URLs",
+    "vector_backend_ready=false",
+)
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -330,6 +349,56 @@ def reindex_checklist_requirement(evidence_path: Path, evidence: dict[str, Any])
     )
 
 
+def runtime_smoke_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("runtime_validation", {})
+    checklist_configured = bool_value(
+        section,
+        "source_control_runtime_smoke_checklist_documented",
+    )
+    configured_path = str_value(section, "source_control_runtime_smoke_checklist_path")
+    checklist_path = resolve_repo_path(configured_path, evidence_path) if configured_path else None
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS)
+    if not checklist_configured:
+        blockers.append("source_control_runtime_smoke_checklist_not_documented")
+    if checklist_path is None:
+        blockers.append("source_control_runtime_smoke_checklist_path_missing")
+    elif not checklist_path.exists():
+        blockers.append("source_control_runtime_smoke_checklist_missing")
+    else:
+        try:
+            checklist_text = checklist_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            checklist_text = ""
+            blockers.append("source_control_runtime_smoke_checklist_must_be_utf8")
+        present_marker_count = sum(
+            1 for marker in RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS if marker in checklist_text
+        )
+        missing_marker_count = (
+            len(RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_runtime_smoke_checklist_required_markers_missing")
+
+    return requirement(
+        requirement_id="retrieval_vector_backend_runtime_smoke_checklist",
+        name="Source-controlled retrieval vector runtime smoke checklist is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_runtime_smoke_checklist_documented": checklist_configured,
+            "checklist_path": str(checklist_path) if checklist_path else None,
+            "checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "required_marker_count": len(RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_checklist_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
 def index_state_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("index_state", {})
     required_flags = {
@@ -413,6 +482,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         reindex_checklist_requirement(evidence_path, evidence),
         index_state_requirement(evidence),
         governance_requirement(evidence),
+        runtime_smoke_checklist_requirement(evidence_path, evidence),
         runtime_validation_requirement(evidence),
     ]
     if errors:

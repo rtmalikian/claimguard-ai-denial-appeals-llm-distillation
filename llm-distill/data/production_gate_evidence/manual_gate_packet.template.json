@@ -58,6 +58,7 @@
     "vector_backend_evidence_report_ready": false,
     "source_control_runbook_documented": true,
     "source_control_reindex_checklist_documented": true,
+    "source_control_runtime_smoke_checklist_documented": true,
     "semantic_backend_configured": false,
     "production_vector_backend_configured": false,
     "retrieval_chunks_reindexed": false,
