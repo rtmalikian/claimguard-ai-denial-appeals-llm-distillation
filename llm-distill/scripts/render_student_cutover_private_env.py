@@ -15,6 +15,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = Path("/private/tmp/claimguard-student-cutover.private.env")
 DEFAULT_APPROVAL_REFERENCE_ENV = "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE"
+DEFAULT_SUPERVISOR_REPORT = "llm-distill/evals/reports/mlx_runtime_supervisor_report.json"
 RUNTIME_PROFILE_KEY = "CLAIMGUARD_RUNTIME_PROFILE"
 RUNTIME_PROFILE_VALUE = "student_denial_workflow_local_only"
 REQUIRED_ATTESTATIONS = {
@@ -54,6 +55,7 @@ class RenderConfig:
     approved_cutover: bool = False
     enable_auto_launch: bool = False
     approval_reference_env: str = DEFAULT_APPROVAL_REFERENCE_ENV
+    supervisor_report: str = DEFAULT_SUPERVISOR_REPORT
     raphael_approval_attested: bool = False
     runtime_supervised_attested: bool = False
     distillation_release_attested: bool = False
@@ -98,6 +100,49 @@ def _load_approval_reference(config: RenderConfig) -> str:
     return value
 
 
+def _validate_supervisor_report(value: str) -> str:
+    cleaned = value.strip()
+    if not cleaned:
+        raise RenderError("supervisor report path is required")
+    if "\n" in cleaned or "\r" in cleaned or "\t" in cleaned or "#" in cleaned:
+        raise RenderError("supervisor report path contains unsupported characters")
+    if Path(cleaned).is_absolute():
+        raise RenderError("supervisor report path must be repository-relative")
+    report_path = (REPO_ROOT / cleaned).resolve()
+    if not path_is_within(report_path, REPO_ROOT):
+        raise RenderError("supervisor report path must stay inside source control")
+    return cleaned
+
+
+def _load_supervisor_report(report_path: Path) -> dict[str, Any]:
+    if not report_path.exists():
+        raise RenderError("supervisor evidence report is unavailable")
+    if not report_path.is_file():
+        raise RenderError("supervisor evidence report path must be a file")
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RenderError("supervisor evidence report is unreadable") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("supervisor evidence report must be a JSON object")
+    return payload
+
+
+def _validate_supervisor_report_ready(supervisor_report: str) -> None:
+    report_path = (REPO_ROOT / supervisor_report).resolve()
+    report = _load_supervisor_report(report_path)
+    blocked_items = report.get("blocked_items")
+    blocked_item_count = report.get("blocked_item_count")
+    if report.get("safe_to_review") is not True:
+        raise RenderError("supervisor evidence report is not safe to review")
+    if report.get("supervisor_ready") is not True:
+        raise RenderError("supervisor evidence report is not ready")
+    if blocked_item_count not in (0, None):
+        raise RenderError("supervisor evidence report has blocked requirements")
+    if isinstance(blocked_items, list) and blocked_items:
+        raise RenderError("supervisor evidence report has blocked requirements")
+
+
 def _validate_approved_cutover_attestations(config: RenderConfig) -> None:
     missing = [
         message
@@ -111,9 +156,11 @@ def _validate_approved_cutover_attestations(config: RenderConfig) -> None:
 def _build_environment(config: RenderConfig) -> dict[str, str]:
     if config.enable_auto_launch and not config.approved_cutover:
         raise RenderError("student auto-launch can only be rendered for approved cutover")
+    supervisor_report = _validate_supervisor_report(config.supervisor_report)
 
     if config.approved_cutover:
         _validate_approved_cutover_attestations(config)
+        _validate_supervisor_report_ready(supervisor_report)
         approval_reference = _load_approval_reference(config)
         env = {
             "CLAIMGUARD_STUDENT_USE_BY_DEFAULT": "true",
@@ -178,6 +225,9 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
             env["CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA"] == "true"
         ),
         "runtime_profile_configured": env[RUNTIME_PROFILE_KEY] == RUNTIME_PROFILE_VALUE,
+        "supervisor_report_configured": bool(config.supervisor_report),
+        "supervisor_report_checked": config.approved_cutover,
+        "supervisor_report_ready": config.approved_cutover,
         "environment_variable_count": len(env),
         "output_path_in_source_control": False,
         "raw_env_values_included": False,
@@ -202,6 +252,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         approved_cutover=args.approved_cutover,
         enable_auto_launch=args.enable_auto_launch,
         approval_reference_env=args.approval_reference_env,
+        supervisor_report=args.supervisor_report,
         raphael_approval_attested=args.raphael_approval_attested,
         runtime_supervised_attested=args.runtime_supervised_attested,
         distillation_release_attested=args.distillation_release_attested,
@@ -220,6 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_APPROVAL_REFERENCE_ENV,
         help="Environment variable containing the private approval reference value.",
     )
+    parser.add_argument("--supervisor-report", default=DEFAULT_SUPERVISOR_REPORT)
     parser.add_argument("--raphael-approval-attested", action="store_true")
     parser.add_argument("--runtime-supervised-attested", action="store_true")
     parser.add_argument("--distillation-release-attested", action="store_true")

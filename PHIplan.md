@@ -1052,8 +1052,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   the final private student-cutover environment file. It refuses output inside
   source control, requires explicit Raphael approval/runtime/distillation/
   rollback attestations before approved-cutover mode, reads the approval
-  reference from a private environment variable, writes private output with
-  `0600` permissions, and prints only redacted booleans/counts. This closes a
+  reference from a private environment variable, verifies the configured MLX
+  runtime supervisor evidence report is safe, ready, and unblocked before
+  writing enabled settings, writes private output with `0600` permissions, and
+  prints only redacted booleans/counts. This closes a
   source-controlled operator-preparation gap, but it does not provide the
   private approval reference, supervised runtime ownership, runtime health
   evidence, or PHIplan production readiness needed to enable default student
@@ -1199,7 +1201,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
 - Obtain Raphael approval and configure the non-secret student cutover
   reference/runtime-supervision flags outside source control before making
   default student use or student runtime auto-launch effective in a production
-  environment.
+  environment. The private student-cutover env renderer now refuses enabled
+  output if the configured supervisor evidence report is missing, unsafe,
+  blocked, or not ready.
 - Install and validate the MLX runtime supervisor from a private operator copy
   of `llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist`,
   follow `llm-distill/docs/mlx-runtime-supervisor-runbook.md`, render the

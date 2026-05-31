@@ -2,6 +2,65 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 16:23:59 PDT - Student cutover supervisor report readiness gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the PHIplan student cutover private env renderer so
+  approved-mode rendering refuses to write enabled student-default or
+  auto-launch settings unless the configured MLX runtime supervisor evidence
+  report is safe to review, ready, and unblocked.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/PHIplan.md` | Documented that student cutover env rendering checks supervisor evidence readiness before writing enabled settings. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/docs/technical-llm-distillation-analysis.md` | Added supervisor-report readiness gating to the technical breakdown and tool list. | Restore backup over the same path. |
+| `docs/deployment-guide.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Clarified that approved student cutover env rendering refuses missing, unsafe, blocked, or not-ready supervisor reports. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for student cutover supervisor-report readiness parity. | Restore backup over the same path. |
+| `tests/unit/test_student_cutover_private_env_renderer.py` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_student_cutover_private_env_renderer.py` | Added coverage for blocked supervisor report refusal, ready-report success, path traversal rejection, and redacted summary booleans. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/render_student_cutover_private_env.py` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/llm-distill/scripts/render_student_cutover_private_env.py` | Added approved-mode supervisor evidence JSON readiness checks and source-control-relative report path enforcement. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added private renderer marker checks for supervisor-report readiness gating. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-161759-student-cutover-supervisor-report-readiness/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `tests/fixtures/mlx_runtime_supervisor_ready_report.json`: synthetic
+  ready-report fixture used only by renderer unit tests.
+
+### Validation
+- `find backups/20260531-161759-student-cutover-supervisor-report-readiness -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...`: passed for the renderer, manual-gate validator, and focused tests.
+- `python3 -m json.tool tests/fixtures/mlx_runtime_supervisor_ready_report.json`: passed.
+- Focused pytest for `tests/unit/test_student_cutover_private_env_renderer.py` and `tests/unit/test_phi_plan_manual_gate_packet.py`: passed, 43 tests.
+- Command-level approved-mode smoke: current blocked supervisor report refused enabled env rendering with exit status 2; synthetic ready-report fixture wrote a private env with `file_mode=600`, `supervisor_report_checked=true`, `supervisor_report_ready=true`, and no approval-reference values in the command summary.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `--fail-on-blocked` checks for manual gate packet and PHIplan readiness intentionally returned exit status 2 while preserving safe review status.
+- Combined dependent pytest over student cutover renderer, manual gate, startup config, and PHIplan production-readiness audit: passed, 64 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, fixture, and refreshed JSON reports: passed with no findings.
+- Broader documentation PHI scan returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing label text in long docs/changelogs; manual inspection found no raw PHI/PII values, production claim data, approval references, or secrets introduced.
+- High-confidence secret-pattern scan over changed files returned no matches.
+
+### Failed Or Avoided Approaches
+- Avoided allowing private student cutover env approved mode to rely only on human attestations when the configured MLX runtime supervisor report is still blocked.
+- Avoided adding checked-in private env files, approval-reference values, runtime-owner details, health endpoint output, launchd runtime logs, PHI, secrets, credentials, production claim content, or production document content.
+- Avoided marking student default routing or auto-launch ready; it remains blocked until Raphael approval, supervised runtime ownership, health evidence, rollback readiness, and PHIplan production-readiness gates complete outside source control.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-161759-student-cutover-supervisor-report-readiness/`,
+  delete `tests/fixtures/mlx_runtime_supervisor_ready_report.json`, then rerun
+  the manual-gate and PHIplan readiness validators if refreshed reports are
+  needed after rollback.
+- This slice hardens private env rendering for student cutover; it does not
+  complete the full PHIplan objective or approve production student-default
+  routing.
+
 ## 2026-05-31 16:10:43 PDT - Model-improvement env report readiness gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -1000,6 +1000,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   rollback attestations for approved-cutover mode, reads the approval reference
   from private environment only, writes `0600` output, and reports redacted
   booleans/counts while preserving private approval/runtime blockers
+- [x] Student default cutover private env renderer approved mode now refuses
+  enabled student-default or auto-launch settings unless the configured MLX
+  runtime supervisor evidence report is safe, ready, and unblocked
 - [x] Retrieval source ingestion has an injectable semantic embedding provider
   boundary while keeping the default hash fallback and production vector
   blockers in place until private backend/reindex evidence is ready
@@ -1084,9 +1087,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   model-improvement env file outside source control. The startup guard now
   rejects production enablement while the evidence report remains blocked
 - [ ] Configure Raphael-approved production student cutover reference and
-  supervised runtime ownership outside source control, then render the private
-  student-cutover env file outside source control before enabling effective
-  default student use
+  supervised runtime ownership outside source control, verify the configured
+  MLX runtime supervisor evidence report is safe, ready, and unblocked, then
+  render the private student-cutover env file outside source control before
+  enabling effective default student use
 - [ ] Keep document-surface inspection and the file-ingestion surface audit
   ready for any additional future automated file-ingestion workflow beyond
   claim-document upload, EDI 837 batch upload, and EDI 835 remittance upload

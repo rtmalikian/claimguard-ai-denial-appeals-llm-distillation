@@ -11,6 +11,10 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = REPO_ROOT / "llm-distill" / "scripts"
 RENDERER_SCRIPT = SCRIPT_DIR / "render_student_cutover_private_env.py"
+READY_SUPERVISOR_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/mlx_runtime_supervisor_ready_report.json"
+)
 
 
 def _load_renderer() -> ModuleType:
@@ -43,6 +47,8 @@ def test_conservative_dry_run_redacts_values(tmp_path):
     assert summary["cutover_approved"] is False
     assert summary["approval_reference_configured"] is False
     assert summary["rollback_to_nvidia"] is True
+    assert summary["supervisor_report_checked"] is False
+    assert summary["supervisor_report_ready"] is False
     assert summary["raw_env_values_included"] is False
     assert summary["approval_reference_value_included"] is False
     assert "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE=" not in serialized
@@ -77,6 +83,27 @@ def test_approved_cutover_requires_private_approval_reference(tmp_path):
                 runtime_supervised_attested=True,
                 distillation_release_attested=True,
                 rollback_reviewed=True,
+                supervisor_report=READY_SUPERVISOR_REPORT_FIXTURE,
+            )
+        )
+
+
+def test_approved_cutover_requires_ready_supervisor_report(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    monkeypatch.setenv(
+        renderer.DEFAULT_APPROVAL_REFERENCE_ENV,
+        "CG-CUTOVER-REF-20260531",
+    )
+
+    with pytest.raises(renderer.RenderError, match="supervisor evidence report is not ready"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "student-cutover.env",
+                approved_cutover=True,
+                raphael_approval_attested=True,
+                runtime_supervised_attested=True,
+                distillation_release_attested=True,
+                rollback_reviewed=True,
             )
         )
 
@@ -96,6 +123,7 @@ def test_approved_cutover_writes_private_env_and_redacts_summary(monkeypatch, tm
             runtime_supervised_attested=True,
             distillation_release_attested=True,
             rollback_reviewed=True,
+            supervisor_report=READY_SUPERVISOR_REPORT_FIXTURE,
         )
     )
 
@@ -110,11 +138,25 @@ def test_approved_cutover_writes_private_env_and_redacts_summary(monkeypatch, tm
     assert summary["approval_reference_configured"] is True
     assert summary["runtime_supervised"] is True
     assert summary["rollback_to_nvidia"] is False
+    assert summary["supervisor_report_checked"] is True
+    assert summary["supervisor_report_ready"] is True
     assert summary["values_redacted"] is True
     assert approval_reference in output_text
     assert approval_reference not in serialized
     assert "CLAIMGUARD_STUDENT_USE_BY_DEFAULT=true" in output_text
     assert "CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=false" in output_text
+
+
+def test_supervisor_report_path_must_stay_inside_source_control(tmp_path):
+    renderer = _load_renderer()
+
+    with pytest.raises(renderer.RenderError, match="inside source control"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "student-cutover.env",
+                supervisor_report="../private-supervisor-report.json",
+            )
+        )
 
 
 def test_renderer_refuses_source_control_output():

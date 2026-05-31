@@ -257,9 +257,12 @@ python3 ../llm-distill/scripts/render_student_cutover_private_env.py \
 ```
 
 The helper refuses source-control output, writes the private env file with
-`0600` permissions, and prints only redacted booleans/counts. Keep the real
-approval reference in a private shell or approved secret path, not in docs,
-screenshots, logs, or committed files.
+`0600` permissions, and prints only redacted booleans/counts. Approved mode
+also reads the configured MLX runtime supervisor evidence report before writing
+and refuses to enable student default or auto-launch settings if that report is
+missing, unsafe, blocked, or not ready. Keep the real approval reference in a
+private shell or approved secret path, not in docs, screenshots, logs, or
+committed files.
 
 Only mark supervised MLX runtime evidence ready after the private launchd copy,
 runtime owner assignment, preflight, status endpoint, runtime health, launchd

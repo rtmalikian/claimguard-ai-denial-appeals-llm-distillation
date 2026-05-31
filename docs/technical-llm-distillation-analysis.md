@@ -177,11 +177,12 @@ render the cutover env file to a private path after those gates are complete.
 
 The renderer refuses output inside source control, requires explicit approval,
 runtime, distillation, and rollback attestations before approved-cutover mode,
-reads the approval reference from a private environment variable, writes the
-private env file with `0600` permissions, and prints only redacted
-booleans/counts. It does not enable student default routing by itself, validate
-the live runtime, install launchd services, or store approval values in
-checked-in reports.
+reads the approval reference from a private environment variable, verifies the
+configured MLX runtime supervisor evidence report is safe, ready, and unblocked
+before writing enabled settings, writes the private env file with `0600`
+permissions, and prints only redacted booleans/counts. It does not enable
+student default routing by itself, validate the live runtime, install launchd
+services, or store approval values in checked-in reports.
 
 ### MLX Runtime Supervisor Private Evidence Controls
 
@@ -329,7 +330,8 @@ Safety and validation:
 - `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` for
   production-gate separation.
 - `llm-distill/scripts/render_student_cutover_private_env.py` for private
-  student-cutover env rendering after external approvals are complete.
+  student-cutover env rendering after external approvals and supervisor-report
+  readiness are complete.
 - `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` for
   private boolean-only MLX runtime supervisor evidence rendering after runtime
   owner, private launchd, preflight, health, load, restart, rollback, and
