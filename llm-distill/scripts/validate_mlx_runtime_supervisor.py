@@ -61,6 +61,26 @@ VALIDATION_CHECKLIST_REQUIRED_MARKERS = (
     "no raw runtime output",
     "supervisor_ready=false",
 )
+OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS = (
+    "ClaimGuard AI is architected by Raphael Malikian",
+    "Current status: runtime owner not assigned for production.",
+    "private runtime owner assignment required",
+    "Raphael approval required",
+    "approval reference configured outside source control required",
+    "private launchd copy required",
+    "loopback runtime required",
+    "MLX runtime preflight required",
+    "student status endpoint check required",
+    "student runtime health check required",
+    "supervisor restart test required",
+    "rollback to NVIDIA required",
+    "CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false",
+    "CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=false",
+    "boolean-only evidence",
+    "no approval reference values",
+    "no raw runtime output",
+    "supervisor_ready=false",
+)
 FORBIDDEN_LAUNCHD_ENV_KEY_FRAGMENTS = {
     "api_key",
     "authorization",
@@ -377,11 +397,66 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     )
 
 
+def owner_handoff_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("operator_controls", {})
+    checklist_configured = bool_value(
+        section,
+        "source_control_owner_handoff_checklist_documented",
+    )
+    configured_path = str_value(section, "source_control_owner_handoff_checklist_path")
+    checklist_path = resolve_repo_path(configured_path, evidence_path) if configured_path else None
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS)
+    if not checklist_configured:
+        blockers.append("source_control_owner_handoff_checklist_not_documented")
+    if checklist_path is None:
+        blockers.append("source_control_owner_handoff_checklist_path_missing")
+    elif not checklist_path.exists():
+        blockers.append("source_control_owner_handoff_checklist_missing")
+    else:
+        try:
+            checklist_text = checklist_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            checklist_text = ""
+            blockers.append("source_control_owner_handoff_checklist_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS
+            if marker in checklist_text
+        )
+        missing_marker_count = (
+            len(OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_owner_handoff_checklist_required_markers_missing")
+
+    return requirement(
+        requirement_id="mlx_runtime_supervisor_owner_handoff_checklist",
+        name="Source-controlled MLX runtime owner handoff checklist is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_owner_handoff_checklist_documented": checklist_configured,
+            "owner_handoff_checklist_path": str(checklist_path) if checklist_path else None,
+            "owner_handoff_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "required_marker_count": len(OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_checklist_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
 def operator_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("operator_controls", {})
     required_flags = {
         "runtime_owner_configured": "runtime_owner_not_configured",
         "source_control_runbook_documented": "source_control_runbook_not_documented",
+        "source_control_owner_handoff_checklist_documented": (
+            "source_control_owner_handoff_checklist_not_documented"
+        ),
         "restart_policy_reviewed": "restart_policy_not_reviewed",
         "health_check_reviewed": "health_check_not_reviewed",
         "manual_start_command_reviewed": "manual_start_command_not_reviewed",
@@ -484,6 +559,7 @@ def build_report(evidence_path: Path) -> dict[str, Any]:
         no_phi_or_secret_values_requirement(evidence_path, evidence, plist_path),
         launchd_template_requirement(evidence if isinstance(evidence, dict) else {}, plist_path),
         operator_runbook_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
+        owner_handoff_checklist_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         operator_controls_requirement(evidence if isinstance(evidence, dict) else {}),
         runtime_validation_checklist_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         runtime_validation_requirement(evidence if isinstance(evidence, dict) else {}),

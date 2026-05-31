@@ -17,6 +17,7 @@
         "rollback_to_nvidia_reviewed": true,
         "scope_limited_to_denial_workflow_and_appeals": true,
         "source_control_runbook_documented": true,
+        "source_control_runtime_owner_handoff_checklist_documented": true,
         "source_control_runtime_validation_checklist_documented": true,
         "supervised_runtime_owner_configured": false,
         "supervised_runtime_runbook_reviewed": false,
@@ -136,7 +137,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:00:52.098384+00:00",
+  "generated_at": "2026-05-31T17:10:36.297988+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -206,6 +207,7 @@
         "rollback_to_nvidia_reviewed": true,
         "scope_limited_to_denial_workflow_and_appeals": true,
         "source_control_runbook_documented": true,
+        "source_control_runtime_owner_handoff_checklist_documented": true,
         "source_control_runtime_validation_checklist_documented": true,
         "supervised_runtime_owner_configured": false,
         "supervised_runtime_runbook_reviewed": false,

@@ -14,6 +14,7 @@
     "supervised_runtime_owner_configured": false,
     "source_control_runbook_documented": true,
     "source_control_runtime_validation_checklist_documented": true,
+    "source_control_runtime_owner_handoff_checklist_documented": true,
     "supervised_runtime_runbook_reviewed": false,
     "rollback_to_nvidia_reviewed": true,
     "scope_limited_to_denial_workflow_and_appeals": true,

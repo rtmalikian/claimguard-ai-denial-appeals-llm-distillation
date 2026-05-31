@@ -760,7 +760,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   improvement legal/BAA/consent readiness, dedicated model-improvement evidence
   report readiness, approved non-synthetic paired corpus evidence,
   dedicated production-corpus evidence report readiness, and
-  source-controlled corpus review runbook documentation. The validator now also
+  source-controlled corpus review runbook documentation. The student cutover
+  section now also requires source-controlled runtime owner handoff checklist
+  documentation while keeping private runtime owner assignment and approval
+  references outside source control. The validator now also
   verifies the source-controlled manual production-gate checklist at
   `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` exists with
   required markers for student cutover approval, user-data model-improvement
@@ -866,12 +869,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/docs/mlx-runtime-validation-checklist.md` exists with required
   MLX preflight, student status endpoint, runtime health, launchd load, restart
   test, rollback, and boolean-only/no-raw-output markers, without emitting the
-  checklist text. It also verifies no PHI/PII and no raw approval, secret, or
-  production document values. Local operator-control evidence now attests
-  restart-policy review, health-check review, manual-start command review,
-  rollback-to-NVIDIA review, source-controlled runbook documentation, runtime
-  validation checklist documentation, and environment-file exclusion from source
-  control.
+  checklist text. It now also verifies the source-controlled owner handoff
+  checklist at `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md`
+  exists with required private runtime-owner assignment, Raphael approval,
+  outside-source-control approval reference, private launchd copy, loopback,
+  MLX preflight, status endpoint, runtime health, restart, rollback,
+  conservative default flags, boolean-only/no-raw-output, and
+  `supervisor_ready=false` markers, without emitting the checklist text. It
+  also verifies no PHI/PII and no raw approval, secret, or production document
+  values. Local operator-control evidence now attests restart-policy review,
+  health-check review, manual-start command review, rollback-to-NVIDIA review,
+  source-controlled runbook documentation, runtime validation checklist
+  documentation, owner handoff checklist documentation, and environment-file
+  exclusion from source control.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,
@@ -1313,6 +1323,22 @@ and
 from `backups/20260531-062207-supervisor-runbook-evidence/`; remove
 `llm-distill/docs/mlx-runtime-supervisor-runbook.md` if rolling back the
 source-controlled supervisor runbook evidence slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`llm-distill/data/runtime_supervision/supervisor_evidence.template.json`,
+`llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`,
+`llm-distill/scripts/validate_mlx_runtime_supervisor.py`,
+`llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`,
+`llm-distill/evals/reports/mlx_runtime_supervisor_report.json`,
+`llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`,
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/`; remove
+`llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` if rolling back the
+source-controlled runtime owner handoff checklist evidence slice.
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
 `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,

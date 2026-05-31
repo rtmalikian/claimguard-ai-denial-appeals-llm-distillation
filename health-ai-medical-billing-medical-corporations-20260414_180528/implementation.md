@@ -165,7 +165,14 @@ runtime validation checklist at
 `llm-distill/docs/mlx-runtime-validation-checklist.md` has required MLX
 preflight, student status endpoint, runtime health, launchd load, restart
 test, rollback, boolean-only, and no-raw-output markers without emitting the
-checklist text. Production auto-launch and default student
+checklist text. The supervisor evidence now also verifies the
+source-controlled owner handoff checklist at
+`llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` has required private
+runtime-owner assignment, Raphael approval, outside-source-control approval
+reference, private launchd copy, loopback, MLX preflight, student
+status/health, restart, rollback, conservative default flags, boolean-only, and
+no-raw-output markers without emitting the checklist text. Production
+auto-launch and default student
 cutover remain blocked until private runtime owner assignment, manual runbook
 review, runtime
 preflight, student status/health checks, launchd load evidence, and supervisor
@@ -830,6 +837,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   validation checklist to exist with preflight, status, health, launchd load,
   restart, rollback, boolean-only, and no-raw-output markers before that local
   documentation sub-gate is ready
+- [x] MLX runtime supervisor validator requires the source-controlled owner
+  handoff checklist to exist before any private runtime owner assignment can
+  clear the student cutover documentation sub-gate
 - [x] Admin-only Prometheus metrics endpoint with aggregate counts, PHIplan
   production-gate safety flags, and no raw PHI/document labels or approval
   reference values
@@ -1389,6 +1399,11 @@ query indexes.
   requests while leaving default student use disabled.
 - [ ] Add a production process supervisor/auto-launch path for the accepted
   reviewed LoRA adapter if ClaimGuard should load the local student by default.
+  Local progress: supervisor evidence now requires the checked-in owner
+  handoff checklist at
+  `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` while keeping
+  `supervisor_ready=false` until private owner assignment, runtime preflight,
+  health/status checks, launchd load evidence, and restart testing are complete.
 
 ### 6.2 Documentation
 - [x] Create API documentation with authentication requirements

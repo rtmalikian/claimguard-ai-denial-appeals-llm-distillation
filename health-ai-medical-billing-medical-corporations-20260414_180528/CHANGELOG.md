@@ -2,6 +2,93 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 10:11:34 PDT - MLX runtime owner handoff checklist evidence
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the `../PHIplan.md` student cutover and MLX auto-launch track
+  by adding a source-controlled runtime owner handoff checklist and making the
+  supervisor/manual-gate validators prove the checklist exists, while leaving
+  private owner assignment, Raphael approval, runtime health, launchd load,
+  restart validation, and approval-reference configuration blocked outside
+  source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/root/PHIplan.md` | Documented the MLX runtime owner handoff checklist sub-gate, manual packet propagation, and remaining private owner/runtime blockers. | Restore backup over `../PHIplan.md`. |
+| `../llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added owner handoff checklist validation for existence, required marker counts, and no raw checklist text emission. | Restore backup over the same path. |
+| `../llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | Added boolean/path evidence for the source-controlled runtime owner handoff checklist while leaving `runtime_owner_configured=false`. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed supervisor evidence with the owner handoff checklist requirement ready and supervisor readiness still blocked. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added the runtime owner handoff checklist documentation flag to manual student cutover validation. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added `source_control_runtime_owner_handoff_checklist_documented=true` to the manual student cutover section. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness with `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_mlx_runtime_supervisor.py` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | Added owner handoff checklist readiness and incomplete-checklist tests. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual gate coverage for required runtime owner handoff checklist documentation. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation notes and checklist with the runtime owner handoff evidence sub-gate. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/root/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/docs/mlx-runtime-owner-handoff-checklist.md`:
+  source-controlled runtime owner handoff checklist requiring private owner
+  assignment, Raphael approval, approval reference outside source control,
+  private launchd copy, loopback runtime, MLX preflight, student status/health
+  checks, restart test, rollback to NVIDIA, conservative default flags,
+  boolean-only evidence, no approval reference values, no raw runtime output,
+  no endpoint/model output, no PHI, and `supervisor_ready=false`.
+
+Rollback for the added checklist: delete it after restoring the modified files
+above.
+
+### Validation
+- `find backups/20260531-101512-mlx-runtime-owner-handoff-checklist -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_mlx_runtime_supervisor.py ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_phi_plan_manual_gate_packet.py`:
+  passed.
+- `python3 ../llm-distill/scripts/validate_mlx_runtime_supervisor.py`:
+  passed and refreshed the supervisor report with `supervisor_ready=False`,
+  `safe_to_review=True`, and `blocked=2`; the owner handoff checklist
+  requirement is ready.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`:
+  passed and refreshed the manual packet report with
+  `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`:
+  passed and refreshed top-level PHIplan readiness with
+  `production_ready=False`, `safe_current_state=True`, `blocked=6`, and
+  `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 46 tests with one pre-existing SQLAlchemy deprecation warning.
+- Blocked-mode supervisor and manual packet validators exited 2 as expected,
+  proving production readiness remains blocked.
+- JSON load checks passed for the updated templates and checked-in reports.
+- PHI scan over changed validators, tests, evidence templates, checked-in
+  reports, and temporary blocked-mode reports passed with no findings.
+- Documentation PHI scan returned only expected findings for Raphael's required
+  attribution email plus historical DOB/MRN/member-label strings; no matched
+  values were printed.
+- Secret-pattern scan over the changed files found no high-confidence API-key,
+  token, cloud credential, or private-key patterns.
+
+### Failed Or Avoided Approaches
+- Avoided configuring a real runtime owner, writing approval references,
+  enabling student default routing, enabling supervised runtime flags,
+  installing launchd, starting `mlx_lm.server`, calling a model endpoint,
+  storing runtime output, or claiming `supervisor_ready=true`.
+
+### Notes
+- Rollback: delete
+  `../llm-distill/docs/mlx-runtime-owner-handoff-checklist.md`, restore every
+  modified file from
+  `backups/20260531-101512-mlx-runtime-owner-handoff-checklist/`, then rerun
+  validators only if refreshed reports are needed after rollback.
+- This slice adds local source-controlled owner handoff procedure evidence; it
+  does not complete the full PHIplan objective.
+
 ## 2026-05-31 10:02:07 PDT - Retrieval vector runtime smoke checklist evidence
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

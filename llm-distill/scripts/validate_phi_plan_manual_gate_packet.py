@@ -254,6 +254,7 @@ def student_cutover_requirement(packet: dict[str, Any]) -> dict[str, Any]:
         "supervised_runtime_owner_configured": "supervised_runtime_owner_not_configured",
         "source_control_runbook_documented": "source_control_runbook_not_documented",
         "source_control_runtime_validation_checklist_documented": "source_control_runtime_validation_checklist_not_documented",
+        "source_control_runtime_owner_handoff_checklist_documented": "source_control_runtime_owner_handoff_checklist_not_documented",
         "supervised_runtime_runbook_reviewed": "supervised_runtime_runbook_not_reviewed",
         "rollback_to_nvidia_reviewed": "rollback_to_nvidia_not_reviewed",
         "scope_limited_to_denial_workflow_and_appeals": "student_scope_not_limited_to_denial_workflow_and_appeals",

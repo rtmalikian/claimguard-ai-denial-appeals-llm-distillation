@@ -50,6 +50,7 @@ def _ready_packet() -> dict:
             "supervised_runtime_owner_configured": True,
             "source_control_runbook_documented": True,
             "source_control_runtime_validation_checklist_documented": True,
+            "source_control_runtime_owner_handoff_checklist_documented": True,
             "supervised_runtime_runbook_reviewed": True,
             "rollback_to_nvidia_reviewed": True,
             "scope_limited_to_denial_workflow_and_appeals": True,
@@ -166,10 +167,20 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert "rollback_to_nvidia_not_reviewed" not in student_requirement["blockers"]
     assert "source_control_runbook_not_documented" not in student_requirement["blockers"]
     assert "source_control_runtime_validation_checklist_not_documented" not in student_requirement["blockers"]
+    assert (
+        "source_control_runtime_owner_handoff_checklist_not_documented"
+        not in student_requirement["blockers"]
+    )
     assert student_requirement["evidence"]["rollback_to_nvidia_reviewed"] is True
     assert student_requirement["evidence"]["source_control_runbook_documented"] is True
     assert (
         student_requirement["evidence"]["source_control_runtime_validation_checklist_documented"]
+        is True
+    )
+    assert (
+        student_requirement["evidence"][
+            "source_control_runtime_owner_handoff_checklist_documented"
+        ]
         is True
     )
     model_requirement = next(
@@ -668,6 +679,30 @@ def test_student_cutover_runtime_validation_checklist_documentation_is_required(
     assert report["production_gate_ready"] is False
     assert student_requirement["blockers"] == [
         "source_control_runtime_validation_checklist_not_documented"
+    ]
+
+
+def test_student_cutover_runtime_owner_handoff_checklist_documentation_is_required(
+    tmp_path,
+):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["student_default_cutover"][
+        "source_control_runtime_owner_handoff_checklist_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    student_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_student_default_cutover_evidence"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert student_requirement["blockers"] == [
+        "source_control_runtime_owner_handoff_checklist_not_documented"
     ]
 
 

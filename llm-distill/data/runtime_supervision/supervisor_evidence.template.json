@@ -20,6 +20,8 @@
     "runtime_owner_configured": false,
     "source_control_runbook_documented": true,
     "source_control_runbook_path": "llm-distill/docs/mlx-runtime-supervisor-runbook.md",
+    "source_control_owner_handoff_checklist_documented": true,
+    "source_control_owner_handoff_checklist_path": "llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
     "restart_policy_reviewed": true,
     "health_check_reviewed": true,
     "manual_start_command_reviewed": true,

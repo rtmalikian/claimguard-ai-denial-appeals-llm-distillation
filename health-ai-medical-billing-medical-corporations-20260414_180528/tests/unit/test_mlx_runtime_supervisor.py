@@ -98,6 +98,8 @@ def _ready_evidence(plist_path: Path, runbook_path: Path | None = None) -> dict:
             "runtime_owner_configured": True,
             "source_control_runbook_documented": True,
             "source_control_runbook_path": str(runbook_path),
+            "source_control_owner_handoff_checklist_documented": True,
+            "source_control_owner_handoff_checklist_path": "llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
             "restart_policy_reviewed": True,
             "health_check_reviewed": True,
             "manual_start_command_reviewed": True,
@@ -134,6 +136,7 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert "mlx_runtime_supervisor_no_phi_or_secret_values" not in blocked_ids
     assert "mlx_runtime_supervisor_launchd_template" not in blocked_ids
     assert "mlx_runtime_supervisor_operator_runbook" not in blocked_ids
+    assert "mlx_runtime_supervisor_owner_handoff_checklist" not in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation_checklist" not in blocked_ids
     assert "mlx_runtime_supervisor_operator_controls" in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation" in blocked_ids
@@ -148,6 +151,12 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert operator_requirement["evidence"]["health_check_reviewed"] is True
     assert operator_requirement["evidence"]["manual_start_command_reviewed"] is True
     assert operator_requirement["evidence"]["source_control_runbook_documented"] is True
+    assert (
+        operator_requirement["evidence"][
+            "source_control_owner_handoff_checklist_documented"
+        ]
+        is True
+    )
     runbook_requirement = next(
         item
         for item in report["requirements"]
@@ -156,6 +165,21 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert runbook_requirement["status"] == "ready"
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
+    owner_checklist_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_owner_handoff_checklist"
+    )
+    assert owner_checklist_requirement["status"] == "ready"
+    assert (
+        owner_checklist_requirement["evidence"][
+            "source_control_owner_handoff_checklist_documented"
+        ]
+        is True
+    )
+    assert owner_checklist_requirement["evidence"]["owner_handoff_checklist_exists"] is True
+    assert owner_checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert owner_checklist_requirement["evidence"]["missing_marker_count"] == 0
     launchd_requirement = next(
         item
         for item in report["requirements"]
@@ -243,6 +267,38 @@ def test_runtime_validation_checklist_markers_are_required(tmp_path):
         in checklist_requirement["blockers"]
     )
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+
+
+def test_runtime_owner_handoff_checklist_markers_are_required(tmp_path):
+    validator = _load_validator()
+    plist_path = tmp_path / "claimguard.mlx-student.plist"
+    checklist_path = tmp_path / "mlx-runtime-owner-handoff-checklist.md"
+    evidence_path = tmp_path / "supervisor_evidence.json"
+    _write_plist(plist_path)
+    checklist_text = "Current status: runtime owner not assigned for production.\n"
+    checklist_path.write_text(checklist_text, encoding="utf-8")
+    evidence = _ready_evidence(plist_path)
+    evidence["operator_controls"]["source_control_owner_handoff_checklist_path"] = str(
+        checklist_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_owner_handoff_checklist"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["supervisor_ready"] is False
+    assert (
+        "source_control_owner_handoff_checklist_required_markers_missing"
+        in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert checklist_text.strip() not in serialized
 
 
 def test_manual_start_command_review_is_required_for_operator_controls(tmp_path):

@@ -12,6 +12,7 @@
         "restart_policy_reviewed": true,
         "rollback_to_nvidia_reviewed": true,
         "runtime_owner_configured": false,
+        "source_control_owner_handoff_checklist_documented": true,
         "source_control_runbook_documented": true
       },
       "name": "Supervisor operator controls and rollback review are attested",
@@ -41,14 +42,14 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
-  "generated_at": "2026-05-31T14:15:54.968106+00:00",
+  "generated_at": "2026-05-31T17:10:36.300129+00:00",
   "notes": [
     "This validator reads local JSON and plist templates only; it does not install launchd services, start mlx_lm.server, call model endpoints, or enable student default routing.",
     "Approval references, environment secrets, and production document details must remain outside source control.",
     "A template evidence file is expected to be safe_to_review=true but supervisor_ready=false until owner, runtime, health, and restart evidence are complete."
   ],
   "objective": "Validate MLX student runtime supervisor evidence without storing approval references, PHI, secrets, or production document content.",
-  "ready_item_count": 5,
+  "ready_item_count": 6,
   "requirements": [
     {
       "blockers": [],
@@ -122,6 +123,23 @@
       "warnings": []
     },
     {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "owner_handoff_checklist_exists": true,
+        "owner_handoff_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
+        "present_marker_count": 18,
+        "raw_checklist_text_included": false,
+        "required_marker_count": 18,
+        "source_control_owner_handoff_checklist_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled MLX runtime owner handoff checklist is documented",
+      "requirement_id": "mlx_runtime_supervisor_owner_handoff_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
       "blockers": [
         "runtime_owner_not_configured"
       ],
@@ -132,6 +150,7 @@
         "restart_policy_reviewed": true,
         "rollback_to_nvidia_reviewed": true,
         "runtime_owner_configured": false,
+        "source_control_owner_handoff_checklist_documented": true,
         "source_control_runbook_documented": true
       },
       "name": "Supervisor operator controls and rollback review are attested",
