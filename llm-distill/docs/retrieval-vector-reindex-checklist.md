@@ -15,6 +15,8 @@ completed.
 - approved semantic embedding model required before reindexing active chunks.
 - production vector backend required in private runtime configuration.
 - hash fallback disabled for production required before production promotion.
+- private semantic provider loader configured through
+  `app/services/retrieval_semantic_provider.py` required before write reindex.
 - application reindex operation available before private semantic providers are
   allowed to update encrypted chunk metadata.
 - active retrieval chunks reindexed required with the approved semantic model.
@@ -39,15 +41,17 @@ completed.
 1. Confirm the approved semantic embedding model outside source control.
 2. Configure the production vector backend outside source control.
 3. Disable production hash fallback outside source control.
-4. Confirm the metadata-only application reindex operation is available and
+4. Confirm the private semantic provider loader is provider-ready using only
+   redacted booleans and blocker codes.
+5. Confirm the metadata-only application reindex operation is available and
    dry-run results show no raw text, vectors, credentials, PHI, or secrets.
-5. Reindex active retrieval and corpus chunks with approved semantic
+6. Reindex active retrieval and corpus chunks with approved semantic
    embeddings.
-6. Confirm stored hash embeddings are absent from active production retrieval
+7. Confirm stored hash embeddings are absent from active production retrieval
    paths.
-7. Record reindex job completion as a boolean-only private operational result.
-8. Complete a metadata-only reindex audit.
-9. Run vector backend health checks without logging values.
-10. Run retrieval quality smoke checks on approved non-sensitive fixtures.
-11. Update checked-in evidence only with booleans, counts, safe status tokens,
+8. Record reindex job completion as a boolean-only private operational result.
+9. Complete a metadata-only reindex audit.
+10. Run vector backend health checks without logging values.
+11. Run retrieval quality smoke checks on approved non-sensitive fixtures.
+12. Update checked-in evidence only with booleans, counts, safe status tokens,
     and blocker identifiers.

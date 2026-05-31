@@ -15,6 +15,8 @@ references, or raw retrieval results to this file.
 - approved semantic embedding model required
 - production vector backend required
 - hash fallback disabled for production required
+- private semantic provider loader configured with no source-controlled
+  endpoint or token values required
 - active retrieval chunks reindexed required
 - stored hash embeddings absent required
 
@@ -22,17 +24,20 @@ references, or raw retrieval results to this file.
 
 1. Confirm the private runtime uses the approved semantic embedding model and
    production vector backend through environment-controlled settings only.
-2. Confirm hash fallback is disabled for production retrieval requests.
-3. Confirm active retrieval chunks were reindexed after the final production
+2. Confirm `app/services/retrieval_semantic_provider.py` reports provider-ready
+   status, HTTPS or loopback endpoint safety, configured dimensions, and no
+   raw endpoint, token, source text, or vector values in logs.
+3. Confirm hash fallback is disabled for production retrieval requests.
+4. Confirm active retrieval chunks were reindexed after the final production
    embedding model and vector backend were selected.
-4. Run a metadata-only vector backend health check.
-5. Run a retrieval quality smoke check with synthetic or approved
+5. Run a metadata-only vector backend health check.
+6. Run a retrieval quality smoke check with synthetic or approved
    de-identified prompts only.
-6. Confirm backup restore review required has been completed for vector-store
+7. Confirm backup restore review required has been completed for vector-store
    metadata and indexes.
-7. Confirm rollback or disable path required has been reviewed and can return
+8. Confirm rollback or disable path required has been reviewed and can return
    retrieval to a conservative non-production-safe fallback.
-8. Confirm metadata-only audit required captures status, timestamps, operator
+9. Confirm metadata-only audit required captures status, timestamps, operator
    identity, and pass/fail states without source text or vector values.
 
 ## Evidence Rules

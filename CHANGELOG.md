@@ -2,6 +2,118 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 15:40:06 PDT - Retrieval private semantic provider loader
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: close the PHIplan retrieval-vector implementation gap by adding a
+  source-controlled private semantic embedding provider loader/factory while
+  keeping the deterministic hash fallback as the default, preserving
+  source-control redaction, and leaving production readiness blocked until
+  private semantic configuration, vector backend, reindex, health, quality
+  smoke, and manual gate evidence exist outside source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/PHIplan.md` | Documented the private semantic provider loader requirement and remaining retrieval-vector blockers. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/docs/technical-llm-distillation-analysis.md` | Added the provider loader to the technical LLM distillation tool list and focused test commands. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py` | Added private embedding endpoint, token, dimension, and timeout settings with empty/conservative defaults. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py` | Switched default retrieval provider construction to the safe provider factory while preserving explicit provider injection. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py` | Added private provider readiness/status checks to startup validation without emitting endpoint or token values. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added private provider runtime variable guidance and endpoint/token redaction requirements. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Checked off the provider loader/startup path while preserving external vector readiness blockers. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | Added validator coverage for provider loader evidence, marker checks, and no raw loader text emission. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_startup_config.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_startup_config.py` | Added safe private provider configuration expectations and unsafe endpoint redaction coverage. | Restore backup over the same path. |
+| `llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | Added boolean/path evidence for the source-controlled private semantic provider loader. | Restore backup over the same path. |
+| `llm-distill/docs/retrieval-vector-backend-runbook.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/docs/retrieval-vector-backend-runbook.md` | Added provider-loader operator steps and private runtime variable boundaries. | Restore backup over the same path. |
+| `llm-distill/docs/retrieval-vector-reindex-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/docs/retrieval-vector-reindex-checklist.md` | Added provider-loader readiness as a precondition before write reindexing. | Restore backup over the same path. |
+| `llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md` | Added provider-loader readiness and endpoint/token redaction checks to runtime smoke steps. | Restore backup over the same path. |
+| `llm-distill/evals/reports/retrieval_vector_backend_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed vector evidence; `safe_to_review=true`, `vector_backend_ready=false`, `ready_item_count=8`, and `blocked_item_count=3`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked_item_count=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `llm-distill/scripts/validate_retrieval_vector_backend.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/llm-distill/scripts/validate_retrieval_vector_backend.py` | Added provider-loader evidence validation and marker checks without emitting loader text. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py`:
+  adds the private semantic provider configuration status, safe provider
+  factory, HTTPS or loopback endpoint guard, redacted blocker reporting, and
+  generic private embedding request errors that do not include raw endpoint,
+  token, source text, or vector values.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_semantic_provider.py`:
+  covers hash fallback construction, private provider readiness, unsafe
+  endpoint blocking, redacted status, request parsing, and error redaction.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader -type f | sort`:
+  passed; 20 existing files were backed up before editing.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...` over the provider loader, modified startup/config/store paths, validator, and focused tests:
+  passed.
+- Focused pytest over provider loader, startup config, and retrieval-vector
+  evidence: passed, 21 tests.
+- `python3 llm-distill/scripts/validate_retrieval_vector_backend.py --report llm-distill/evals/reports/retrieval_vector_backend_report.json`:
+  passed with `vector_backend_ready=False`, `safe_to_review=True`,
+  `ready_item_count=8`, and `blocked_item_count=3`.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`, and
+  `blocked_item_count=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`,
+  `blocked_item_count=6`, and `warning_item_count=1`; the local development
+  `ENCRYPTION_KEYS` warning was emitted and no key material was written to
+  reports.
+- Combined focused pytest over `test_retrieval_semantic_provider.py`,
+  `test_retrieval_vector_startup_config.py`, `test_retrieval_store.py`,
+  `test_retrieval_vector_backend_evidence.py`,
+  `test_phi_plan_manual_gate_packet.py`, and
+  `test_phi_plan_production_readiness_audit.py`: passed, 79 tests with five
+  existing deprecation warnings.
+- `--fail-on-blocked` checks for retrieval vector backend, manual gate packet,
+  and PHIplan production readiness intentionally returned exit status 2 while
+  staying `safe_to_review=true` or `safe_current_state=true`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, refreshed reports, and temporary fail-on-blocked
+  reports: passed with no findings.
+- Broader documentation PHI scan over changed docs returned expected
+  metadata-only findings for required Raphael Malikian attribution emails and
+  pre-existing implementation label text such as `dob`, `mrn`, and
+  `member_id`; manual inspection found no raw PHI/PII values, production claim
+  data, endpoint values, tokens, vector values, or secrets introduced in this
+  slice.
+- Strict high-confidence token-format secret scan over changed code, docs,
+  evidence, and reports excluding historical changelog entries returned no
+  matches; the broader changelog-inclusive scan only matched pre-existing
+  synthetic placeholder env commands in older changelog entries.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding real embedding service URLs, credentials, API keys, provider
+  tokens, source text, vector values, production vector-store labels, PHI,
+  production claim data, production document content, or approval references
+  to source control.
+- Avoided marking retrieval-vector, manual-gate, or PHIplan production
+  readiness complete; the checked-in state remains intentionally blocked until
+  private runtime and external/manual evidence are complete.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-153020-retrieval-private-semantic-provider-loader/`,
+  delete
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py`
+  and
+  `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_semantic_provider.py`,
+  then rerun retrieval-vector, manual-gate, and PHIplan readiness validators if
+  refreshed reports are needed after rollback.
+- This slice makes private semantic provider loading concrete and testable; it
+  does not complete the full PHIplan objective.
+
 ## 2026-05-31 15:24:22 PDT - Manual gate private packet renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

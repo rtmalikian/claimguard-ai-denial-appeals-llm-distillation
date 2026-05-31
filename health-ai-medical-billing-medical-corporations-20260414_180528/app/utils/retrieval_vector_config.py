@@ -4,6 +4,9 @@ from urllib.parse import urlparse
 
 from app.core.config import settings
 from app.services.retrieval import HASH_EMBEDDING_MODEL
+from app.services.retrieval_semantic_provider import (
+    private_embedding_provider_config_status,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -63,6 +66,7 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
     vector_backend_has_url_or_credentials = _looks_like_url_or_secret_bearing_backend(
         vector_backend
     )
+    private_provider_status = private_embedding_provider_config_status(runtime_settings)
 
     blockers: list[str] = []
     if not semantic_backend_configured:
@@ -79,6 +83,7 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         blockers.append("hash_fallback_not_disabled_for_production")
     if vector_backend_has_url_or_credentials:
         blockers.append("vector_backend_setting_must_not_store_url_or_credentials")
+    blockers.extend(private_provider_status["blockers"])
 
     safe_context = {
         "raw_source_text_included": False,
@@ -86,6 +91,8 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         "raw_embedding_service_url_included": False,
         "raw_credentials_included": False,
         "raw_phi_included": False,
+        "private_embedding_endpoint_value_included": False,
+        "private_embedding_token_value_included": False,
     }
     report = {
         "app_env": app_env,
@@ -102,6 +109,22 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         ),
         "vector_backend_has_url_or_credentials": vector_backend_has_url_or_credentials,
         "hash_fallback_disabled_for_production": hash_fallback_disabled,
+        "private_embedding_provider_requested": private_provider_status[
+            "provider_requested"
+        ],
+        "private_embedding_provider_ready": private_provider_status["provider_ready"],
+        "private_embedding_endpoint_configured": private_provider_status[
+            "private_embedding_endpoint_configured"
+        ],
+        "private_embedding_endpoint_uses_https_or_loopback": private_provider_status[
+            "private_embedding_endpoint_uses_https_or_loopback"
+        ],
+        "private_embedding_token_configured": private_provider_status[
+            "private_embedding_token_configured"
+        ],
+        "private_embedding_dimensions_configured": private_provider_status[
+            "private_embedding_dimensions_configured"
+        ],
         "blockers": blockers,
         "startup_ready": not blockers,
         "fail_fast_required": app_env_is_production and bool(blockers),

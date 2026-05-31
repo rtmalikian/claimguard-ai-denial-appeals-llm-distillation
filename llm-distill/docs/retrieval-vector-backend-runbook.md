@@ -11,11 +11,13 @@ backend, embedding model, vector store, reindex job, health check, or quality
 smoke test has been completed.
 
 The application code now exposes an embedding-provider boundary through
-`app/services/retrieval.py` and `RetrievalStoreService`. The checked-in default
-provider remains the deterministic hash fallback for local development. Any
-production semantic adapter must be configured from a private runtime package
-or deployment layer and must not place service URLs, credentials, source text,
-or vector values in this repository.
+`app/services/retrieval.py`, `app/services/retrieval_semantic_provider.py`, and
+`RetrievalStoreService`. The checked-in source-controlled loader defaults to
+the deterministic hash fallback for local development, and can build a private
+semantic provider only when private runtime settings attest the semantic
+backend, approved model, disabled hash fallback, endpoint safety, timeout, and
+dimension count. Private endpoints must be configured outside source control
+and use HTTPS or a loopback-only local service.
 
 The application also exposes a metadata-only reindex operation at
 `POST /api/v1/denial-workflow/sources/reindex-embeddings`. The checked-in route
@@ -31,6 +33,11 @@ must inject the approved semantic provider before running a write reindex.
   only.
 - Wire approved semantic embedding adapters through the retrieval provider
   boundary from private runtime code or configuration only.
+- Configure `RETRIEVAL_PRIVATE_EMBEDDING_URL`,
+  `RETRIEVAL_PRIVATE_EMBEDDING_TOKEN`,
+  `RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS`, and
+  `RETRIEVAL_PRIVATE_EMBEDDING_TIMEOUT_SECONDS` only in private runtime
+  configuration when a semantic provider is approved.
 - Do not store embedding service URLs, credentials, tokens, raw source text,
   raw document content, vector values, PHI, production claim content, or
   production document content in this repository.
@@ -53,25 +60,27 @@ must inject the approved semantic provider before running a write reindex.
    embedding model, production vector backend, hash-fallback disablement,
    reindex, health, quality smoke, rollback, and no-raw-value evidence are
    complete. Confirm command output contains redacted booleans/counts only.
-4. Confirm `RetrievalStoreService` is using the approved semantic provider for
+4. Confirm `app/services/retrieval_semantic_provider.py` reports provider-ready
+   status using only redacted booleans and blocker codes.
+5. Confirm `RetrievalStoreService` is using the approved semantic provider for
    source indexing and query embeddings without logging raw source text or
    vectors.
-5. Disable hash fallback for production in private runtime configuration.
-6. Run the admin reindex operation in dry-run mode and verify the response
+6. Disable hash fallback for production in private runtime configuration.
+7. Run the admin reindex operation in dry-run mode and verify the response
    contains no raw source text, raw vectors, credentials, PHI, secrets, or
    production document content.
-7. Reindex active retrieval and corpus chunks with the approved semantic
+8. Reindex active retrieval and corpus chunks with the approved semantic
    embedding model.
-8. Confirm stored hash embeddings are absent from active production retrieval
+9. Confirm stored hash embeddings are absent from active production retrieval
    paths.
-9. Run the vector backend health check without logging URLs, credentials,
+10. Run the vector backend health check without logging URLs, credentials,
    source text, vector values, PHI, or production document content.
-10. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
+11. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
    record only boolean status in checked-in evidence.
-11. Update
+12. Update
    `llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json`
    only with booleans, counts, status tokens, and safe blocker identifiers.
-12. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
+13. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
 
 ## Rollback Or Disable Path
 

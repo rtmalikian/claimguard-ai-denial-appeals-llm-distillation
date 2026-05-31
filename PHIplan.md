@@ -265,6 +265,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   are complete. Local governance checks, backup/restore review, and
   rollback/disable-path review are now attested without storing source text,
   vector values, credentials, PHI, secrets, or production document content.
+  The validator now also verifies the source-controlled private semantic
+  provider loader at
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py`
+  exists with provider factory, private endpoint/token redaction, HTTPS or
+  loopback safety, dimension checks, and hash fallback markers without
+  emitting loader text, endpoint values, tokens, source text, or vector values.
   The validator now also verifies the source-controlled operator runbook at
   `llm-distill/docs/retrieval-vector-backend-runbook.md` exists with required
   private-configuration, no-secret/no-PHI, reindex, rollback, and

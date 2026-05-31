@@ -119,6 +119,17 @@ health checks, retrieval quality smoke checks, rollback review, and
 `llm-distill/evals/reports/retrieval_vector_backend_report.json` are ready,
 render the final retrieval vector environment file to a private path:
 
+Private semantic provider runtime settings are loaded through
+`app/services/retrieval_semantic_provider.py`. Keep
+`RETRIEVAL_PRIVATE_EMBEDDING_URL`, `RETRIEVAL_PRIVATE_EMBEDDING_TOKEN`,
+`RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS`, and
+`RETRIEVAL_PRIVATE_EMBEDDING_TIMEOUT_SECONDS` in private runtime configuration
+only. Non-hash providers require approved semantic backend settings,
+hash-fallback disablement for production, a positive dimension count, and an
+HTTPS or loopback embedding endpoint. Do not write endpoint values, tokens,
+source text, or vector values into committed files, screenshots, logs, or
+reports.
+
 ```bash
 # Set RETRIEVAL_PRODUCTION_EMBEDDING_BACKEND,
 # RETRIEVAL_PRODUCTION_EMBEDDING_MODEL, and

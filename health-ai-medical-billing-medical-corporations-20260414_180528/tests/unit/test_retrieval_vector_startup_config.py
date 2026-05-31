@@ -15,6 +15,10 @@ def _settings(**overrides):
         "RETRIEVAL_VECTOR_BACKEND": "encrypted_local_metadata",
         "RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED": False,
         "RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION": False,
+        "RETRIEVAL_PRIVATE_EMBEDDING_URL": "",
+        "RETRIEVAL_PRIVATE_EMBEDDING_TOKEN": "",
+        "RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS": 0,
+        "RETRIEVAL_PRIVATE_EMBEDDING_TIMEOUT_SECONDS": 10,
     }
     values.update(overrides)
     return SimpleNamespace(**values)
@@ -45,12 +49,17 @@ def test_production_semantic_backend_passes_when_all_flags_are_attested():
             RETRIEVAL_VECTOR_BACKEND="pgvector",
             RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=True,
             RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=True,
+            RETRIEVAL_PRIVATE_EMBEDDING_URL="https://embedding-provider.example/v1/embed",
+            RETRIEVAL_PRIVATE_EMBEDDING_TOKEN="synthetic-token",
+            RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS=128,
         )
     )
 
     assert report["startup_ready"] is True
     assert report["fail_fast_required"] is False
     assert report["blockers"] == []
+    assert report["private_embedding_provider_ready"] is True
+    assert report["private_embedding_endpoint_configured"] is True
 
 
 def test_vector_backend_url_or_credentials_are_not_emitted():
@@ -65,9 +74,34 @@ def test_vector_backend_url_or_credentials_are_not_emitted():
                 RETRIEVAL_VECTOR_BACKEND=raw_backend,
                 RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=True,
                 RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=True,
+                RETRIEVAL_PRIVATE_EMBEDDING_URL="https://embedding-provider.example/v1/embed",
+                RETRIEVAL_PRIVATE_EMBEDDING_TOKEN="synthetic-token",
+                RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS=128,
             )
         )
 
     serialized = json.dumps(getattr(exc_info.value, "__dict__", {}), sort_keys=True)
     assert raw_backend not in str(exc_info.value)
     assert raw_backend not in serialized
+
+
+def test_semantic_backend_requires_private_provider_configuration_without_emitting_url():
+    raw_endpoint = "http://embedding-provider.example/v1/embed"
+    with pytest.raises(RuntimeError) as exc_info:
+        validate_retrieval_vector_startup_config(
+            _settings(
+                APP_ENV="production",
+                RETRIEVAL_EMBEDDING_BACKEND="semantic",
+                RETRIEVAL_EMBEDDING_MODEL="synthetic-approved-semantic-v1",
+                RETRIEVAL_EMBEDDING_MODEL_APPROVED=True,
+                RETRIEVAL_VECTOR_BACKEND="pgvector",
+                RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=True,
+                RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=True,
+                RETRIEVAL_PRIVATE_EMBEDDING_URL=raw_endpoint,
+                RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS=128,
+            )
+        )
+
+    serialized = json.dumps(getattr(exc_info.value, "__dict__", {}), sort_keys=True)
+    assert raw_endpoint not in str(exc_info.value)
+    assert raw_endpoint not in serialized

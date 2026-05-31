@@ -28,12 +28,12 @@ from app.services.retrieval import (
     EmbeddingProvider,
     HASH_EMBEDDING_MODEL,
     HashEmbeddingRetrievalIndex,
-    HashEmbeddingProvider,
     HybridRetrievalIndex,
     KeywordRetrievalIndex,
     SourceChunk,
     chunk_document,
 )
+from app.services.retrieval_semantic_provider import build_retrieval_embedding_provider
 from app.utils.model_improvement import validate_model_improvement_opt_in
 from app.utils.phi import scan_text_for_phi, validate_declared_phi_status
 
@@ -125,7 +125,7 @@ class RetrievalStoreService:
     ):
         self.db = db
         self.encryption = encryption or encryption_service
-        self.embedding_provider = embedding_provider or HashEmbeddingProvider()
+        self.embedding_provider = embedding_provider or build_retrieval_embedding_provider()
 
     def create_source(
         self,

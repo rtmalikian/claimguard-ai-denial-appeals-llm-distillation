@@ -8,6 +8,8 @@
   "backend_configuration": {
     "source_control_private_env_renderer_documented": true,
     "source_control_private_env_renderer_path": "llm-distill/scripts/render_retrieval_vector_private_env.py",
+    "source_control_private_embedding_provider_loader_documented": true,
+    "source_control_private_embedding_provider_loader_path": "health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py",
     "semantic_backend_configured": false,
     "embedding_model_configured": false,
     "embedding_model_approved": false,

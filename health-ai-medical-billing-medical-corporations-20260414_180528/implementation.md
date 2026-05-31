@@ -832,6 +832,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   attestations for approved mode, reads private backend/model/vector labels
   from environment variables only, writes `0600` output, and reports redacted
   booleans/counts while preserving external vector readiness blockers
+- [x] Retrieval vector startup and default service construction now use a
+  source-controlled private semantic provider loader that keeps the hash
+  fallback as the default, requires approved private semantic runtime settings
+  for non-hash providers, allows only HTTPS or loopback endpoints, and reports
+  redacted booleans/blocker codes without storing endpoint values, tokens,
+  source text, vector values, PHI, secrets, or production document content
 - [x] Metadata-only retrieval embedding reindex operation for approved private
   semantic providers, with dry-run default, aggregate-only response, safe audit
   details, and non-dry-run hash-provider refusal

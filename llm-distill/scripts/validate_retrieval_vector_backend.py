@@ -22,6 +22,13 @@ DEFAULT_EVIDENCE = (
 )
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "retrieval_vector_backend_report.json"
 DEFAULT_PRIVATE_ENV_RENDERER = DISTILL_DIR / "scripts" / "render_retrieval_vector_private_env.py"
+DEFAULT_PRIVATE_PROVIDER_LOADER = (
+    REPO_ROOT
+    / "health-ai-medical-billing-medical-corporations-20260414_180528"
+    / "app"
+    / "services"
+    / "retrieval_semantic_provider.py"
+)
 EXPECTED_ARTIFACT = "claimguard_retrieval_vector_backend_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -111,6 +118,21 @@ PRIVATE_ENV_RENDERER_REQUIRED_MARKERS = (
     "service_urls_included",
     "0600",
     "values_redacted",
+)
+PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS = (
+    "PrivateSemanticEmbeddingProvider",
+    "build_retrieval_embedding_provider",
+    "private_embedding_provider_config_status",
+    "RETRIEVAL_PRIVATE_EMBEDDING_URL",
+    "RETRIEVAL_PRIVATE_EMBEDDING_TOKEN",
+    "RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS",
+    "private_embedding_endpoint_value_included",
+    "private_embedding_token_value_included",
+    "raw_text_included",
+    "vector_values_included",
+    "https",
+    "loopback",
+    "HashEmbeddingProvider",
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -256,6 +278,7 @@ def backend_configuration_requirement(evidence: dict[str, Any]) -> dict[str, Any
     section = evidence.get("backend_configuration", {})
     required_flags = {
         "source_control_private_env_renderer_documented": "source_control_private_env_renderer_not_documented",
+        "source_control_private_embedding_provider_loader_documented": "source_control_private_embedding_provider_loader_not_documented",
         "semantic_backend_configured": "semantic_embedding_backend_not_configured",
         "embedding_model_configured": "embedding_model_not_configured",
         "embedding_model_approved": "embedding_model_not_approved",
@@ -281,6 +304,7 @@ def backend_configuration_requirement(evidence: dict[str, Any]) -> dict[str, Any
             "production_vector_backend_configured": bool_value(section, "production_vector_backend_configured"),
             "hash_fallback_disabled_for_production": bool_value(section, "hash_fallback_disabled_for_production"),
             "source_control_private_env_renderer_documented": bool_value(section, "source_control_private_env_renderer_documented"),
+            "source_control_private_embedding_provider_loader_documented": bool_value(section, "source_control_private_embedding_provider_loader_documented"),
             "contains_secrets": bool_value(section, "contains_secrets"),
         },
     )
@@ -332,6 +356,65 @@ def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, An
             "raw_renderer_text_included": False,
             "raw_env_values_included": False,
             "private_output_required": True,
+            "values_redacted": True,
+        },
+    )
+
+
+def private_provider_loader_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("backend_configuration", {})
+    loader_configured = bool_value(
+        section,
+        "source_control_private_embedding_provider_loader_documented",
+    )
+    configured_path = str_value(
+        section,
+        "source_control_private_embedding_provider_loader_path",
+    )
+    loader_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_PROVIDER_LOADER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS)
+    if not loader_configured:
+        blockers.append("source_control_private_embedding_provider_loader_not_documented")
+    if not loader_path.exists():
+        blockers.append("source_control_private_embedding_provider_loader_missing")
+    else:
+        try:
+            loader_text = loader_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            loader_text = ""
+            blockers.append("source_control_private_embedding_provider_loader_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS
+            if marker in loader_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_private_embedding_provider_loader_required_markers_missing")
+
+    return requirement(
+        requirement_id="retrieval_vector_backend_private_provider_loader",
+        name="Source-controlled retrieval semantic provider loader is available",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_embedding_provider_loader_documented": loader_configured,
+            "private_embedding_provider_loader_path": str(loader_path),
+            "private_embedding_provider_loader_exists": loader_path.exists(),
+            "required_marker_count": len(PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_loader_text_included": False,
+            "raw_endpoint_or_token_values_included": False,
+            "raw_source_text_or_vector_values_included": False,
             "values_redacted": True,
         },
     )
@@ -558,6 +641,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         no_values_requirement(evidence_path, evidence),
         backend_configuration_requirement(evidence),
         private_env_renderer_requirement(evidence_path, evidence),
+        private_provider_loader_requirement(evidence_path, evidence),
         operator_runbook_requirement(evidence_path, evidence),
         reindex_checklist_requirement(evidence_path, evidence),
         index_state_requirement(evidence),
