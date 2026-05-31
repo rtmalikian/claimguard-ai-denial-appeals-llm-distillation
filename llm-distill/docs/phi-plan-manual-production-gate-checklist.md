@@ -19,6 +19,7 @@ identifiers, or credentials.
 - model-improvement private environment renderer required
 - approved non-synthetic denial/appeal pair required
 - production semantic vector backend required
+- retrieval vector private environment renderer required
 - production threshold/fairness monitoring evidence required
 - prediction-fairness private evidence renderer required
 - file-ingestion surface audit must stay ready
@@ -43,13 +44,19 @@ identifiers, or credentials.
    private path outside source control after legal, BAA, consent, request, and
    approval evidence are complete; confirm command output includes redacted
    booleans/counts only.
-5. For prediction fairness monitoring, render any final evidence file with
+5. For retrieval vector backend promotion, render any final environment file
+   with `llm-distill/scripts/render_retrieval_vector_private_env.py` only to a
+   private path outside source control after semantic backend, embedding model,
+   production vector backend, reindex, health, quality smoke, and rollback
+   evidence are complete; confirm command output includes redacted
+   booleans/counts only.
+6. For prediction fairness monitoring, render any final evidence file with
    `llm-distill/scripts/render_prediction_fairness_private_evidence.py` only
    to a private path outside source control after outcome-data, sample-size,
    threshold-review, monitoring, latest-run, and legal/privacy evidence are
    complete; confirm command output includes redacted booleans/counts only.
-6. Confirm production readiness remains blocked until every required gate is
+7. Confirm production readiness remains blocked until every required gate is
    ready in `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`
    and `llm-distill/evals/reports/phi_plan_production_readiness_report.json`.
-7. Confirm any future document-ingestion surface is registered in the
+8. Confirm any future document-ingestion surface is registered in the
    file-ingestion surface audit before it handles production material.

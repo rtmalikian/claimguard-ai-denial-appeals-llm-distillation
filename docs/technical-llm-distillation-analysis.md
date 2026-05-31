@@ -222,6 +222,26 @@ booleans/counts. It does not store the private references, raw demographic
 values, production outcome rows, claim content, or approval documents in either
 the checked-in report or its command output.
 
+### Retrieval Vector Private Env Controls
+
+Production semantic retrieval remains blocked until the semantic embedding
+backend, approved embedding model, production vector backend, active chunk
+reindex, vector backend health, retrieval quality smoke checks, and rollback
+path are complete outside source control. The repository now includes
+`llm-distill/scripts/render_retrieval_vector_private_env.py` so an operator can
+render the final retrieval/vector environment file to a private path after
+those gates are complete.
+
+The renderer refuses output inside source control, requires explicit semantic
+backend, embedding model approval, production vector backend, hash-fallback
+disablement, reindex completion, vector health, retrieval quality smoke,
+rollback, and no-raw-value attestations before approved mode, reads private
+backend/model/vector labels from environment variables, writes the private env
+file with `0600` permissions, and prints only redacted booleans/counts. It does
+not store private provider labels, model names, vector-store labels, service
+URLs, credentials, source text, vector values, PHI, or production document
+content in checked-in reports or command output.
+
 ### Retrieval Reindex Controls
 
 The production retrieval path is intentionally split between checked-in safety
@@ -274,6 +294,9 @@ Safety and validation:
 - `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
   private boolean-only prediction-fairness evidence rendering after approved
   outcome, monitoring, latest-run, and legal/privacy gates are complete.
+- `llm-distill/scripts/render_retrieval_vector_private_env.py` for private
+  retrieval/vector env rendering after semantic backend, reindex, health,
+  quality-smoke, and rollback gates are complete.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual
@@ -300,6 +323,7 @@ cd health-ai-medical-billing-medical-corporations-20260414_180528
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
   python3 -m pytest \
   tests/unit/test_retrieval_store.py \
+  tests/unit/test_retrieval_vector_private_env_renderer.py \
   tests/unit/test_retrieval_vector_backend_evidence.py \
   tests/unit/test_prediction_fairness_private_evidence_renderer.py \
   tests/unit/test_prediction_fairness_evidence.py \

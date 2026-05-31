@@ -38,6 +38,10 @@ def _ready_evidence() -> dict:
         "no_phi_or_secret_values_attested": True,
         "no_source_text_or_vector_values_attested": True,
         "backend_configuration": {
+            "source_control_private_env_renderer_documented": True,
+            "source_control_private_env_renderer_path": (
+                "llm-distill/scripts/render_retrieval_vector_private_env.py"
+            ),
             "semantic_backend_configured": True,
             "embedding_model_configured": True,
             "embedding_model_approved": True,
@@ -97,11 +101,28 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert report["vector_backend_ready"] is False
     assert "retrieval_vector_backend_no_phi_secret_or_values" not in blocked_ids
     assert "retrieval_vector_backend_configuration" in blocked_ids
+    assert "retrieval_vector_backend_private_env_renderer" not in blocked_ids
     assert "retrieval_vector_backend_operator_runbook" not in blocked_ids
     assert "retrieval_vector_backend_reindex_checklist" not in blocked_ids
     assert "retrieval_vector_backend_index_state" in blocked_ids
     assert "retrieval_vector_backend_runtime_smoke_checklist" not in blocked_ids
     assert "retrieval_vector_backend_runtime_validation" in blocked_ids
+    private_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "retrieval_vector_backend_private_env_renderer"
+    )
+    assert private_renderer_requirement["status"] == "ready"
+    assert (
+        private_renderer_requirement["evidence"][
+            "source_control_private_env_renderer_documented"
+        ]
+        is True
+    )
+    assert private_renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert private_renderer_requirement["evidence"]["raw_env_values_included"] is False
     runbook_requirement = next(
         item
         for item in report["requirements"]
@@ -166,6 +187,42 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         not in index_requirement["blockers"]
     )
     assert index_requirement["evidence"]["application_reindex_operation_available"] is True
+
+
+def test_vector_backend_private_env_renderer_markers_are_required_when_documented(
+    tmp_path,
+):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    renderer_path = tmp_path / "render_retrieval_vector_private_env.py"
+    renderer_path.write_text(
+        "#!/usr/bin/env python3\nprint('not a safe renderer')\n",
+        encoding="utf-8",
+    )
+    evidence = _ready_evidence()
+    evidence["backend_configuration"]["source_control_private_env_renderer_path"] = str(
+        renderer_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_private_env_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_private_env_renderer_required_markers_missing"
+        in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert renderer_requirement["evidence"]["missing_marker_count"] > 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert "not a safe renderer" not in serialized
 
 
 def test_ready_vector_backend_evidence_passes_all_requirements(tmp_path):

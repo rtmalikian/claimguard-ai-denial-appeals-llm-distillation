@@ -2,6 +2,122 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 14:30:31 PDT - Retrieval vector private env renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan production semantic retrieval path by adding a
+  safe renderer for the final private retrieval/vector runtime env file,
+  without storing backend URLs, credentials, provider labels, model names,
+  vector-store labels, source text, vector values, PHI, secrets, or production
+  document content in source control, and without marking the vector backend
+  ready.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/PHIplan.md` | Documented the retrieval vector private env renderer and remaining private semantic backend/reindex/health blockers. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/docs/technical-llm-distillation-analysis.md` | Added private retrieval/vector env controls to the technical distillation breakdown, tool list, and checks. | Restore backup over the same path. |
+| `docs/deployment-guide.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added deployment guidance for rendering private retrieval/vector env files outside source control. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the renderer and remaining production semantic retrieval work. | Restore backup over the same path. |
+| `tests/unit/test_retrieval_vector_backend_evidence.py` | `backups/20260531-143031-retrieval-vector-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | Added validator coverage for private env renderer documentation and marker checks. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-143031-retrieval-vector-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual-gate coverage for retrieval private env renderer documentation. | Restore backup over the same path. |
+| `../llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | Added boolean/path evidence for the private retrieval/vector env renderer. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added manual-gate boolean/path evidence for the private retrieval/vector env renderer. | Restore backup over the same path. |
+| `../llm-distill/docs/retrieval-vector-backend-runbook.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/docs/retrieval-vector-backend-runbook.md` | Added private renderer operator steps and redacted-output requirements. | Restore backup over the same path. |
+| `../llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added manual checklist coverage for retrieval/vector private env rendering. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/retrieval_vector_backend_report.json` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed vector evidence; `safe_to_review=true`, `vector_backend_ready=false`, `ready_item_count=7`, and `blocked=3`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/validate_retrieval_vector_backend.py` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/scripts/validate_retrieval_vector_backend.py` | Added a private env renderer requirement and safety marker checks without emitting renderer text. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-143031-retrieval-vector-private-env-renderer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added manual packet evidence for retrieval private env renderer documentation. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-143031-retrieval-vector-private-env-renderer/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/scripts/render_retrieval_vector_private_env.py`: renders the
+  final retrieval/vector env file only to a private path, refuses repository
+  output, requires semantic backend, approved embedding model, production
+  vector backend, hash-fallback disablement, reindex, health, quality-smoke,
+  rollback, and no-raw-value attestations before approved mode, reads
+  backend/model/vector labels from private environment variables, writes
+  `0600`, and prints redacted booleans/counts only.
+- `tests/unit/test_retrieval_vector_private_env_renderer.py`: covers
+  conservative dry-run output, source-control output refusal, explicit
+  attestation requirements, private backend/model/vector value handling,
+  URL/hash/local-backend rejection, redacted summary output, and `0600` file
+  permissions.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find backups/20260531-143031-retrieval-vector-private-env-renderer -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...` over the new renderer, modified validators, and focused tests: passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_vector_private_env_renderer.py -q -p no:cacheprovider`:
+  passed, 6 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_vector_backend_evidence.py -q -p no:cacheprovider`:
+  passed, 8 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py -q -p no:cacheprovider`:
+  passed, 32 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_retrieval_vector_private_env_renderer.py tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 58 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/render_retrieval_vector_private_env.py --dry-run --output /private/tmp/claimguard-retrieval-vector-test.env`:
+  passed and printed only redacted booleans/counts.
+- Synthetic approved-mode dry run with dummy private backend/model/vector
+  environment variables set: passed and did not print the dummy values.
+- `python3 ../llm-distill/scripts/render_retrieval_vector_private_env.py --output /private/tmp/claimguard-retrieval-vector-test.env`:
+  passed, wrote a conservative private env file with `0600` permissions, and
+  the temporary file was removed.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py --report ../llm-distill/evals/reports/retrieval_vector_backend_report.json`:
+  passed with `vector_backend_ready=False`, `safe_to_review=True`,
+  `ready_item_count=7`, and `blocked=3`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`, and
+  `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the local development `ENCRYPTION_KEYS` warning
+  was emitted and no key material was written to reports.
+- `--fail-on-blocked` checks for vector evidence, manual gate packet, and
+  PHIplan readiness intentionally returned exit status 2 while staying
+  `safe_to_review=true` or `safe_current_state=true`.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, refreshed reports, and temporary reports: passed with
+  no findings.
+- Broader documentation PHI scan over changed docs and both changelogs returned
+  expected metadata-only findings for required Raphael Malikian attribution
+  emails and pre-existing label text such as `dob`, `mrn`, `member_id`, and
+  `claim_number`; manual inspection found no raw PHI/PII values, production
+  claim data, or secrets introduced in this slice.
+- High-confidence secret-pattern scan over changed files returned no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a checked-in private env file, storing provider labels,
+  embedding model names, vector-store labels, service URLs, credentials, source
+  text, vector values, PHI, secrets, or production document content, weakening
+  vector readiness gates, disabling startup blockers, or claiming production
+  semantic retrieval readiness is complete.
+- Kept the renderer's default output conservative so accidental use preserves
+  `RETRIEVAL_EMBEDDING_BACKEND=hash`,
+  `RETRIEVAL_VECTOR_BACKEND=encrypted_local_metadata`,
+  `RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=false`, and
+  `RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=false`.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-143031-retrieval-vector-private-env-renderer/`, delete
+  `../llm-distill/scripts/render_retrieval_vector_private_env.py` and
+  `tests/unit/test_retrieval_vector_private_env_renderer.py`, then rerun the
+  vector, manual-gate, and PHIplan readiness validators if refreshed reports
+  are needed after rollback.
+- This slice makes the final private retrieval/vector env rendering path
+  concrete and testable; it does not complete the full PHIplan objective.
+
 ## 2026-05-31 14:15:00 PDT - Prediction-fairness private evidence renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -15,7 +15,8 @@
         "embedding_model_configured": false,
         "hash_fallback_disabled_for_production": false,
         "production_vector_backend_configured": false,
-        "semantic_backend_configured": false
+        "semantic_backend_configured": false,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Production semantic embedding and vector backend configuration is attested",
       "requirement_id": "retrieval_vector_backend_configuration",
@@ -59,14 +60,14 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-05-31T18:20:00.312100+00:00",
+  "generated_at": "2026-05-31T21:37:14.483780+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
     "A template evidence file is expected to be safe_to_review=true but vector_backend_ready=false until configuration, reindex, governance, and runtime evidence are complete."
   ],
   "objective": "Validate production retrieval vector backend evidence without storing PHI, secrets, source text, vector values, or production document content.",
-  "ready_item_count": 6,
+  "ready_item_count": 7,
   "requirements": [
     {
       "blockers": [],
@@ -110,7 +111,8 @@
         "embedding_model_configured": false,
         "hash_fallback_disabled_for_production": false,
         "production_vector_backend_configured": false,
-        "semantic_backend_configured": false
+        "semantic_backend_configured": false,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Production semantic embedding and vector backend configuration is attested",
       "requirement_id": "retrieval_vector_backend_configuration",
@@ -121,9 +123,28 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 8,
+        "present_marker_count": 19,
+        "private_env_renderer_exists": true,
+        "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_retrieval_vector_private_env.py",
+        "private_output_required": true,
+        "raw_env_values_included": false,
+        "raw_renderer_text_included": false,
+        "required_marker_count": 19,
+        "source_control_private_env_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled retrieval vector backend private env renderer is documented",
+      "requirement_id": "retrieval_vector_backend_private_env_renderer",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 10,
         "raw_runbook_text_included": false,
-        "required_marker_count": 8,
+        "required_marker_count": 10,
         "runbook_exists": true,
         "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-backend-runbook.md",
         "source_control_runbook_documented": true,

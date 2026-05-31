@@ -101,6 +101,47 @@ Use the exact environment variable names consumed by `app/core/config.py`.
 `CLAIMGUARD_ALLOW_MODEL_IMPROVEMENT` is not a production gate for the current
 application settings.
 
+For retrieval vector backend promotion, keep the conservative deployment path
+as:
+
+```env
+RETRIEVAL_EMBEDDING_BACKEND=hash
+RETRIEVAL_EMBEDDING_MODEL=claimguard-hash-embedding-v1
+RETRIEVAL_EMBEDDING_MODEL_APPROVED=false
+RETRIEVAL_VECTOR_BACKEND=encrypted_local_metadata
+RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=false
+RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=false
+```
+
+Only after semantic backend selection, approved embedding model review,
+production vector backend configuration, active chunk reindexing, vector
+health checks, retrieval quality smoke checks, rollback review, and
+`llm-distill/evals/reports/retrieval_vector_backend_report.json` are ready,
+render the final retrieval vector environment file to a private path:
+
+```bash
+# Set RETRIEVAL_PRODUCTION_EMBEDDING_BACKEND,
+# RETRIEVAL_PRODUCTION_EMBEDDING_MODEL, and
+# RETRIEVAL_PRODUCTION_VECTOR_BACKEND in a private shell first.
+python3 ../llm-distill/scripts/render_retrieval_vector_private_env.py \
+  --approved-vector-backend \
+  --semantic-backend-attested \
+  --embedding-model-approved-attested \
+  --production-vector-backend-attested \
+  --hash-fallback-disabled-attested \
+  --reindex-completed-attested \
+  --vector-health-attested \
+  --retrieval-quality-smoke-attested \
+  --rollback-reviewed \
+  --no-raw-values-attested \
+  --output /path/to/private-retrieval-vector.env
+```
+
+The helper refuses source-control output, writes the private env file with
+`0600` permissions, and prints only redacted booleans/counts. Keep backend
+labels, model names, vector-store labels, service URLs, credentials, source
+text, and vector values out of docs, screenshots, logs, and committed files.
+
 For user-data model improvement, keep the conservative deployment path as:
 
 ```env

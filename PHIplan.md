@@ -287,6 +287,18 @@ plan plus the active ClaimGuard `AGENTS.md`.
   private semantic backend configuration, production vector store configuration,
   reindex completion, vector health checks, and retrieval quality smoke checks
   are actually complete outside source control.
+  The retrieval-vector path now also includes
+  `llm-distill/scripts/render_retrieval_vector_private_env.py`, a renderer for
+  the final private retrieval/vector runtime environment file. It refuses
+  output inside source control, requires explicit semantic backend, embedding
+  model approval, production vector backend, hash-fallback disablement,
+  reindex completion, vector health, retrieval quality smoke, rollback, and
+  no-raw-value attestations before approved mode, reads private backend/model/
+  vector labels from environment variables, writes private output with `0600`
+  permissions, and prints only redacted booleans/counts. This prepares the
+  private semantic retrieval configuration handoff without storing provider
+  labels, model names, vector-store labels, service URLs, credentials, source
+  text, vector values, PHI, or production document content in source control.
 - Add corpus endpoints under `/api/v1/denial-workflow/corpus` for status,
   manifest validation, machine de-identification, manual review decision, and
   import of approved de-identified documents into the encrypted retrieval store.
@@ -1132,9 +1144,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   then rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py` before
   setting supervised runtime flags.
 - Configure the production semantic embedding backend/vector store outside
-  source control, run the admin reindex operation in dry-run mode, reindex
-  retrieval/corpus chunks with the approved private provider, run health and
-  retrieval quality smoke checks, and rerun
+  source control, render the private retrieval/vector environment file with
+  `llm-distill/scripts/render_retrieval_vector_private_env.py`, run the admin
+  reindex operation in dry-run mode, reindex retrieval/corpus chunks with the
+  approved private provider, run health and retrieval quality smoke checks, and rerun
   `llm-distill/scripts/validate_retrieval_vector_backend.py` before treating
   retrieval as production semantic search. Keep the local governance,
   source-controlled retrieval-vector runbook and reindex-checklist

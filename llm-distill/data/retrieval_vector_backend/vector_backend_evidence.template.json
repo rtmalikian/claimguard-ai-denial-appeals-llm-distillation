@@ -6,6 +6,8 @@
   "no_phi_or_secret_values_attested": true,
   "no_source_text_or_vector_values_attested": true,
   "backend_configuration": {
+    "source_control_private_env_renderer_documented": true,
+    "source_control_private_env_renderer_path": "llm-distill/scripts/render_retrieval_vector_private_env.py",
     "semantic_backend_configured": false,
     "embedding_model_configured": false,
     "embedding_model_approved": false,

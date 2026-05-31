@@ -66,6 +66,8 @@
     "source_control_runbook_documented": true,
     "source_control_reindex_checklist_documented": true,
     "source_control_runtime_smoke_checklist_documented": true,
+    "source_control_private_env_renderer_documented": true,
+    "private_env_renderer_path": "llm-distill/scripts/render_retrieval_vector_private_env.py",
     "semantic_backend_configured": false,
     "production_vector_backend_configured": false,
     "retrieval_chunks_reindexed": false,

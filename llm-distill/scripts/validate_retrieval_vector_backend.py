@@ -21,6 +21,7 @@ DEFAULT_EVIDENCE = (
     / "vector_backend_evidence.template.json"
 )
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "retrieval_vector_backend_report.json"
+DEFAULT_PRIVATE_ENV_RENDERER = DISTILL_DIR / "scripts" / "render_retrieval_vector_private_env.py"
 EXPECTED_ARTIFACT = "claimguard_retrieval_vector_backend_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -47,6 +48,8 @@ RUNBOOK_REQUIRED_MARKERS = (
     "Current status: not production-ready",
     "Configure semantic backend settings in private runtime configuration only",
     "Configure production vector backend settings in private runtime configuration",
+    "render_retrieval_vector_private_env.py",
+    "redacted booleans/counts only",
     "Do not store embedding service URLs",
     "hash embedding fallback development-only",
     "Reindex active retrieval and corpus chunks",
@@ -87,6 +90,27 @@ RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS = (
     "no raw vector values",
     "no embedding service URLs",
     "vector_backend_ready=false",
+)
+PRIVATE_ENV_RENDERER_REQUIRED_MARKERS = (
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "RETRIEVAL_PRODUCTION_EMBEDDING_BACKEND",
+    "RETRIEVAL_PRODUCTION_EMBEDDING_MODEL",
+    "RETRIEVAL_PRODUCTION_VECTOR_BACKEND",
+    "RETRIEVAL_EMBEDDING_BACKEND",
+    "RETRIEVAL_EMBEDDING_MODEL",
+    "RETRIEVAL_EMBEDDING_MODEL_APPROVED",
+    "RETRIEVAL_VECTOR_BACKEND",
+    "RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED",
+    "RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION",
+    "hash_fallback_disabled_for_production",
+    "embedding_backend_value_included",
+    "embedding_model_value_included",
+    "vector_backend_value_included",
+    "raw_source_text_or_vector_values_included",
+    "service_urls_included",
+    "0600",
+    "values_redacted",
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -231,6 +255,7 @@ def no_values_requirement(evidence_path: Path, evidence: Any) -> dict[str, Any]:
 def backend_configuration_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("backend_configuration", {})
     required_flags = {
+        "source_control_private_env_renderer_documented": "source_control_private_env_renderer_not_documented",
         "semantic_backend_configured": "semantic_embedding_backend_not_configured",
         "embedding_model_configured": "embedding_model_not_configured",
         "embedding_model_approved": "embedding_model_not_approved",
@@ -255,7 +280,59 @@ def backend_configuration_requirement(evidence: dict[str, Any]) -> dict[str, Any
             "embedding_model_approved": bool_value(section, "embedding_model_approved"),
             "production_vector_backend_configured": bool_value(section, "production_vector_backend_configured"),
             "hash_fallback_disabled_for_production": bool_value(section, "hash_fallback_disabled_for_production"),
+            "source_control_private_env_renderer_documented": bool_value(section, "source_control_private_env_renderer_documented"),
             "contains_secrets": bool_value(section, "contains_secrets"),
+        },
+    )
+
+
+def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("backend_configuration", {})
+    renderer_configured = bool_value(section, "source_control_private_env_renderer_documented")
+    configured_path = str_value(section, "source_control_private_env_renderer_path")
+    renderer_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_ENV_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
+    if not renderer_configured:
+        blockers.append("source_control_private_env_renderer_not_documented")
+    if not renderer_path.exists():
+        blockers.append("source_control_private_env_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("source_control_private_env_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1 for marker in PRIVATE_ENV_RENDERER_REQUIRED_MARKERS if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_private_env_renderer_required_markers_missing")
+
+    return requirement(
+        requirement_id="retrieval_vector_backend_private_env_renderer",
+        name="Source-controlled retrieval vector backend private env renderer is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_env_renderer_documented": renderer_configured,
+            "private_env_renderer_path": str(renderer_path),
+            "private_env_renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "raw_env_values_included": False,
+            "private_output_required": True,
+            "values_redacted": True,
         },
     )
 
@@ -480,6 +557,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         evidence_format_requirement(evidence),
         no_values_requirement(evidence_path, evidence),
         backend_configuration_requirement(evidence),
+        private_env_renderer_requirement(evidence_path, evidence),
         operator_runbook_requirement(evidence_path, evidence),
         reindex_checklist_requirement(evidence_path, evidence),
         index_state_requirement(evidence),

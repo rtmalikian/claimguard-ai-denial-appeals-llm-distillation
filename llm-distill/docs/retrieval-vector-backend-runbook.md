@@ -47,25 +47,31 @@ must inject the approved semantic provider before running a write reindex.
 1. Select the approved semantic embedding model outside source control.
 2. Configure the embedding provider and production vector backend outside source
    control.
-3. Confirm `RetrievalStoreService` is using the approved semantic provider for
+3. Render the private runtime environment file with
+   `llm-distill/scripts/render_retrieval_vector_private_env.py` only to a
+   private path outside source control after semantic backend, approved
+   embedding model, production vector backend, hash-fallback disablement,
+   reindex, health, quality smoke, rollback, and no-raw-value evidence are
+   complete. Confirm command output contains redacted booleans/counts only.
+4. Confirm `RetrievalStoreService` is using the approved semantic provider for
    source indexing and query embeddings without logging raw source text or
    vectors.
-4. Disable hash fallback for production in private runtime configuration.
-5. Run the admin reindex operation in dry-run mode and verify the response
+5. Disable hash fallback for production in private runtime configuration.
+6. Run the admin reindex operation in dry-run mode and verify the response
    contains no raw source text, raw vectors, credentials, PHI, secrets, or
    production document content.
-6. Reindex active retrieval and corpus chunks with the approved semantic
+7. Reindex active retrieval and corpus chunks with the approved semantic
    embedding model.
-7. Confirm stored hash embeddings are absent from active production retrieval
+8. Confirm stored hash embeddings are absent from active production retrieval
    paths.
-8. Run the vector backend health check without logging URLs, credentials,
+9. Run the vector backend health check without logging URLs, credentials,
    source text, vector values, PHI, or production document content.
-9. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
+10. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
    record only boolean status in checked-in evidence.
-10. Update
+11. Update
    `llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json`
    only with booleans, counts, status tokens, and safe blocker identifiers.
-11. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
+12. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
 
 ## Rollback Or Disable Path
 
@@ -83,6 +89,8 @@ must inject the approved semantic provider before running a write reindex.
 
 - Checked-in evidence may include booleans, aggregate counts, status tokens,
   blocker IDs, runbook path, and marker counts only.
+- Private rendered environment files must stay outside source control and
+  renderer output must be redacted booleans/counts only.
 - Checked-in evidence must not include raw embedding vectors, source text,
   document text, backend URLs, service names that expose private infrastructure,
   credentials, approval references, PHI, secrets, production claim content, or

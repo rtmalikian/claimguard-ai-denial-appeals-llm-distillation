@@ -231,6 +231,16 @@ operation that defaults to dry-run mode, refuses non-dry-run writes with the
 development hash provider, and reports only aggregate counts, provider labels,
 warnings, and safe-context flags. Private production deployments must inject an
 approved semantic provider before using the write path.
+Retrieval vector backend evidence now also verifies
+`llm-distill/scripts/render_retrieval_vector_private_env.py` as a
+source-controlled private env renderer that refuses source-control output,
+requires semantic backend, approved embedding model, production vector backend,
+hash-fallback disablement, reindex completion, vector health, retrieval quality
+smoke, rollback, and no-raw-value attestations before approved mode, reads
+private backend/model/vector labels from environment variables only, writes
+`0600` private output, and reports redacted booleans/counts without storing
+provider labels, model names, vector-store labels, service URLs, credentials,
+source text, vector values, PHI, or production document content.
 Local governance checks, source-controlled retrieval-vector runbook
 documentation, source-controlled retrieval reindex-checklist documentation,
 backup/restore review, and rollback/disable-path review are now attested
@@ -349,8 +359,8 @@ packet cannot pass production retrieval readiness unless the dedicated vector
 backend evidence report, semantic backend configuration, production vector
 backend configuration, chunk reindexing, governance review, and runtime
 validation review are all attested; it also requires source-controlled reindex
-checklist documentation without storing URLs, source text, vector values,
-secrets, PHI, or production document content.
+checklist and private env renderer documentation without storing URLs, source
+text, vector values, secrets, PHI, or production document content.
 The manual production-gate packet now also carries
 `manual_file_ingestion_surface_evidence`, including
 `file_ingestion_surface_report_ready`, expected/registered/unregistered upload
@@ -792,6 +802,13 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   runbook, reindex checklist, and runtime smoke checklist procedures without
   storing source text, vector values, service URLs, credentials, PHI, or
   production document content
+- [x] Retrieval vector backend evidence now has a source-controlled private env
+  renderer that refuses repository output, requires semantic backend, approved
+  embedding model, production vector backend, hash-fallback disablement,
+  reindex, vector health, retrieval quality smoke, rollback, and no-raw-value
+  attestations for approved mode, reads private backend/model/vector labels
+  from environment variables only, writes `0600` output, and reports redacted
+  booleans/counts while preserving external vector readiness blockers
 - [x] Metadata-only retrieval embedding reindex operation for approved private
   semantic providers, with dry-run default, aggregate-only response, safe audit
   details, and non-dry-run hash-provider refusal
@@ -870,9 +887,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   and fail-fast behavior when production starts before threshold calibration,
   continuous monitoring, and governance evidence are safe and ready
 - [x] Retrieval vector backend evidence marks local governance controls,
-  source-controlled runbook documentation, backup/restore review, and
-  rollback/disable-path review ready while keeping semantic backend,
-  production vector store, reindexing, health, and quality smoke checks blocked
+  source-controlled runbook documentation, private-env-renderer documentation,
+  backup/restore review, and rollback/disable-path review ready while keeping
+  semantic backend, production vector store, reindexing, health, and quality
+  smoke checks blocked
 - [x] Production corpus evidence marks current checked-in manifest review
   attestations and source-controlled review runbook documentation ready while
   keeping approved non-synthetic paired denial/appeal source and
