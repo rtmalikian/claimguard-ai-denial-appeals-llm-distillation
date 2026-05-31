@@ -201,6 +201,27 @@ private env file with `0600` permissions, and prints only redacted
 booleans/counts. It does not approve user-data use, validate legal/BAA records,
 train a model, or store approval/consent values in checked-in reports.
 
+### Prediction-Fairness Private Evidence Controls
+
+Production threshold calibration and fairness monitoring remain blocked until
+approved outcome data, minimum sample size, threshold review, demographic
+grouping review, monitoring configuration, alert ownership, latest monitoring
+run evidence, legal/privacy review, rollback review, and metadata-only audit
+evidence are complete outside source control. The repository now includes
+`llm-distill/scripts/render_prediction_fairness_private_evidence.py` so an
+operator can render the final boolean-only fairness evidence file to a private
+path after those gates are complete.
+
+The renderer refuses output inside source control, requires explicit
+outcome-data, sample-size, calibration, threshold-review, human-review-policy,
+demographic-grouping, monitoring, alert-owner, latest-run, legal/privacy,
+rollback, metadata-only audit, and no-raw-value attestations before approved
+mode, reads private governance references from environment variables, writes
+the private evidence file with `0600` permissions, and prints only redacted
+booleans/counts. It does not store the private references, raw demographic
+values, production outcome rows, claim content, or approval documents in either
+the checked-in report or its command output.
+
 ### Retrieval Reindex Controls
 
 The production retrieval path is intentionally split between checked-in safety
@@ -250,6 +271,9 @@ Safety and validation:
 - `llm-distill/scripts/render_model_improvement_private_env.py` for private
   model-improvement env rendering after external legal, BAA, consent, and
   approval gates are complete.
+- `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
+  private boolean-only prediction-fairness evidence rendering after approved
+  outcome, monitoring, latest-run, and legal/privacy gates are complete.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual
@@ -263,6 +287,7 @@ Run from the repository root unless noted otherwise.
 ```bash
 python3 llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py --fail-on-blocked
 python3 llm-distill/scripts/validate_retrieval_vector_backend.py
+python3 llm-distill/scripts/validate_prediction_fairness_evidence.py
 python3 llm-distill/scripts/run_distillation_readiness_audit.py
 python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py
 python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py
@@ -276,6 +301,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
   python3 -m pytest \
   tests/unit/test_retrieval_store.py \
   tests/unit/test_retrieval_vector_backend_evidence.py \
+  tests/unit/test_prediction_fairness_private_evidence_renderer.py \
   tests/unit/test_prediction_fairness_evidence.py \
   tests/unit/test_phi_plan_manual_gate_packet.py \
   tests/unit/test_phi_plan_production_readiness_audit.py \

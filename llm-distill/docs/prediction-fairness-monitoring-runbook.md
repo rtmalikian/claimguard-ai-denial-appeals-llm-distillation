@@ -46,11 +46,18 @@ latest monitoring results, or legal/privacy review have been completed.
    monitoring readiness.
 10. Review the rollback or threshold reversion required before any production
     promotion.
-11. Update
+11. Render any final private boolean-only evidence file with
+    `llm-distill/scripts/render_prediction_fairness_private_evidence.py` only
+    to a private path outside source control after the approved dataset,
+    threshold review, demographic grouping, monitoring config, alert owner,
+    latest run, and legal/privacy references are configured in a private shell
+    or approved secret path. Confirm the renderer writes `0600` output and
+    prints redacted booleans/counts only.
+12. Update
     `llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json`
     only with booleans, status tokens, safe blocker identifiers, and the
     source-controlled runbook path.
-12. Rerun `llm-distill/scripts/validate_prediction_fairness_evidence.py`.
+13. Rerun `llm-distill/scripts/validate_prediction_fairness_evidence.py`.
 
 ## Required Before Production Fairness Readiness
 
@@ -69,6 +76,9 @@ latest monitoring results, or legal/privacy review have been completed.
 
 - Checked-in evidence may include booleans, aggregate counts, status tokens,
   blocker IDs, runbook path, and marker counts only.
+- Private rendered evidence must stay outside source control; command output
+  must be redacted booleans/counts only and must not print private reference
+  values.
 - Checked-in evidence must not include raw demographic values, production
   outcome rows, individual identifiers, source documents, approval references,
   credentials, tokens, PHI, secrets, claim identifiers, production claim

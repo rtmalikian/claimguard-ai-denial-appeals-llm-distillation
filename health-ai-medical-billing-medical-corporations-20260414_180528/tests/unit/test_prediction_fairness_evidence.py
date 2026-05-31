@@ -68,6 +68,10 @@ def _ready_evidence() -> dict:
             ),
             "source_control_monitoring_runbook_documented": True,
             "monitoring_runbook_path": "llm-distill/docs/prediction-fairness-monitoring-runbook.md",
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_prediction_fairness_private_evidence.py"
+            ),
             "model_card_updated": True,
             "rollback_or_threshold_reversion_reviewed": True,
             "audit_log_metadata_only_verified": True,
@@ -106,6 +110,11 @@ def test_template_is_safe_to_review_but_not_production_ready():
         for item in report["requirements"]
         if item["requirement_id"] == "prediction_fairness_legal_privacy_checklist"
     )
+    private_renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "prediction_fairness_private_evidence_renderer"
+    )
 
     assert report["safe_to_review"] is True
     assert report["prediction_fairness_monitoring_ready"] is False
@@ -114,13 +123,24 @@ def test_template_is_safe_to_review_but_not_production_ready():
     assert "prediction_fairness_continuous_monitoring" in blocked_ids
     assert "prediction_fairness_monitoring_validation_checklist" not in blocked_ids
     assert "prediction_fairness_legal_privacy_checklist" not in blocked_ids
+    assert "prediction_fairness_private_evidence_renderer" not in blocked_ids
     assert "prediction_fairness_governance_controls" in blocked_ids
     assert "source_control_legal_privacy_checklist_not_documented" not in governance_requirement["blockers"]
+    assert (
+        "source_control_private_evidence_renderer_not_documented"
+        not in governance_requirement["blockers"]
+    )
     assert "model_card_not_updated" not in governance_requirement["blockers"]
     assert "model_card_document_missing" not in governance_requirement["blockers"]
     assert governance_requirement["evidence"]["model_card_exists"] is True
     assert governance_requirement["evidence"]["model_card_missing_marker_count"] == 0
     assert governance_requirement["evidence"]["model_card_values_included"] is False
+    assert (
+        governance_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
     assert runbook_requirement["status"] == "ready"
     assert runbook_requirement["evidence"]["source_control_monitoring_runbook_documented"] is True
     assert runbook_requirement["evidence"]["monitoring_runbook_exists"] is True
@@ -201,6 +221,27 @@ def test_template_is_safe_to_review_but_not_production_ready():
         ]
         is False
     )
+    assert private_renderer_requirement["status"] == "ready"
+    assert (
+        private_renderer_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert (
+        private_renderer_requirement["evidence"][
+            "private_evidence_renderer_exists"
+        ]
+        is True
+    )
+    assert (
+        private_renderer_requirement["evidence"][
+            "private_evidence_renderer_missing_marker_count"
+        ]
+        == 0
+    )
+    assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert private_renderer_requirement["evidence"]["raw_private_values_included"] is False
 
 
 def test_ready_evidence_passes_when_all_external_controls_are_attested(tmp_path):
@@ -422,5 +463,49 @@ def test_legal_privacy_checklist_markers_are_required_when_documented(tmp_path):
     )
     assert "approved outcome dataset required" not in json.dumps(
         checklist_requirement,
+        sort_keys=True,
+    )
+
+
+def test_private_evidence_renderer_markers_are_required_when_documented(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "fairness_missing_private_renderer_markers.json"
+    renderer_path = tmp_path / "render_prediction_fairness_private_evidence.py"
+    renderer_path.write_text(
+        "#!/usr/bin/env python3\nprint('not a safe renderer')\n",
+        encoding="utf-8",
+    )
+    evidence = _ready_evidence()
+    evidence["governance_controls"]["private_evidence_renderer_path"] = str(
+        renderer_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "prediction_fairness_private_evidence_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["prediction_fairness_monitoring_ready"] is False
+    assert (
+        "private_evidence_renderer_required_markers_missing"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        renderer_requirement["evidence"]["private_evidence_renderer_exists"]
+        is True
+    )
+    assert (
+        renderer_requirement["evidence"][
+            "private_evidence_renderer_missing_marker_count"
+        ]
+        > 0
+    )
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert "not a safe renderer" not in json.dumps(
+        renderer_requirement,
         sort_keys=True,
     )

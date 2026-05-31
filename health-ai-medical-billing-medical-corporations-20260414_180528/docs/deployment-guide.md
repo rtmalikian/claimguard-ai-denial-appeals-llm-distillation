@@ -92,7 +92,7 @@ Set these in a private runtime environment, not in source control:
 | Optional MLX runtime | `MLX_BASE_URL`, `MLX_MODEL`, `MLX_FALLBACK_MODEL`, `MLX_TIMEOUT` |
 | Student runtime gates | `CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false`, `CLAIMGUARD_STUDENT_ENABLE_AUTO_LAUNCH=false`, `CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=false`, `CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=false`, and `CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=true` unless Raphael-approved cutover evidence and supervised runtime ownership are complete |
 | Model improvement | `USER_DATA_MODEL_IMPROVEMENT_ENABLED=false`, legal/BAA flags false, and approval reference/consent version blank unless legal, BAA, consent, approval reference, request, and revocation evidence are complete |
-| Prediction fairness | `PREDICTION_FAIRNESS_EVIDENCE_REPORT` must point to the boolean-only report; production startup fails fast while threshold/fairness evidence remains blocked |
+| Prediction fairness | `PREDICTION_FAIRNESS_EVIDENCE_REPORT` must point to the boolean-only report or a private rendered evidence file; production startup fails fast while threshold/fairness evidence remains blocked |
 | Retrieval vector backend | `RETRIEVAL_EMBEDDING_BACKEND=hash`, `RETRIEVAL_VECTOR_BACKEND=encrypted_local_metadata`, and production semantic/backend flags false until production vector evidence passes |
 
 Do not use placeholder values for `SECRET_KEY`, `ENCRYPTION_KEYS`, production
@@ -177,6 +177,40 @@ The helper refuses source-control output, writes the private env file with
 `0600` permissions, and prints only redacted booleans/counts. Keep the real
 approval reference in a private shell or approved secret path, not in docs,
 screenshots, logs, or committed files.
+
+Only point `PREDICTION_FAIRNESS_EVIDENCE_REPORT` at a private approved
+fairness evidence file after approved outcome-data, sample-size,
+threshold-review, demographic-grouping, monitoring-config, alert-owner,
+latest-run, legal/privacy, rollback, and metadata-only audit evidence are
+complete outside source control. When those gates are complete, render the
+final private evidence file with the source-controlled helper:
+
+```bash
+# Set the PREDICTION_FAIRNESS_*_REFERENCE variables in a private shell first.
+python3 ../llm-distill/scripts/render_prediction_fairness_private_evidence.py \
+  --approved-monitoring \
+  --approved-outcome-dataset-attested \
+  --minimum-sample-size-attested \
+  --calibration-run-attested \
+  --threshold-review-attested \
+  --human-review-policy-attested \
+  --demographic-grouping-reviewed \
+  --continuous-monitoring-configured \
+  --disparity-thresholds-documented \
+  --alert-owner-configured \
+  --latest-monitoring-run-passed \
+  --legal-privacy-review-completed \
+  --rollback-reviewed \
+  --metadata-only-audit-verified \
+  --no-raw-values-attested \
+  --output /path/to/private-prediction-fairness-evidence.json
+```
+
+The helper refuses source-control output, writes the private evidence file with
+`0600` permissions, and prints only redacted booleans/counts. Keep real
+dataset, threshold-review, monitoring, alert-owner, latest-run, and
+legal/privacy references in a private shell or approved secret path, not in
+docs, screenshots, logs, or committed files.
 
 ## Pre-Deployment Validation
 

@@ -15,12 +15,12 @@
     "threshold_review_completed": false,
     "human_review_policy_confirmed": true
   },
-    "fairness_monitoring": {
-        "source_control_monitoring_validation_checklist_documented": true,
-        "monitoring_validation_checklist_path": "llm-distill/docs/prediction-fairness-monitoring-validation-checklist.md",
-        "approved_demographic_grouping_reviewed": false,
-        "continuous_monitoring_configured": false,
-        "disparity_thresholds_documented": false,
+  "fairness_monitoring": {
+    "source_control_monitoring_validation_checklist_documented": true,
+    "monitoring_validation_checklist_path": "llm-distill/docs/prediction-fairness-monitoring-validation-checklist.md",
+    "approved_demographic_grouping_reviewed": false,
+    "continuous_monitoring_configured": false,
+    "disparity_thresholds_documented": false,
     "alerting_and_review_owner_configured": false,
     "latest_monitoring_run_passed": false
   },
@@ -30,6 +30,8 @@
     "legal_privacy_checklist_path": "llm-distill/docs/prediction-fairness-legal-privacy-checklist.md",
     "source_control_monitoring_runbook_documented": true,
     "monitoring_runbook_path": "llm-distill/docs/prediction-fairness-monitoring-runbook.md",
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_prediction_fairness_private_evidence.py",
     "model_card_updated": true,
     "model_card_path": "llm-distill/docs/prediction-fairness-model-card.md",
     "rollback_or_threshold_reversion_reviewed": true,

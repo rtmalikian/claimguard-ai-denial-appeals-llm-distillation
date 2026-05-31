@@ -134,6 +134,7 @@
         "source_control_legal_privacy_checklist_documented": true,
         "source_control_monitoring_runbook_documented": true,
         "source_control_monitoring_validation_checklist_documented": true,
+        "source_control_private_evidence_renderer_documented": true,
         "threshold_review_completed": false
       },
       "name": "Manual packet attests production threshold calibration and continuous fairness monitoring evidence",
@@ -142,7 +143,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T21:06:34.544823+00:00",
+  "generated_at": "2026-05-31T21:26:57.896085+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -186,8 +187,8 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 13,
-        "manual_gate_checklist_required_marker_count": 13,
+        "manual_gate_checklist_present_marker_count": 14,
+        "manual_gate_checklist_required_marker_count": 14,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
@@ -347,6 +348,7 @@
         "source_control_legal_privacy_checklist_documented": true,
         "source_control_monitoring_runbook_documented": true,
         "source_control_monitoring_validation_checklist_documented": true,
+        "source_control_private_evidence_renderer_documented": true,
         "threshold_review_completed": false
       },
       "name": "Manual packet attests production threshold calibration and continuous fairness monitoring evidence",

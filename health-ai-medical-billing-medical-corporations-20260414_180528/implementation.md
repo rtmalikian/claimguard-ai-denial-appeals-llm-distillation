@@ -306,6 +306,15 @@ routing, no auto-denial threshold, approval references outside source control,
 rollback, boolean-only evidence, no raw demographic values, no production
 outcome rows, and no legal/BAA/consent document text while keeping
 `legal_privacy_review_completed=false`.
+The current evidence now also verifies
+`llm-distill/scripts/render_prediction_fairness_private_evidence.py` as a
+source-controlled private evidence renderer that refuses source-control output,
+requires approved outcome, sample-size, calibration, threshold-review,
+monitoring, latest-run, legal/privacy, rollback, metadata-only audit, and
+no-raw-value attestations before approved mode, reads private references only
+from environment variables, writes `0600` private output, and reports redacted
+booleans/counts without storing private references, raw demographic values, or
+production outcome rows.
 The manual production-gate packet now also carries
 `manual_prediction_fairness_monitoring_evidence`, including the dedicated
 prediction-fairness evidence-report readiness flag plus boolean-only outcome
@@ -810,11 +819,19 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   data, demographic grouping, human-review-only routing, no-auto-denial,
   rollback, boolean-only, and no-raw-value markers before marking that
   documentation sub-gate ready
+- [x] Prediction fairness evidence now has a source-controlled private
+  evidence renderer that refuses repository output, requires approved outcome,
+  sample-size, calibration, threshold-review, monitoring, latest-run,
+  legal/privacy, rollback, metadata-only audit, and no-raw-value attestations
+  for approved mode, reads private references from environment variables only,
+  writes `0600` output, and reports redacted booleans/counts while preserving
+  external fairness blockers
 - [x] Manual production-gate packet propagates the prediction-fairness
   model-card update, monitoring-runbook documentation, calibration-checklist
   documentation, monitoring-validation documentation, legal/privacy-checklist
-  documentation, and required-marker verification as boolean-only ready
-  evidence while leaving production fairness monitoring blocked
+  documentation, private-evidence-renderer documentation, and required-marker
+  verification as boolean-only ready evidence while leaving production fairness
+  monitoring blocked
 - [x] User-data model-improvement evidence marks local runtime controls ready
   for per-request attestations, approved-corpus import opt-in blocking, safe
   audit logging review, and frontend blocker visibility while leaving legal
@@ -1760,9 +1777,9 @@ def validate_npi(npi: str) -> bool:
   manual governance gates; boolean-only evidence validation is now wired into
   the PHIplan production-readiness audit and startup guard, the local
   source-controlled monitoring runbook, calibration checklist, monitoring
-  validation checklist, and legal/privacy checklist sub-gates are ready, and
-  the current evidence remains blocked until approved outcome data and
-  governance review exist.
+  validation checklist, legal/privacy checklist, and private evidence renderer
+  sub-gates are ready, and the current evidence remains blocked until approved
+  outcome data and governance review exist.
 - [ ] Corpus-derived MLX fine-tuning remains blocked in `--run` mode until
   `llm-distill/scripts/validate_production_corpus_evidence.py` produces a safe
   ready report with approved non-synthetic paired denial/appeal examples.

@@ -446,7 +446,20 @@ plan plus the active ClaimGuard `AGENTS.md`.
   run evidence, legal/privacy review, approval references outside source
   control, rollback, boolean-only evidence, no raw demographic/outcome values,
   no legal/BAA/consent document text, and
-  `prediction_fairness_monitoring_ready=false`. The PHIplan
+  `prediction_fairness_monitoring_ready=false`. The fairness evidence path
+  now also includes
+  `llm-distill/scripts/render_prediction_fairness_private_evidence.py`, a
+  renderer for the final private boolean-only prediction-fairness evidence
+  file. It refuses output inside source control, requires explicit
+  outcome-data, sample-size, calibration, threshold-review, human-review,
+  demographic-grouping, continuous-monitoring, disparity-threshold,
+  alert-owner, latest-run, legal/privacy, rollback, metadata-only audit, and
+  no-raw-value attestations before approved mode, reads private governance
+  references from environment variables, writes private output with `0600`
+  permissions, and prints only redacted booleans/counts. This prepares the
+  private fairness-evidence handoff without storing references, raw
+  demographic values, production outcome rows, claim content, legal records, or
+  approval documents in source control. The PHIplan
   production-readiness audit blocks
   on that report until approved outcome data, monitoring ownership, latest run
   evidence, and legal/privacy governance are complete outside source control.

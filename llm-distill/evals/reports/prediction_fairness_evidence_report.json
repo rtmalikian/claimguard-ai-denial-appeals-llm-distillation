@@ -55,7 +55,8 @@
         "model_card_updated": true,
         "model_card_values_included": false,
         "rollback_or_threshold_reversion_reviewed": true,
-        "source_control_legal_privacy_checklist_documented": true
+        "source_control_legal_privacy_checklist_documented": true,
+        "source_control_private_evidence_renderer_documented": true
       },
       "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
       "requirement_id": "prediction_fairness_governance_controls",
@@ -64,7 +65,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
-  "generated_at": "2026-05-31T17:17:59.770435+00:00",
+  "generated_at": "2026-05-31T21:26:57.895648+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external outcome, legal, privacy, alerting, or model-card systems.",
     "Raw demographic values, production outcome rows, PHI, secrets, approval references, and individual identifiers must remain outside source control.",
@@ -72,7 +73,7 @@
   ],
   "objective": "Validate production prediction-threshold calibration and continuous fairness monitoring evidence without storing PHI, secrets, raw demographic values, approval references, or production outcome rows.",
   "prediction_fairness_monitoring_ready": false,
-  "ready_item_count": 6,
+  "ready_item_count": 7,
   "requirements": [
     {
       "blockers": [],
@@ -207,6 +208,25 @@
       "warnings": []
     },
     {
+      "blockers": [],
+      "evidence": {
+        "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_missing_marker_count": 0,
+        "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_prediction_fairness_private_evidence.py",
+        "private_evidence_renderer_present_marker_count": 16,
+        "private_evidence_renderer_required_marker_count": 16,
+        "private_output_required": true,
+        "raw_private_values_included": false,
+        "raw_renderer_text_included": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled prediction fairness private evidence renderer is documented",
+      "requirement_id": "prediction_fairness_private_evidence_renderer",
+      "status": "ready",
+      "warnings": []
+    },
+    {
       "blockers": [
         "legal_privacy_review_not_completed"
       ],
@@ -221,7 +241,8 @@
         "model_card_updated": true,
         "model_card_values_included": false,
         "rollback_or_threshold_reversion_reviewed": true,
-        "source_control_legal_privacy_checklist_documented": true
+        "source_control_legal_privacy_checklist_documented": true,
+        "source_control_private_evidence_renderer_documented": true
       },
       "name": "Fairness monitoring governance, rollback, and metadata-only audit controls are complete",
       "requirement_id": "prediction_fairness_governance_controls",

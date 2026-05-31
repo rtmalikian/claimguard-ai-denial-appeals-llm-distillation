@@ -33,6 +33,9 @@ DEFAULT_MONITORING_VALIDATION_CHECKLIST = (
 DEFAULT_LEGAL_PRIVACY_CHECKLIST = (
     DISTILL_DIR / "docs" / "prediction-fairness-legal-privacy-checklist.md"
 )
+DEFAULT_PRIVATE_EVIDENCE_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_prediction_fairness_private_evidence.py"
+)
 MODEL_CARD_REQUIRED_MARKERS = [
     "Current status: not production-ready.",
     "Human-review routing threshold only.",
@@ -110,6 +113,24 @@ LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS = [
     "no consent document text",
     "prediction_fairness_monitoring_ready=false",
 ]
+PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = [
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "PREDICTION_FAIRNESS_OUTCOME_DATASET_REFERENCE",
+    "PREDICTION_FAIRNESS_THRESHOLD_REVIEW_REFERENCE",
+    "PREDICTION_FAIRNESS_DEMOGRAPHIC_GROUPING_REFERENCE",
+    "PREDICTION_FAIRNESS_MONITORING_CONFIG_REFERENCE",
+    "PREDICTION_FAIRNESS_ALERT_OWNER_REFERENCE",
+    "PREDICTION_FAIRNESS_LATEST_RUN_REFERENCE",
+    "PREDICTION_FAIRNESS_LEGAL_PRIVACY_REFERENCE",
+    "approved_outcome_dataset_available",
+    "latest_monitoring_run_passed",
+    "raw_private_values_included",
+    "raw_demographic_values_included",
+    "production_outcome_rows_included",
+    "0600",
+    "values_redacted",
+]
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "address",
     "approval_reference",
@@ -159,6 +180,11 @@ def load_json(path: Path) -> tuple[Any | None, list[str]]:
 
 def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
+
+
+def str_value(section: dict[str, Any], key: str) -> str:
+    value = section.get(key)
+    return value if isinstance(value, str) else ""
 
 
 def resolve_repo_path(raw_path: Any, default_path: Path) -> Path:
@@ -473,6 +499,57 @@ def monitoring_runbook_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def private_evidence_renderer_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("governance_controls", {})
+    documented = bool_value(section, "source_control_private_evidence_renderer_documented")
+    renderer_path = resolve_repo_path(
+        str_value(section, "private_evidence_renderer_path"),
+        DEFAULT_PRIVATE_EVIDENCE_RENDERER,
+    )
+    renderer_exists = renderer_path.exists()
+    marker_count = 0
+    missing_markers: list[str] = []
+    blockers: list[str] = []
+    if not documented:
+        blockers.append("source_control_private_evidence_renderer_not_documented")
+    if documented:
+        if not renderer_exists:
+            blockers.append("private_evidence_renderer_missing")
+        else:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+            missing_markers = [
+                marker
+                for marker in PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
+                if marker not in renderer_text
+            ]
+            marker_count = (
+                len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+                - len(missing_markers)
+            )
+            if missing_markers:
+                blockers.append("private_evidence_renderer_required_markers_missing")
+    return requirement(
+        requirement_id="prediction_fairness_private_evidence_renderer",
+        name="Source-controlled prediction fairness private evidence renderer is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_evidence_renderer_documented": documented,
+            "private_evidence_renderer_path": str(renderer_path),
+            "private_evidence_renderer_exists": renderer_exists,
+            "private_evidence_renderer_required_marker_count": len(
+                PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
+            ),
+            "private_evidence_renderer_present_marker_count": marker_count,
+            "private_evidence_renderer_missing_marker_count": len(missing_markers),
+            "raw_renderer_text_included": False,
+            "raw_private_values_included": False,
+            "private_output_required": True,
+            "values_redacted": True,
+        },
+    )
+
+
 def legal_privacy_checklist_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("governance_controls", {})
     documented = bool_value(
@@ -532,6 +609,9 @@ def governance_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
         "legal_privacy_review_completed": "legal_privacy_review_not_completed",
         "source_control_legal_privacy_checklist_documented": (
             "source_control_legal_privacy_checklist_not_documented"
+        ),
+        "source_control_private_evidence_renderer_documented": (
+            "source_control_private_evidence_renderer_not_documented"
         ),
         "model_card_updated": "model_card_not_updated",
         "rollback_or_threshold_reversion_reviewed": "rollback_or_threshold_reversion_not_reviewed",
@@ -594,6 +674,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         monitoring_validation_checklist_requirement(evidence),
         monitoring_runbook_requirement(evidence),
         legal_privacy_checklist_requirement(evidence),
+        private_evidence_renderer_requirement(evidence),
         governance_controls_requirement(evidence),
     ]
     if errors:
