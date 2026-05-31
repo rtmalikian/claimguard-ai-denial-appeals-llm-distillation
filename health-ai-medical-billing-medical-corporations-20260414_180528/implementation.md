@@ -838,6 +838,13 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   for non-hash providers, allows only HTTPS or loopback endpoints, and reports
   redacted booleans/blocker codes without storing endpoint values, tokens,
   source text, vector values, PHI, secrets, or production document content
+- [x] Retrieval vector backend evidence now has a source-controlled private
+  runtime evidence renderer that refuses repository output, requires semantic
+  backend, approved embedding model, production vector backend, hash-fallback
+  disablement, reindex, vector health, retrieval quality smoke, backup,
+  rollback, and no-raw-value attestations for approved mode, writes `0600`
+  private JSON, and reports redacted booleans/counts while preserving external
+  vector readiness blockers
 - [x] Metadata-only retrieval embedding reindex operation for approved private
   semantic providers, with dry-run default, aggregate-only response, safe audit
   details, and non-dry-run hash-provider refusal

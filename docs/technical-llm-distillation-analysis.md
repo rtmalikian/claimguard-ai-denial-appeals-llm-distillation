@@ -343,6 +343,10 @@ Safety and validation:
 - `llm-distill/scripts/render_retrieval_vector_private_env.py` for private
   retrieval/vector env rendering after semantic backend, reindex, health,
   quality-smoke, and rollback gates are complete.
+- `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`
+  for private boolean-only retrieval runtime evidence rendering after reindex,
+  vector health, retrieval quality smoke, backup, rollback, and no-raw-value
+  gates are complete.
 - `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py`
   for source-controlled private semantic provider loading with redacted
   configuration status, HTTPS or loopback endpoint safety, dimension checks,
@@ -379,6 +383,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
   tests/unit/test_retrieval_semantic_provider.py \
   tests/unit/test_retrieval_vector_startup_config.py \
   tests/unit/test_retrieval_vector_private_env_renderer.py \
+  tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py \
   tests/unit/test_retrieval_vector_backend_evidence.py \
   tests/unit/test_prediction_fairness_private_evidence_renderer.py \
   tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py \

@@ -153,6 +153,34 @@ The helper refuses source-control output, writes the private env file with
 labels, model names, vector-store labels, service URLs, credentials, source
 text, and vector values out of docs, screenshots, logs, and committed files.
 
+After private reindexing, vector health, quality smoke, backup review, and
+rollback review are complete, render the private retrieval runtime evidence
+outside source control:
+
+```bash
+# Set RETRIEVAL_VECTOR_HEALTH_EVIDENCE_REF,
+# RETRIEVAL_QUALITY_SMOKE_EVIDENCE_REF, and
+# RETRIEVAL_VECTOR_REINDEX_AUDIT_EVIDENCE_REF in a private shell first.
+python3 ../llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py \
+  --approved-runtime-validation \
+  --semantic-backend-attested \
+  --embedding-model-approved-attested \
+  --production-vector-backend-attested \
+  --hash-fallback-disabled-attested \
+  --reindex-completed-attested \
+  --vector-health-attested \
+  --retrieval-quality-smoke-attested \
+  --backup-restore-reviewed \
+  --disable-or-rollback-reviewed \
+  --no-raw-values-attested \
+  --output /path/to/private-retrieval-vector-runtime-evidence.json
+```
+
+The runtime evidence helper writes `0600` JSON and prints only redacted
+booleans/counts. Keep private evidence references, source text, vector values,
+backend URLs, credentials, PHI, and production document content out of source
+control.
+
 For user-data model improvement, keep the conservative deployment path as:
 
 ```env

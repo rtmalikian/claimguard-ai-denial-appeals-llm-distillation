@@ -29,6 +29,9 @@ DEFAULT_PRIVATE_PROVIDER_LOADER = (
     / "services"
     / "retrieval_semantic_provider.py"
 )
+DEFAULT_RUNTIME_PRIVATE_EVIDENCE_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_retrieval_vector_runtime_private_evidence.py"
+)
 EXPECTED_ARTIFACT = "claimguard_retrieval_vector_backend_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -133,6 +136,20 @@ PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS = (
     "https",
     "loopback",
     "HashEmbeddingProvider",
+)
+RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = (
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "claimguard_retrieval_vector_backend_evidence",
+    "RETRIEVAL_VECTOR_HEALTH_EVIDENCE_REF",
+    "RETRIEVAL_QUALITY_SMOKE_EVIDENCE_REF",
+    "RETRIEVAL_VECTOR_REINDEX_AUDIT_EVIDENCE_REF",
+    "private_reference_values_included",
+    "raw_source_text_included",
+    "raw_vector_values_included",
+    "vector_backend_ready_if_validated",
+    "0600",
+    "values_redacted",
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -560,6 +577,65 @@ def runtime_smoke_checklist_requirement(evidence_path: Path, evidence: dict[str,
     )
 
 
+def runtime_private_evidence_renderer_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("runtime_validation", {})
+    renderer_configured = bool_value(
+        section,
+        "source_control_runtime_private_evidence_renderer_documented",
+    )
+    configured_path = str_value(section, "runtime_private_evidence_renderer_path")
+    renderer_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_RUNTIME_PRIVATE_EVIDENCE_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    if not renderer_configured:
+        blockers.append("source_control_runtime_private_evidence_renderer_not_documented")
+    if not renderer_path.exists():
+        blockers.append("source_control_runtime_private_evidence_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("source_control_runtime_private_evidence_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
+            if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+            - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append(
+                "source_control_runtime_private_evidence_renderer_required_markers_missing"
+            )
+
+    return requirement(
+        requirement_id="retrieval_vector_backend_runtime_private_evidence_renderer",
+        name="Source-controlled retrieval runtime private evidence renderer is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_runtime_private_evidence_renderer_documented": renderer_configured,
+            "runtime_private_evidence_renderer_path": str(renderer_path),
+            "runtime_private_evidence_renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "raw_private_reference_values_included": False,
+            "raw_source_text_or_vector_values_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
 def index_state_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("index_state", {})
     required_flags = {
@@ -647,6 +723,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         index_state_requirement(evidence),
         governance_requirement(evidence),
         runtime_smoke_checklist_requirement(evidence_path, evidence),
+        runtime_private_evidence_renderer_requirement(evidence_path, evidence),
         runtime_validation_requirement(evidence),
     ]
     if errors:

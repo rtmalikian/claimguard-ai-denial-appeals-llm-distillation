@@ -293,6 +293,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   private semantic backend configuration, production vector store configuration,
   reindex completion, vector health checks, and retrieval quality smoke checks
   are actually complete outside source control.
+  The validator now also verifies
+  `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`,
+  a source-controlled private runtime evidence renderer that writes only to a
+  private path, requires health, quality-smoke, reindex, backup, rollback, and
+  no-raw-value attestations for approved mode, and reports redacted booleans
+  without emitting private evidence references, source text, vector values,
+  endpoint values, credentials, PHI, or production document content.
   The retrieval-vector path now also includes
   `llm-distill/scripts/render_retrieval_vector_private_env.py`, a renderer for
   the final private retrieval/vector runtime environment file. It refuses

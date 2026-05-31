@@ -38,6 +38,8 @@
   "runtime_validation": {
     "source_control_runtime_smoke_checklist_documented": true,
     "source_control_runtime_smoke_checklist_path": "llm-distill/docs/retrieval-vector-runtime-smoke-checklist.md",
+    "source_control_runtime_private_evidence_renderer_documented": true,
+    "runtime_private_evidence_renderer_path": "llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py",
     "vector_backend_health_checked": false,
     "retrieval_quality_smoke_passed": false,
     "backup_restore_reviewed": true,

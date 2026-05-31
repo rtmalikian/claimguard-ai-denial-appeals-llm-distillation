@@ -39,6 +39,11 @@ references, or raw retrieval results to this file.
    retrieval to a conservative non-production-safe fallback.
 9. Confirm metadata-only audit required captures status, timestamps, operator
    identity, and pass/fail states without source text or vector values.
+10. Render private runtime evidence with
+   `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`
+   only after every runtime validation item is complete; keep private evidence
+   references outside source control and confirm output is redacted
+   booleans/counts only.
 
 ## Evidence Rules
 
@@ -51,6 +56,7 @@ references, or raw retrieval results to this file.
 - no raw source text
 - no raw vector values
 - no embedding service URLs
+- private runtime evidence render required
 - vector_backend_ready=false
 
 Production vector backend readiness remains false until private runtime

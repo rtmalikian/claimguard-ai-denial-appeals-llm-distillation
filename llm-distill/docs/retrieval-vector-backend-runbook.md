@@ -77,10 +77,15 @@ must inject the approved semantic provider before running a write reindex.
    source text, vector values, PHI, or production document content.
 11. Run a retrieval quality smoke check on approved, non-sensitive fixtures and
    record only boolean status in checked-in evidence.
-12. Update
+12. Render the private runtime validation evidence with
+   `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`
+   only to a private path outside source control after health, quality smoke,
+   reindex audit, backup restore, rollback, and no-raw-value attestations are
+   complete. Confirm output contains redacted booleans/counts only.
+13. Update
    `llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json`
    only with booleans, counts, status tokens, and safe blocker identifiers.
-13. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
+14. Rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`.
 
 ## Rollback Or Disable Path
 
@@ -100,6 +105,10 @@ must inject the approved semantic provider before running a write reindex.
   blocker IDs, runbook path, and marker counts only.
 - Private rendered environment files must stay outside source control and
   renderer output must be redacted booleans/counts only.
+- Private runtime validation evidence files must stay outside source control
+  and must not include private evidence references, source text, vector values,
+  backend URLs, service labels, credentials, PHI, or production document
+  content.
 - Checked-in evidence must not include raw embedding vectors, source text,
   document text, backend URLs, service names that expose private infrastructure,
   credentials, approval references, PHI, secrets, production claim content, or

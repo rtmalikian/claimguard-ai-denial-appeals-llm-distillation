@@ -61,14 +61,14 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-05-31T22:38:18.833325+00:00",
+  "generated_at": "2026-05-31T22:52:31.392858+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
     "A template evidence file is expected to be safe_to_review=true but vector_backend_ready=false until configuration, reindex, governance, and runtime evidence are complete."
   ],
   "objective": "Validate production retrieval vector backend evidence without storing PHI, secrets, source text, vector values, or production document content.",
-  "ready_item_count": 8,
+  "ready_item_count": 9,
   "requirements": [
     {
       "blockers": [],
@@ -241,6 +241,25 @@
       },
       "name": "Source-controlled retrieval vector runtime smoke checklist is documented",
       "requirement_id": "retrieval_vector_backend_runtime_smoke_checklist",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "missing_marker_count": 0,
+        "present_marker_count": 12,
+        "raw_private_reference_values_included": false,
+        "raw_renderer_text_included": false,
+        "raw_source_text_or_vector_values_included": false,
+        "required_marker_count": 12,
+        "runtime_private_evidence_renderer_exists": true,
+        "runtime_private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py",
+        "source_control_runtime_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled retrieval runtime private evidence renderer is documented",
+      "requirement_id": "retrieval_vector_backend_runtime_private_evidence_renderer",
       "status": "ready",
       "warnings": []
     },
