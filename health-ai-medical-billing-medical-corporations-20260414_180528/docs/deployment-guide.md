@@ -319,10 +319,13 @@ python3 ../llm-distill/scripts/render_production_corpus_private_evidence.py \
 ```
 
 The helper refuses source-control output, writes the private evidence file with
-`0600` permissions, and prints only redacted booleans/counts. Keep private
-manifest paths, review references, raw denial letters, raw appeal letters,
-source paths, checksums, approval references, and production document content
-out of docs, screenshots, logs, tests, reports, and committed files.
+`0600` permissions, serializes only the private manifest-path environment
+variable name, and prints only redacted booleans/counts. The validator resolves
+the actual manifest path from that environment variable at operator runtime and
+redacts the raw path from reports. Keep private manifest paths, review
+references, raw denial letters, raw appeal letters, source paths, checksums,
+approval references, and production document content out of docs, screenshots,
+logs, tests, reports, and committed files.
 
 Only point `PREDICTION_FAIRNESS_EVIDENCE_REPORT` at a private approved
 fairness evidence file after approved outcome-data, sample-size,

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -23,6 +25,7 @@ DEFAULT_EVIDENCE = (
 )
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "production_corpus_evidence_report.json"
 DEFAULT_MANIFEST = DISTILL_DIR / "data" / "corpus" / "manifest.json"
+DEFAULT_PRIVATE_MANIFEST_PATH_ENV = "PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH"
 DEFAULT_PRIVATE_EVIDENCE_RENDERER = (
     DISTILL_DIR / "scripts" / "render_production_corpus_private_evidence.py"
 )
@@ -135,12 +138,23 @@ PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = (
     "pair_ids_reviewed_outside_source_control",
     "source_documents_reviewed_outside_source_control",
     "no_raw_document_content_attested",
+    "private_manifest_path_env",
     "private_manifest_path_value_included",
     "approval_reference_value_included",
     "raw_document_content_included",
     "0600",
     "values_redacted",
 )
+ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+FORBIDDEN_ENV_KEY_FRAGMENTS = {
+    "api_key",
+    "authorization",
+    "credential",
+    "password",
+    "raw",
+    "secret",
+    "token",
+}
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -198,6 +212,43 @@ def resolve_path(raw_path: str, base_path: Path) -> Path:
     if candidate.exists():
         return candidate
     return (base_path.parent / path).resolve()
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def private_manifest_env_key(evidence: dict[str, Any]) -> str:
+    env_name = str_value(evidence, "private_manifest_path_env")
+    return env_name or DEFAULT_PRIVATE_MANIFEST_PATH_ENV
+
+
+def validate_private_manifest_env_key(env_name: str) -> list[str]:
+    blockers: list[str] = []
+    if not ENV_KEY_RE.match(env_name):
+        blockers.append("private_manifest_path_env_invalid")
+    if any(fragment in env_name.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS):
+        blockers.append("private_manifest_path_env_secret_like")
+    return blockers
+
+
+def private_manifest_path_from_env(env_name: str) -> tuple[Path | None, list[str]]:
+    blockers = validate_private_manifest_env_key(env_name)
+    if blockers:
+        return None, blockers
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        return None, ["private_manifest_path_env_value_missing"]
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        return None, ["private_manifest_path_env_value_invalid"]
+    manifest_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(manifest_path, REPO_ROOT):
+        return None, ["private_manifest_path_must_be_outside_source_control"]
+    return manifest_path, []
 
 
 def find_forbidden_value_keys(value: Any, path: str = "$") -> list[str]:
@@ -551,9 +602,41 @@ def manifest_pair_requirement(evidence_path: Path, evidence: dict[str, Any]) -> 
     pairing = evidence.get("pairing_requirements", {})
     min_pairs = int_value(pairing, "minimum_approved_non_synthetic_pair_count", 1)
     configured_manifest_path = str_value(evidence, "manifest_path")
-    manifest_path = resolve_path(configured_manifest_path, evidence_path) if configured_manifest_path else DEFAULT_MANIFEST
-    records, errors = manifest_records(manifest_path)
-    blockers = list(errors)
+    manifest_path_source = "source_control_or_relative_path"
+    manifest_path_value_included = True
+    manifest_path_label: str | None
+    manifest_env_name = ""
+    manifest_path_errors: list[str] = []
+    if configured_manifest_path:
+        manifest_path = resolve_path(configured_manifest_path, evidence_path)
+        manifest_path_label = str(manifest_path)
+    elif str_value(evidence, "private_manifest_path_env") or bool_value(
+        evidence,
+        "private_manifest_path_configured",
+    ):
+        manifest_path_source = "private_env"
+        manifest_path_value_included = False
+        manifest_env_name = private_manifest_env_key(evidence)
+        manifest_path_label = f"<private_manifest_path_env:{manifest_env_name}>"
+        manifest_path, manifest_path_errors = private_manifest_path_from_env(
+            manifest_env_name
+        )
+    else:
+        manifest_path = DEFAULT_MANIFEST
+        manifest_path_label = str(manifest_path)
+    blockers = list(manifest_path_errors)
+    if manifest_path and manifest_path_source == "private_env":
+        if not manifest_path.exists():
+            blockers.append("private_manifest_path_missing")
+            records, errors = [], []
+        elif not manifest_path.is_file():
+            blockers.append("private_manifest_path_not_file")
+            records, errors = [], []
+        else:
+            records, errors = manifest_records(manifest_path)
+    else:
+        records, errors = manifest_records(manifest_path) if manifest_path else ([], [])
+    blockers.extend(errors)
 
     counts_by_source_type: Counter[str] = Counter()
     training_source_types: Counter[str] = Counter()
@@ -587,7 +670,10 @@ def manifest_pair_requirement(evidence_path: Path, evidence: dict[str, Any]) -> 
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "manifest_path": str(manifest_path),
+            "manifest_path": manifest_path_label,
+            "manifest_path_source": manifest_path_source,
+            "private_manifest_path_env": manifest_env_name or None,
+            "manifest_path_value_included": manifest_path_value_included,
             "record_count": len(records),
             "counts_by_source_type": dict(sorted(counts_by_source_type.items())),
             "training_source_types": dict(sorted(training_source_types.items())),

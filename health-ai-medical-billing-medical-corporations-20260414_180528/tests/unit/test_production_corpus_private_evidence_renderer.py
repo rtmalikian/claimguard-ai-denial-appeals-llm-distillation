@@ -188,18 +188,21 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert summary["pair_ids_reviewed_outside_source_control"] is True
     assert summary["source_documents_reviewed_outside_source_control"] is True
     assert summary["private_reference_count"] == len(private_values) - 1
+    assert summary["private_manifest_path_env_configured"] is True
     assert summary["private_manifest_path_value_included"] is False
     assert summary["values_redacted"] is True
     assert str(manifest_path) not in serialized_summary
+    assert str(manifest_path) not in output_text
     assert payload["evidence_status"] == "production_corpus_ready_private_review_complete"
-    assert payload["manifest_path"] == str(manifest_path)
+    assert payload["manifest_path"] is None
+    assert payload["private_manifest_path_env"] == renderer.DEFAULT_PRIVATE_MANIFEST_PATH_ENV
+    assert payload["private_manifest_path_configured"] is True
+    assert payload["private_manifest_path_value_included"] is False
     assert payload["corpus_review"]["privacy_review_attested"] is True
     assert payload["pairing_requirements"][
         "pair_ids_reviewed_outside_source_control"
     ] is True
     for key, private_value in private_values.items():
-        if key == renderer.DEFAULT_PRIVATE_MANIFEST_PATH_ENV:
-            continue
         assert private_value not in output_text
         assert private_value not in serialized_summary
 

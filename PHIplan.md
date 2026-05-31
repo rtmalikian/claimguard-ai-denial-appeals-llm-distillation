@@ -972,12 +972,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   non-synthetic pair, privacy, license, residual-risk, training-scope, no-PHI,
   source/license, pair-id, source-document, metadata-only manifest,
   no-raw-document, and no-raw-value attestations before approved mode, reads
-  private manifest and review references from environment variables, writes
+  private manifest and review references from environment variables, stores
+  only the manifest-path environment variable name in private evidence, writes
   private output with `0600` permissions, and prints only redacted
-  booleans/counts. This prepares the private production-corpus evidence handoff
-  without storing raw denial letters, raw appeal letters, source paths,
-  checksums, approval references, credentials, PHI, secrets, or production
-  document content in source control.
+  booleans/counts. The validator resolves the private manifest path from that
+  environment variable at operator runtime without emitting the raw path in
+  reports. This prepares the private production-corpus evidence handoff without
+  storing raw denial letters, raw appeal letters, source paths, private
+  manifest paths, checksums, approval references, credentials, PHI, secrets, or
+  production document content in source control.
 - Add a non-secret MLX student runtime supervisor evidence template at
   `llm-distill/data/runtime_supervision/` plus
   `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. The checked-in
@@ -1177,7 +1180,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
   ready, add at least one approved non-synthetic paired denial/appeal source
   reviewed outside source control, render the final private corpus evidence
   file with `llm-distill/scripts/render_production_corpus_private_evidence.py`,
-  then rerun
+  confirm that only the private manifest-path environment variable name is
+  serialized, then rerun
   `llm-distill/scripts/validate_production_corpus_evidence.py`.
 - When adding future automated file-ingestion workflows beyond
   `/api/v1/claims/upload-document`, `/api/v1/claims/batch-upload`, and

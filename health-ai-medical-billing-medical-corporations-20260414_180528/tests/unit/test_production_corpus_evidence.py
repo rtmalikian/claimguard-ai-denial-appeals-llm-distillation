@@ -228,6 +228,43 @@ def test_ready_production_corpus_evidence_passes_all_requirements(tmp_path):
     assert report["blocked_item_count"] == 0
 
 
+def test_private_manifest_env_evidence_passes_without_emitting_path(
+    monkeypatch,
+    tmp_path,
+):
+    validator = _load_validator()
+    env_name = "PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH"
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_evidence.json"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    evidence = _ready_evidence(manifest_path)
+    evidence["manifest_path"] = None
+    evidence["private_manifest_path_env"] = env_name
+    evidence["private_manifest_path_configured"] = True
+    evidence["private_manifest_path_value_included"] = False
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(env_name, str(manifest_path))
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    manifest_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "production_corpus_manifest_pair_evidence"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is True
+    assert manifest_requirement["status"] == "ready"
+    assert manifest_requirement["evidence"]["manifest_path_source"] == "private_env"
+    assert manifest_requirement["evidence"]["private_manifest_path_env"] == env_name
+    assert manifest_requirement["evidence"]["manifest_path_value_included"] is False
+    assert str(manifest_path) not in serialized
+
+
 def test_production_corpus_evidence_blocks_synthetic_only_manifest(tmp_path):
     validator = _load_validator()
     manifest_path = tmp_path / "manifest.json"

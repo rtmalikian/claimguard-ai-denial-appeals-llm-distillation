@@ -22,8 +22,11 @@
         },
         "denial_and_appeal_roles_required": true,
         "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "manifest_path_source": "source_control_or_relative_path",
+        "manifest_path_value_included": true,
         "minimum_required_production_pair_count": 1,
         "pair_ids_reviewed_outside_source_control": false,
+        "private_manifest_path_env": null,
         "record_count": 13,
         "role_counts": {
           "appeal_letter": 3,
@@ -43,7 +46,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-05-31T21:53:26.073941+00:00",
+  "generated_at": "2026-05-31T23:04:39.544745+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -156,12 +159,12 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 14,
+        "present_marker_count": 15,
         "private_evidence_renderer_exists": true,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_production_corpus_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
-        "required_marker_count": 14,
+        "required_marker_count": 15,
         "source_control_private_evidence_renderer_documented": true,
         "values_redacted": true
       },
@@ -191,8 +194,11 @@
         },
         "denial_and_appeal_roles_required": true,
         "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "manifest_path_source": "source_control_or_relative_path",
+        "manifest_path_value_included": true,
         "minimum_required_production_pair_count": 1,
         "pair_ids_reviewed_outside_source_control": false,
+        "private_manifest_path_env": null,
         "record_count": 13,
         "role_counts": {
           "appeal_letter": 3,

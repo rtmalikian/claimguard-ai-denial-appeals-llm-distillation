@@ -189,16 +189,16 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
     private_reference_count = 0
     if config.approved_production_corpus:
         _validate_approved_attestations(config)
-        private_manifest_path = _load_private_manifest_path(
-            config.private_manifest_path_env
-        )
+        _load_private_manifest_path(config.private_manifest_path_env)
         private_reference_count = len(_load_private_references(config))
         status = "production_corpus_ready_private_review_complete"
-        manifest_path = str(private_manifest_path)
+        manifest_path = None
+        private_manifest_path_env = config.private_manifest_path_env
         corpus_ready = True
     else:
         status = "private_renderer_default_non_synthetic_pair_blocked"
         manifest_path = DEFAULT_MANIFEST_PATH
+        private_manifest_path_env = None
         corpus_ready = False
 
     evidence = {
@@ -209,6 +209,9 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         "no_phi_or_secret_values_attested": True,
         "no_raw_document_content_attested": True,
         "manifest_path": manifest_path,
+        "private_manifest_path_env": private_manifest_path_env,
+        "private_manifest_path_configured": corpus_ready,
+        "private_manifest_path_value_included": False,
         "corpus_review": {
             "source_control_review_runbook_documented": True,
             "source_control_review_runbook_path": (
@@ -275,7 +278,12 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
             pairing["source_documents_reviewed_outside_source_control"]
         ),
         "private_reference_count": private_reference_count,
-        "manifest_path_configured": bool(evidence["manifest_path"]),
+        "manifest_path_configured": bool(
+            evidence["manifest_path"] or evidence["private_manifest_path_env"]
+        ),
+        "private_manifest_path_env_configured": bool(
+            evidence["private_manifest_path_env"]
+        ),
         "private_manifest_path_value_included": False,
         "raw_private_values_included": False,
         "approval_reference_value_included": False,

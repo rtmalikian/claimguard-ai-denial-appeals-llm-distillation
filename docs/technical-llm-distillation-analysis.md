@@ -233,11 +233,13 @@ after those gates are complete.
 
 The renderer refuses output inside source control, requires explicit corpus,
 review, pair/source, metadata-only manifest, no-raw-document, and no-raw-value
-attestations before approved mode, reads private manifest and review
-references from environment variables, writes the private evidence file with
-`0600` permissions, and prints only redacted booleans/counts. It does not add
-approved production pairs, validate raw source documents, or store review
-reference values in checked-in reports.
+attestations before approved mode, reads the private manifest path and review
+references from environment variables, stores only the manifest-path env var
+name in private evidence, writes the private evidence file with `0600`
+permissions, and prints only redacted booleans/counts. The validator resolves
+that env var at operator runtime without emitting the raw private manifest path
+in reports. It does not add approved production pairs, validate raw source
+documents, or store review reference values in checked-in reports.
 
 ### Prediction-Fairness Private Evidence Controls
 
@@ -336,7 +338,8 @@ Safety and validation:
 - `llm-distill/scripts/render_production_corpus_private_evidence.py` for
   private boolean-only production corpus evidence rendering after approved
   non-synthetic pair, privacy, license, residual-risk, training-scope,
-  pair/source, and metadata-only manifest gates are complete.
+  pair/source, and metadata-only manifest gates are complete, with private
+  manifest paths resolved from env vars and redacted from output evidence.
 - `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
   private boolean-only prediction-fairness evidence rendering after approved
   outcome, monitoring, latest-run, and legal/privacy gates are complete.

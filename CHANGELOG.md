@@ -2,6 +2,66 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 16:00:51 PDT - Production corpus private manifest redaction
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the PHIplan production-corpus private evidence path so approved
+  private corpus evidence can validate a private metadata-only manifest via an
+  environment variable without serializing the raw private manifest path into
+  evidence files, reports, tests, docs, or source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/PHIplan.md` | Documented private manifest env-name serialization and raw-path redaction for production corpus evidence. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/docs/technical-llm-distillation-analysis.md` | Added the private manifest env resolution/redaction behavior to the technical distillation breakdown. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Clarified that private production-corpus evidence serializes only the manifest-path env var name. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for raw private manifest path redaction. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py` | Added validator coverage proving env-resolved private manifests can pass without emitting the raw path. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py` | Updated renderer tests to assert the private manifest path is absent from output evidence and summaries. | Restore backup over the same path. |
+| `llm-distill/docs/production-corpus-review-runbook.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/docs/production-corpus-review-runbook.md` | Added operator review language requiring raw private manifest path redaction. | Restore backup over the same path. |
+| `llm-distill/evals/reports/production_corpus_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/evals/reports/production_corpus_evidence_report.json` | Refreshed production corpus evidence; `safe_to_review=true`, `production_corpus_ready=false`, and `blocked=1`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `llm-distill/scripts/render_production_corpus_private_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/scripts/render_production_corpus_private_evidence.py` | Changed approved-mode output to store only `private_manifest_path_env`, not the raw manifest path. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_production_corpus_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/llm-distill/scripts/validate_production_corpus_evidence.py` | Added env-resolved private manifest validation while redacting the raw private path from reports. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- None.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...`: passed for the renderer, validator, and focused tests.
+- Focused pytest for `test_production_corpus_private_evidence_renderer.py` and `test_production_corpus_evidence.py`: passed, 15 tests.
+- Temporary approved-mode private renderer/validator smoke: passed; private evidence validated with `production_corpus_ready=true`, `safe_to_review=true`, `blocked=0`, `file_mode=600`, `manifest_path=null`, `private_manifest_path_env=PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH`, and no raw private manifest path in the private evidence or report.
+- `python3 llm-distill/scripts/validate_production_corpus_evidence.py --report llm-distill/evals/reports/production_corpus_evidence_report.json`: passed with `production_corpus_ready=False`, `safe_to_review=True`, and `blocked=1`.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `--fail-on-blocked` checks for production corpus evidence, manual gate packet, and PHIplan readiness intentionally returned exit status 2 while preserving safe review status.
+- Combined dependent pytest over production corpus renderer/evidence, manual gate, and PHIplan production-readiness audit: passed, 63 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, and refreshed JSON reports: passed with no findings.
+- Broader documentation PHI scan returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing label text in `implementation.md`; manual inspection found no raw PHI/PII values, production claim data, private manifest paths, or secrets introduced.
+- High-confidence secret-pattern scan over changed files returned no matches.
+
+### Failed Or Avoided Approaches
+- Avoided repeating the prior behavior where approved-mode private evidence serialized the raw private manifest path.
+- Avoided adding checked-in private evidence, raw denial letters, raw appeal letters, source paths, checksums, approval references, private review references, PHI, secrets, credentials, production claim content, or production document content.
+- Avoided marking the checked-in production corpus ready; it remains blocked until approved non-synthetic pair/source review is complete outside source control.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-160051-production-corpus-private-manifest-redaction/`,
+  then rerun the production-corpus, manual-gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice hardens private manifest handling for production corpus evidence;
+  it does not complete the full PHIplan objective or approve production corpus
+  training.
+
 ## 2026-05-31 15:53:28 PDT - Retrieval runtime private evidence renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

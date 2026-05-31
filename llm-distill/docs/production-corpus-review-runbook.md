@@ -43,7 +43,9 @@ de-identified, approved denial/appeal pair has been reviewed or approved.
    private path outside source control after privacy, license, residual-risk,
    training-scope, no-PHI, source/license, pair-id, source-document, and
    metadata-only manifest attestations are complete. Confirm command output
-   includes redacted booleans/counts only.
+   includes redacted booleans/counts only, the private evidence stores only the
+   private manifest-path environment variable name, and no raw private manifest
+   path appears in evidence or reports.
 8. Rerun `llm-distill/scripts/validate_production_corpus_evidence.py`.
 
 ## Required Before Production Corpus Readiness
