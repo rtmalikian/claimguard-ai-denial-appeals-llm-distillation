@@ -2,6 +2,126 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 14:07:13 PDT - Model-improvement private env renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan user-data model-improvement approval path by
+  adding a safe renderer for the final private runtime env file, without
+  enabling `USER_DATA_MODEL_IMPROVEMENT_ENABLED`, storing approval-reference or
+  consent values, changing production defaults, calling external legal/BAA/
+  consent systems, training models, or introducing PHI, secrets, raw user data,
+  or production document content.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260531-140023-model-improvement-private-env-renderer/PHIplan.md` | Documented the model-improvement private env renderer and remaining external legal/BAA/consent blockers. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-140023-model-improvement-private-env-renderer/docs/technical-llm-distillation-analysis.md` | Added model-improvement private env controls to the technical distillation breakdown and tool list. | Restore backup over the same path. |
+| `docs/deployment-guide.md` | `backups/20260531-140023-model-improvement-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md` | Added private-renderer deployment guidance for model improvement while preserving conservative defaults. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260531-140023-model-improvement-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the model-improvement renderer and remaining private approval work. | Restore backup over the same path. |
+| `tests/unit/test_model_improvement_evidence.py` | `backups/20260531-140023-model-improvement-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_evidence.py` | Added evidence coverage for private env renderer documentation and redacted validator output. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-140023-model-improvement-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added manual-gate coverage for model-improvement private env renderer evidence. | Restore backup over the same path. |
+| `../llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json` | Added boolean/path evidence that the model-improvement private env renderer is documented. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added boolean/path manual-gate evidence for the model-improvement private env renderer. | Restore backup over the same path. |
+| `../llm-distill/docs/model-improvement-approval-runbook.md` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/docs/model-improvement-approval-runbook.md` | Added private renderer operator steps and no-raw-value output requirements. | Restore backup over the same path. |
+| `../llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added manual checklist coverage for model-improvement private env rendering. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/model_improvement_evidence_report.json` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/evals/reports/model_improvement_evidence_report.json` | Refreshed model-improvement evidence; `safe_to_review=true`, `model_improvement_ready=false`, `blocked=1`, and `ready_item_count=7`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_model_improvement_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual-gate evidence; `safe_to_review=true`, `production_gate_ready=false`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/validate_model_improvement_evidence.py` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/scripts/validate_model_improvement_evidence.py` | Added a private env renderer requirement and marker checks without emitting script text. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260531-140023-model-improvement-private-env-renderer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added manual packet evidence for the model-improvement private env renderer. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-140023-model-improvement-private-env-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-140023-model-improvement-private-env-renderer/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/scripts/render_model_improvement_private_env.py`: renders the
+  final model-improvement env file only to a private path, refuses repository
+  output, requires explicit request/legal/BAA/consent/retention/revocation/
+  per-request/evidence-readiness attestations before approved mode, reads
+  approval and consent values from private environment variables, writes
+  `0600`, and prints redacted booleans/counts only.
+- `tests/unit/test_model_improvement_private_env_renderer.py`: covers
+  conservative dry-run output, source-control output refusal, explicit
+  attestation requirements, private approval/consent value handling, redacted
+  summary output, and `0600` file permissions.
+
+Rollback for added files: delete both added files after restoring the modified
+files above.
+
+### Validation
+- `find backups/20260531-140023-model-improvement-private-env-renderer -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/render_model_improvement_private_env.py ../llm-distill/scripts/validate_model_improvement_evidence.py ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_model_improvement_evidence.py tests/unit/test_model_improvement_private_env_renderer.py tests/unit/test_phi_plan_manual_gate_packet.py`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_model_improvement_private_env_renderer.py -q -p no:cacheprovider`:
+  passed, 5 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_model_improvement_evidence.py -q -p no:cacheprovider`:
+  passed, 8 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py -q -p no:cacheprovider`:
+  passed, 30 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_model_improvement_private_env_renderer.py tests/unit/test_model_improvement_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`:
+  passed, 55 tests with one pre-existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/render_model_improvement_private_env.py --dry-run --output /private/tmp/claimguard-model-improvement-test.env`:
+  passed and printed only redacted booleans/counts.
+- Synthetic approved-mode dry-run with dummy private approval and consent
+  environment variables set: passed and did not print the dummy values.
+- `python3 ../llm-distill/scripts/render_model_improvement_private_env.py --output /private/tmp/claimguard-model-improvement-test.env`:
+  passed, wrote a conservative private env file with `0600` permissions, and
+  the temporary file was removed.
+- `python3 ../llm-distill/scripts/validate_model_improvement_evidence.py --report ../llm-distill/evals/reports/model_improvement_evidence_report.json`:
+  passed with `model_improvement_ready=False`, `safe_to_review=True`, and
+  `blocked=1`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`:
+  passed with `production_gate_ready=False`, `safe_to_review=True`, and
+  `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the local development `ENCRYPTION_KEYS` warning
+  was emitted and no key material was written to reports.
+- `python3 ../llm-distill/scripts/validate_model_improvement_evidence.py --report /private/tmp/claimguard-model-improvement-private-env-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because real model-improvement legal
+  gates remain blocked; report stayed `safe_to_review=true`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report /private/tmp/claimguard-model-improvement-private-env-manual-gate-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because external manual gates remain
+  blocked; report stayed `safe_to_review=true`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-model-improvement-private-env-phi-plan-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because PHIplan production readiness
+  remains blocked; report stayed `safe_current_state=true`.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code,
+  tests, JSON evidence, refreshed reports, and temporary reports: passed with
+  no findings.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed public
+  docs and changelogs: returned required Raphael attribution emails plus
+  pre-existing label-style findings in historical implementation/changelog
+  text; no matched values were printed and this slice added no raw PHI/PII
+  values.
+- High-confidence secret-pattern scan over changed non-changelog files returned
+  no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a checked-in private env file, committing approval or consent
+  values, weakening legal/BAA/consent gates, enabling user-data model
+  improvement, changing Docker defaults, calling external approval systems, or
+  claiming model-improvement readiness is complete.
+- Kept the default renderer mode conservative so accidental use writes
+  `USER_DATA_MODEL_IMPROVEMENT_ENABLED=false`,
+  `USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED=false`, and
+  `USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED=false`.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-140023-model-improvement-private-env-renderer/`, delete
+  `../llm-distill/scripts/render_model_improvement_private_env.py` and
+  `tests/unit/test_model_improvement_private_env_renderer.py`, then rerun the
+  model-improvement, manual-gate, and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice makes the final private model-improvement env rendering path
+  concrete and testable; it does not complete the full PHIplan objective.
+
 ## 2026-05-31 11:45:24 PDT - Student cutover private env renderer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

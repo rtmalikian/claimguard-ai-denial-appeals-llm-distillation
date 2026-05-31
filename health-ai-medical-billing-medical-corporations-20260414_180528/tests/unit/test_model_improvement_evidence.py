@@ -44,6 +44,10 @@ def _ready_evidence() -> dict:
             "source_control_approval_runbook_path": str(
                 REPO_ROOT / "llm-distill" / "docs" / "model-improvement-approval-runbook.md"
             ),
+            "source_control_private_env_renderer_documented": True,
+            "source_control_private_env_renderer_path": str(
+                REPO_ROOT / "llm-distill" / "scripts" / "render_model_improvement_private_env.py"
+            ),
             "model_improvement_requested": True,
             "legal_approval_attested": True,
             "baa_confirmed": True,
@@ -91,6 +95,7 @@ def test_template_is_safe_to_review_but_not_ready():
     assert report["model_improvement_ready"] is False
     assert "model_improvement_legal_controls" in blocked_ids
     assert "model_improvement_approval_runbook" not in blocked_ids
+    assert "model_improvement_private_env_renderer" not in blocked_ids
     assert "model_improvement_runtime_controls" not in blocked_ids
     assert "model_improvement_safety_boundaries" not in blocked_ids
     runbook_requirement = next(
@@ -103,8 +108,38 @@ def test_template_is_safe_to_review_but_not_ready():
     assert runbook_requirement["evidence"]["runbook_exists"] is True
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
+    renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "model_improvement_private_env_renderer"
+    )
+    assert renderer_requirement["status"] == "ready"
+    assert (
+        renderer_requirement["evidence"][
+            "source_control_private_env_renderer_documented"
+        ]
+        is True
+    )
+    assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert (
+        renderer_requirement["evidence"]["approval_reference_value_included"]
+        is False
+    )
+    assert renderer_requirement["evidence"]["consent_notice_value_included"] is False
     assert "source_control_approval_runbook_not_documented" not in legal_requirement["blockers"]
+    assert (
+        "source_control_private_env_renderer_not_documented"
+        not in legal_requirement["blockers"]
+    )
     assert legal_requirement["evidence"]["source_control_approval_runbook_documented"] is True
+    assert (
+        legal_requirement["evidence"][
+            "source_control_private_env_renderer_documented"
+        ]
+        is True
+    )
     assert "data_use_scope_not_documented" not in legal_requirement["blockers"]
     assert "retention_policy_not_reviewed" not in legal_requirement["blockers"]
     assert "revocation_path_not_reviewed" not in legal_requirement["blockers"]
@@ -211,3 +246,32 @@ def test_incomplete_model_improvement_runbook_blocks_without_emitting_text(tmp_p
     assert "source_control_approval_runbook_required_markers_missing" in runbook_requirement["blockers"]
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     assert raw_runbook_text not in serialized
+
+
+def test_private_env_renderer_documentation_is_required(tmp_path):
+    validator = _load_validator()
+    evidence = deepcopy(_ready_evidence())
+    evidence["legal_controls"]["source_control_private_env_renderer_documented"] = False
+    evidence_path = tmp_path / "model_improvement_evidence.json"
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    legal_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "model_improvement_legal_controls"
+    )
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "model_improvement_private_env_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["model_improvement_ready"] is False
+    assert legal_requirement["blockers"] == [
+        "source_control_private_env_renderer_not_documented"
+    ]
+    assert renderer_requirement["blockers"] == [
+        "source_control_private_env_renderer_not_documented"
+    ]

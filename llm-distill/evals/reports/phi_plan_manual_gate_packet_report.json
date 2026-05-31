@@ -47,7 +47,8 @@
         "model_improvement_evidence_report_ready": false,
         "per_request_attestations_required": true,
         "requested": false,
-        "source_control_approval_runbook_documented": true
+        "source_control_approval_runbook_documented": true,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Manual packet attests user-data model-improvement legal, BAA, and consent gates",
       "requirement_id": "manual_user_data_model_improvement_evidence",
@@ -141,7 +142,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T18:45:05.040833+00:00",
+  "generated_at": "2026-05-31T21:06:34.544823+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -185,8 +186,8 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 12,
-        "manual_gate_checklist_required_marker_count": 12,
+        "manual_gate_checklist_present_marker_count": 13,
+        "manual_gate_checklist_required_marker_count": 13,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
@@ -259,7 +260,8 @@
         "model_improvement_evidence_report_ready": false,
         "per_request_attestations_required": true,
         "requested": false,
-        "source_control_approval_runbook_documented": true
+        "source_control_approval_runbook_documented": true,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Manual packet attests user-data model-improvement legal, BAA, and consent gates",
       "requirement_id": "manual_user_data_model_improvement_evidence",

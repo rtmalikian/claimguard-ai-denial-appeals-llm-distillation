@@ -824,6 +824,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   documentation, retention review, and revocation-path review while keeping
   request, legal approval, BAA, consent notice, and approval reference gates
   blocked
+- [x] User-data model-improvement now has a source-controlled private env
+  renderer that refuses repository output, requires legal/BAA/consent/request/
+  retention/revocation/per-request/evidence-readiness attestations for approved
+  mode, reads approval and consent values from private environment only, writes
+  `0600` output, and reports redacted booleans/counts while preserving external
+  approval blockers
 - [x] User-data model-improvement evidence requires explicit safety-boundary
   attestations for disabled external PHI de-identification, disabled raw PHI
   training, production user-data exclusion until approval, ready evidence
@@ -987,8 +993,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [ ] Configure real production legal approval reference, BAA confirmation, and
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before any
-  production user-data model-improvement use; the startup guard now rejects
-  production enablement while the evidence report remains blocked
+  production user-data model-improvement use; then render the private
+  model-improvement env file outside source control. The startup guard now
+  rejects production enablement while the evidence report remains blocked
 - [ ] Configure Raphael-approved production student cutover reference and
   supervised runtime ownership outside source control, then render the private
   student-cutover env file outside source control before enabling effective

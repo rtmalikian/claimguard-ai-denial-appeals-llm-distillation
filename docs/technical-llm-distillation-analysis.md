@@ -183,6 +183,24 @@ booleans/counts. It does not enable student default routing by itself, validate
 the live runtime, install launchd services, or store approval values in
 checked-in reports.
 
+### Model-Improvement Private Env Controls
+
+User-data model improvement remains disabled until legal approval, BAA
+confirmation, consent notice version, approval reference, explicit request,
+retention/revocation review, per-request attestations, and model-improvement
+evidence are complete outside source control. The repository now includes
+`llm-distill/scripts/render_model_improvement_private_env.py` so an operator
+can render the final model-improvement env file to a private path after those
+gates are complete.
+
+The renderer refuses output inside source control, requires explicit legal,
+BAA, consent, request, retention, revocation, per-request attestation, and
+evidence-readiness attestations before approved mode, reads approval reference
+and consent notice version from private environment variables, writes the
+private env file with `0600` permissions, and prints only redacted
+booleans/counts. It does not approve user-data use, validate legal/BAA records,
+train a model, or store approval/consent values in checked-in reports.
+
 ### Retrieval Reindex Controls
 
 The production retrieval path is intentionally split between checked-in safety
@@ -229,6 +247,9 @@ Safety and validation:
   production-gate separation.
 - `llm-distill/scripts/render_student_cutover_private_env.py` for private
   student-cutover env rendering after external approvals are complete.
+- `llm-distill/scripts/render_model_improvement_private_env.py` for private
+  model-improvement env rendering after external legal, BAA, consent, and
+  approval gates are complete.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual

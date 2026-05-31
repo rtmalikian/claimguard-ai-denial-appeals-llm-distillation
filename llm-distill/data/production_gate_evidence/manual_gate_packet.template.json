@@ -31,6 +31,8 @@
   "user_data_model_improvement": {
     "requested": false,
     "source_control_approval_runbook_documented": true,
+    "source_control_private_env_renderer_documented": true,
+    "private_env_renderer_path": "llm-distill/scripts/render_model_improvement_private_env.py",
     "legal_approval_attested": false,
     "baa_confirmed": false,
     "consent_notice_version_configured": false,

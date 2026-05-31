@@ -863,6 +863,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   disabled-default, private approval-reference, no external PHI
   de-identification, no raw PHI training, approved-corpus opt-in blocking, and
   `model_improvement_ready=false` markers without emitting the runbook text.
+  The model-improvement evidence path now also includes
+  `llm-distill/scripts/render_model_improvement_private_env.py`, a renderer for
+  the final private model-improvement environment file. It refuses output
+  inside source control, requires explicit legal/BAA/consent/request/
+  retention/revocation/per-request/evidence-readiness attestations before
+  approved mode, reads the approval reference and consent notice version from
+  private environment variables, writes private output with `0600`
+  permissions, and prints only redacted booleans/counts. This prepares the
+  private runtime configuration path without approving user-data use, enabling
+  model improvement, storing approval or consent values, or weakening the
+  current blocker.
   The
   application startup guard consumes the same checked-in report path through
   `USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT` only when user-data model
@@ -1073,8 +1084,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before enabling
   user-data model improvement in any production environment. Follow
-  `llm-distill/docs/model-improvement-approval-runbook.md` for private
-  approval-reference handling. Keep the local governance and
+  `llm-distill/docs/model-improvement-approval-runbook.md` and render any
+  final env file with
+  `llm-distill/scripts/render_model_improvement_private_env.py` for private
+  approval-reference and consent-version handling. Keep the local governance and
   `model_improvement_safety_boundaries` evidence ready so data-use scope,
   retention, revocation, external PHI de-identification, raw PHI training,
   production user-data use, and training-job eligibility remain explicitly

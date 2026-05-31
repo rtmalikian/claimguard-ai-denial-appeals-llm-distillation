@@ -101,6 +101,43 @@ Use the exact environment variable names consumed by `app/core/config.py`.
 `CLAIMGUARD_ALLOW_MODEL_IMPROVEMENT` is not a production gate for the current
 application settings.
 
+For user-data model improvement, keep the conservative deployment path as:
+
+```env
+USER_DATA_MODEL_IMPROVEMENT_ENABLED=false
+USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED=false
+USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED=false
+USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION=
+USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE=
+```
+
+Only after legal approval, BAA confirmation, consent notice version,
+approval-reference configuration, explicit request, retention/revocation
+review, per-request attestations, and
+`llm-distill/evals/reports/model_improvement_evidence_report.json` are ready,
+render the final model-improvement environment file to a private path:
+
+```bash
+# Set USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE and
+# USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION in a private shell first.
+python3 ../llm-distill/scripts/render_model_improvement_private_env.py \
+  --approved-model-improvement \
+  --model-improvement-request-attested \
+  --legal-approval-attested \
+  --baa-confirmed-attested \
+  --consent-notice-attested \
+  --retention-reviewed \
+  --revocation-reviewed \
+  --per-request-attestations-reviewed \
+  --evidence-ready-attested \
+  --output /path/to/private-model-improvement.env
+```
+
+The helper refuses source-control output, writes `0600`, and prints only
+redacted booleans/counts. Keep approval-reference values, consent values,
+legal/BAA documents, user data, PHI, credentials, and tokens out of source
+control, logs, screenshots, and changelogs.
+
 ## Student Runtime Deployment Boundary
 
 The reviewed local student adapter is integrated into status and workflow

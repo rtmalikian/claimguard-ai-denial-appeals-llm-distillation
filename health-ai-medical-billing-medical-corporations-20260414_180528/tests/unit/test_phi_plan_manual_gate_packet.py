@@ -60,6 +60,8 @@ def _ready_packet() -> dict:
         "user_data_model_improvement": {
             "requested": True,
             "source_control_approval_runbook_documented": True,
+            "source_control_private_env_renderer_documented": True,
+            "private_env_renderer_path": "llm-distill/scripts/render_model_improvement_private_env.py",
             "legal_approval_attested": True,
             "baa_confirmed": True,
             "consent_notice_version_configured": True,
@@ -219,8 +221,18 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert "data_use_scope_not_documented" not in model_requirement["blockers"]
     assert "model_improvement_source_control_approval_runbook_not_documented" not in model_requirement["blockers"]
+    assert (
+        "model_improvement_private_env_renderer_not_documented"
+        not in model_requirement["blockers"]
+    )
     assert model_requirement["evidence"]["data_use_scope_documented"] is True
     assert model_requirement["evidence"]["source_control_approval_runbook_documented"] is True
+    assert (
+        model_requirement["evidence"][
+            "source_control_private_env_renderer_documented"
+        ]
+        is True
+    )
     file_ingestion_requirement = next(
         item
         for item in report["requirements"]
@@ -422,6 +434,28 @@ def test_model_improvement_source_control_approval_runbook_is_required(tmp_path)
     assert report["production_gate_ready"] is False
     assert model_requirement["blockers"] == [
         "model_improvement_source_control_approval_runbook_not_documented"
+    ]
+
+
+def test_model_improvement_private_env_renderer_documentation_is_required(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["user_data_model_improvement"][
+        "source_control_private_env_renderer_documented"
+    ] = False
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    model_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_user_data_model_improvement_evidence"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert model_requirement["blockers"] == [
+        "model_improvement_private_env_renderer_not_documented"
     ]
 
 

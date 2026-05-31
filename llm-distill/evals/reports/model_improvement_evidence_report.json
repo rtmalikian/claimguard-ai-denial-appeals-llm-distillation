@@ -18,7 +18,8 @@
         "model_improvement_requested": false,
         "retention_policy_reviewed": true,
         "revocation_path_reviewed": true,
-        "source_control_approval_runbook_documented": true
+        "source_control_approval_runbook_documented": true,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Legal, BAA, consent, approval, scope, retention, and revocation controls are attested",
       "requirement_id": "model_improvement_legal_controls",
@@ -27,7 +28,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json",
-  "generated_at": "2026-05-31T13:54:52.053248+00:00",
+  "generated_at": "2026-05-31T21:06:34.539148+00:00",
   "model_improvement_ready": false,
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external legal, BAA, consent, or approval systems.",
@@ -35,7 +36,7 @@
     "A template evidence file is expected to be safe_to_review=true but model_improvement_ready=false until approval, runtime controls, and safety-boundary attestations are complete."
   ],
   "objective": "Validate user-data model-improvement approval evidence without storing PHI, secrets, approval references, legal documents, consent documents, raw user data, or production document content.",
-  "ready_item_count": 6,
+  "ready_item_count": 7,
   "requirements": [
     {
       "blockers": [],
@@ -83,7 +84,8 @@
         "model_improvement_requested": false,
         "retention_policy_reviewed": true,
         "revocation_path_reviewed": true,
-        "source_control_approval_runbook_documented": true
+        "source_control_approval_runbook_documented": true,
+        "source_control_private_env_renderer_documented": true
       },
       "name": "Legal, BAA, consent, approval, scope, retention, and revocation controls are attested",
       "requirement_id": "model_improvement_legal_controls",
@@ -94,9 +96,9 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 10,
+        "present_marker_count": 12,
         "raw_runbook_text_included": false,
-        "required_marker_count": 10,
+        "required_marker_count": 12,
         "runbook_exists": true,
         "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/model-improvement-approval-runbook.md",
         "source_control_approval_runbook_documented": true,
@@ -104,6 +106,26 @@
       },
       "name": "Source-controlled model-improvement approval runbook is documented",
       "requirement_id": "model_improvement_approval_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approval_reference_value_included": false,
+        "consent_notice_value_included": false,
+        "missing_marker_count": 0,
+        "present_marker_count": 13,
+        "private_env_renderer_exists": true,
+        "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_model_improvement_private_env.py",
+        "private_output_required": true,
+        "raw_renderer_text_included": false,
+        "required_marker_count": 13,
+        "source_control_private_env_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled model-improvement private env renderer is documented",
+      "requirement_id": "model_improvement_private_env_renderer",
       "status": "ready",
       "warnings": []
     },

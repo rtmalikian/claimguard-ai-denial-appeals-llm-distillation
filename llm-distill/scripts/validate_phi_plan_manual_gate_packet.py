@@ -27,6 +27,7 @@ MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "student default cutover approval required",
     "student cutover private environment renderer required",
     "user-data model improvement legal/BAA/consent approval required",
+    "model-improvement private environment renderer required",
     "approved non-synthetic denial/appeal pair required",
     "production semantic vector backend required",
     "production threshold/fairness monitoring evidence required",
@@ -351,6 +352,7 @@ def model_improvement_requirement(packet: dict[str, Any]) -> dict[str, Any]:
     required_flags = {
         "requested": "model_improvement_not_requested",
         "source_control_approval_runbook_documented": "model_improvement_source_control_approval_runbook_not_documented",
+        "source_control_private_env_renderer_documented": "model_improvement_private_env_renderer_not_documented",
         "legal_approval_attested": "legal_approval_not_attested",
         "baa_confirmed": "baa_not_confirmed",
         "consent_notice_version_configured": "consent_notice_version_not_configured",

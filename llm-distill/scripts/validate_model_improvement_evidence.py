@@ -21,6 +21,7 @@ DEFAULT_EVIDENCE = (
     / "model_improvement_evidence.template.json"
 )
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "model_improvement_evidence_report.json"
+DEFAULT_PRIVATE_ENV_RENDERER = DISTILL_DIR / "scripts" / "render_model_improvement_private_env.py"
 EXPECTED_ARTIFACT = "claimguard_model_improvement_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -51,12 +52,29 @@ RUNBOOK_REQUIRED_MARKERS = (
     "Current status: not production-ready",
     "USER_DATA_MODEL_IMPROVEMENT_ENABLED",
     "Store approval references only in approved private runtime configuration",
+    "render_model_improvement_private_env.py",
+    "redacted booleans/counts only",
     "Do not store approval reference values",
     "Do not use external PHI de-identification services",
     "Do not train on raw PHI",
     "Approved corpus import must not automatically opt",
     "Model improvement requested",
     "model_improvement_ready=false",
+)
+PRIVATE_ENV_RENDERER_REQUIRED_MARKERS = (
+    "RenderConfig",
+    "refusing_to_write_inside_source_control",
+    "USER_DATA_MODEL_IMPROVEMENT_ENABLED",
+    "USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED",
+    "USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED",
+    "USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION",
+    "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE",
+    "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT",
+    "approval_reference_value_included",
+    "consent_notice_value_included",
+    "raw_env_values_included",
+    "0600",
+    "values_redacted",
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -212,6 +230,7 @@ def legal_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("legal_controls", {})
     required_flags = {
         "source_control_approval_runbook_documented": "source_control_approval_runbook_not_documented",
+        "source_control_private_env_renderer_documented": "source_control_private_env_renderer_not_documented",
         "model_improvement_requested": "model_improvement_not_requested",
         "legal_approval_attested": "legal_approval_not_attested",
         "baa_confirmed": "baa_not_confirmed",
@@ -275,6 +294,58 @@ def approval_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
             "raw_runbook_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
+def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
+    section = evidence.get("legal_controls", {})
+    renderer_configured = bool_value(section, "source_control_private_env_renderer_documented")
+    configured_path = str_value(section, "source_control_private_env_renderer_path")
+    renderer_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_ENV_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
+    if not renderer_configured:
+        blockers.append("source_control_private_env_renderer_not_documented")
+    if not renderer_path.exists():
+        blockers.append("source_control_private_env_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("source_control_private_env_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1 for marker in PRIVATE_ENV_RENDERER_REQUIRED_MARKERS if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("source_control_private_env_renderer_required_markers_missing")
+
+    return requirement(
+        requirement_id="model_improvement_private_env_renderer",
+        name="Source-controlled model-improvement private env renderer is documented",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_control_private_env_renderer_documented": renderer_configured,
+            "private_env_renderer_path": str(renderer_path),
+            "private_env_renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "approval_reference_value_included": False,
+            "consent_notice_value_included": False,
+            "private_output_required": True,
             "values_redacted": True,
         },
     )
@@ -373,6 +444,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         no_values_requirement(evidence_path, evidence),
         legal_controls_requirement(evidence),
         approval_runbook_requirement(evidence_path, evidence),
+        private_env_renderer_requirement(evidence_path, evidence),
         runtime_controls_requirement(evidence),
         safety_boundaries_requirement(evidence),
         review_boundaries_requirement(evidence),

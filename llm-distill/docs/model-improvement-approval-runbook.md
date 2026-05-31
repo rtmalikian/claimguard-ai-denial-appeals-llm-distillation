@@ -14,6 +14,9 @@ notice version, or configured with an approval reference.
 - Keep `USER_DATA_MODEL_IMPROVEMENT_ENABLED` disabled until all legal, BAA,
   consent notice version, approval reference, and ready evidence gates pass.
 - Store approval references only in approved private runtime configuration.
+- Use `llm-distill/scripts/render_model_improvement_private_env.py` to render
+  any final model-improvement env file only to a private path outside source
+  control after every private approval gate is complete.
 - Do not store approval reference values, legal documents, BAA documents,
   consent notice text, user data, raw documents, credentials, tokens, PHI,
   production claim content, or production document content in source control.
@@ -31,14 +34,17 @@ notice version, or configured with an approval reference.
 3. Confirm BAA coverage outside source control.
 4. Confirm the approved consent notice version outside source control.
 5. Configure the approval reference outside source control.
-6. Verify per-request attestations are enforced before any use of user data.
-7. Verify retention and revocation behavior before enabling any production
+6. Render the private environment file outside source control with
+   `llm-distill/scripts/render_model_improvement_private_env.py`, and confirm
+   its command output includes redacted booleans/counts only.
+7. Verify per-request attestations are enforced before any use of user data.
+8. Verify retention and revocation behavior before enabling any production
    model-improvement path.
-8. Update
+9. Update
    `llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json`
    only with booleans, status tokens, safe blocker identifiers, and the
    source-controlled runbook path.
-9. Rerun `llm-distill/scripts/validate_model_improvement_evidence.py`.
+10. Rerun `llm-distill/scripts/validate_model_improvement_evidence.py`.
 
 ## Required Before Model Improvement Readiness
 
