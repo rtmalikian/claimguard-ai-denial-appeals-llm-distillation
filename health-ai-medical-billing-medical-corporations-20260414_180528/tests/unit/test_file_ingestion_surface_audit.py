@@ -28,14 +28,15 @@ def test_current_file_ingestion_surfaces_are_registered_and_ready():
 
     assert report["ready"] is True
     assert report["blocked_reasons"] == []
-    assert report["summary"]["discovered_count"] == 2
-    assert report["summary"]["registered_count"] == 2
+    assert report["summary"]["discovered_count"] == 3
+    assert report["summary"]["registered_count"] == 3
     statuses_by_route = {
         surface["route"]: surface["status"]
         for surface in report["surfaces"]
     }
     assert statuses_by_route == {
         "/claims/batch-upload": "ready",
+        "/claims/remittance-upload": "ready",
         "/claims/upload-document": "ready",
     }
     batch_surface = next(
@@ -52,6 +53,22 @@ def test_current_file_ingestion_surfaces_are_registered_and_ready():
         "safe_context",
     ]:
         assert marker in batch_surface["required_markers"]
+    remittance_surface = next(
+        surface for surface in report["surfaces"]
+        if surface["route"] == "/claims/remittance-upload"
+    )
+    assert remittance_surface["missing_markers"] == []
+    for marker in [
+        "_raise_remittance_upload_error",
+        "EDI835ParserError",
+        "claim_payment_count",
+        "validation_issue_count",
+        "parser_stage",
+        "segment_index",
+        "segment_id",
+        "safe_context",
+    ]:
+        assert marker in remittance_surface["required_markers"]
     upload_surface = next(
         surface for surface in report["surfaces"]
         if surface["route"] == "/claims/upload-document"

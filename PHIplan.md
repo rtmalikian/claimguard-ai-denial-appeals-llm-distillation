@@ -381,6 +381,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `safe_context` metadata for CLP/CAS payment and adjustment parsing without
   logging raw remittance text, raw segment payloads, PHI, secrets, or
   production payment content.
+- Add a guarded `/api/v1/claims/remittance-upload` EDI 835 workflow for
+  billing-role users. The endpoint accepts only `.835`, `.edi`, or `.txt`
+  files within the 10 MB limit, blocks disguised inner extension chains before
+  reading uploaded bytes, parses CLP/CAS/LQ remittance content through the
+  structured EDI 835 parser, runs metadata-only document-surface inspection,
+  returns payment/adjustment/remark summaries with patient and payer control
+  numbers represented only as presence booleans, and logs only safe aggregate
+  counters without raw filenames, remittance text, segment payloads, patient
+  identifiers, payer control numbers, PHI, secrets, or production payment
+  content.
 - Harden claim document-analysis JSON parsing and prediction circuit-breaker
   recovery. `app/api/v1/claims.py` now routes analysis JSON extraction through
   a shared helper with specific `json.JSONDecodeError` handling and
@@ -652,8 +662,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
 - Wire the file-ingestion surface audit into
   `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` as a
   top-level PHIplan production-readiness gate. The refreshed PHIplan report now
-  records `file_ingestion_surface_audit_ready` as ready with two discovered,
-  two registered, and zero unregistered upload surfaces, and would block
+  records `file_ingestion_surface_audit_ready` as ready with three discovered,
+  three registered, and zero unregistered upload surfaces, and would block
   `safe_current_state` if an UploadFile/File endpoint is added without
   metadata-only PHI surface inspection, governance, and safe audit markers.
 - Add PHI access-audit hardening for patient, claim, analytics, and appeal
@@ -798,8 +808,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
   storing raw demographic values, production outcome rows, PHI, secrets,
   approval references, or individual identifiers. The
   manual packet now also carries a ready
-  `manual_file_ingestion_surface_evidence` requirement with two expected upload
-  surfaces, two registered upload surfaces, zero unregistered upload surfaces,
+  `manual_file_ingestion_surface_evidence` requirement with three expected upload
+  surfaces, three registered upload surfaces, zero unregistered upload surfaces,
   and boolean-only attestations for metadata-only surface inspection and safe
   audit marker coverage. The production-readiness audit now consumes this
   packet report as a
@@ -1096,6 +1106,25 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production calibrated-threshold/fairness-monitoring promotion.
 
 ## Rollback
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/schemas/claim.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/edi_835_parser.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/docs/edi-formats.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_edi_835_parser.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_file_ingestion_surface_audit.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`,
+`llm-distill/scripts/audit_file_ingestion_surfaces.py`,
+`llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`,
+`llm-distill/evals/reports/file_ingestion_surface_audit_report.json`,
+`llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`backups/20260531-104519-edi835-remittance-upload-surface/`; remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_remittance_upload.py`
+if rolling back the EDI 835 remittance upload surface.
 
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,

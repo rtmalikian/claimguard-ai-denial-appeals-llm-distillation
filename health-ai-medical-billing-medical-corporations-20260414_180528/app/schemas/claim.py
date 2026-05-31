@@ -304,3 +304,75 @@ class BatchClaimsUploadResponse(BaseModel):
     document_surface_inspection: CorpusDocumentSurfaceInspectResponse
     claims: List[BatchClaimUploadResult]
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RemittanceUploadValidationIssue(BaseModel):
+    message: str
+    field: str
+    error_code: str
+    parser_stage: str
+    severity: str
+    claim_index: Optional[int] = None
+    segment_index: Optional[int] = None
+    segment_id: Optional[str] = None
+    code_list_id: Optional[str] = None
+    code_status: Optional[str] = None
+    code_category: Optional[str] = None
+    safe_context: Dict[str, Any] = Field(default_factory=dict)
+
+
+class RemittanceUploadAdjustment(BaseModel):
+    segment_index: int
+    group_code: str
+    reason_code: str
+    amount: Optional[float] = None
+    quantity: Optional[float] = None
+    reason_code_status: str
+    reason_code_category: Optional[str] = None
+    reason_code_list_id: str = "CARC"
+
+
+class RemittanceUploadRemarkCode(BaseModel):
+    segment_index: int
+    qualifier: str
+    remark_code: str
+    remark_code_status: str
+    remark_code_category: Optional[str] = None
+    remark_code_list_id: str = "RARC"
+
+
+class RemittanceClaimPaymentResult(BaseModel):
+    claim_index: int
+    status: str
+    payment_status: str
+    patient_control_number_present: bool
+    payer_claim_control_number_present: bool
+    claim_status_code: Optional[str] = None
+    total_charge_amount: Optional[float] = None
+    paid_amount: Optional[float] = None
+    patient_responsibility_amount: Optional[float] = None
+    adjustment_count: int
+    remark_code_count: int
+    adjustments: List[RemittanceUploadAdjustment] = Field(default_factory=list)
+    remark_codes: List[RemittanceUploadRemarkCode] = Field(default_factory=list)
+    validation_issues: List[RemittanceUploadValidationIssue] = Field(default_factory=list)
+
+
+class RemittanceUploadResponse(BaseModel):
+    accepted: bool
+    source_filename_present: bool
+    source_file_extension: Optional[str] = None
+    source_mime_type: Optional[str] = None
+    segment_count: int
+    claim_payment_count: int
+    valid_claim_payment_count: int
+    invalid_claim_payment_count: int
+    adjustment_count: int
+    remark_code_count: int
+    validation_issue_count: int
+    interchange_control_number: Optional[str] = None
+    group_control_number: Optional[str] = None
+    transaction_control_number: Optional[str] = None
+    document_surface_inspection: CorpusDocumentSurfaceInspectResponse
+    claim_payments: List[RemittanceClaimPaymentResult]
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)

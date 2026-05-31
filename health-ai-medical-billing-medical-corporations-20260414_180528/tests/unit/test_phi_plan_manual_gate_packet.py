@@ -112,8 +112,8 @@ def _ready_packet() -> dict:
         },
         "file_ingestion_surface_audit": {
             "file_ingestion_surface_report_ready": True,
-            "expected_upload_surface_count": 2,
-            "registered_upload_surface_count": 2,
+            "expected_upload_surface_count": 3,
+            "registered_upload_surface_count": 3,
             "unregistered_upload_surface_count": 0,
             "metadata_only_surface_inspection_attested": True,
             "safe_audit_marker_coverage_attested": True,
@@ -201,7 +201,7 @@ def test_template_packet_is_safe_to_review_but_not_ready():
         if item["requirement_id"] == "manual_file_ingestion_surface_evidence"
     )
     assert file_ingestion_requirement["status"] == "ready"
-    assert file_ingestion_requirement["evidence"]["registered_upload_surface_count"] == 2
+    assert file_ingestion_requirement["evidence"]["registered_upload_surface_count"] == 3
     vector_requirement = next(
         item
         for item in report["blocked_items"]

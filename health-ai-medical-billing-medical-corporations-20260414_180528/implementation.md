@@ -65,7 +65,11 @@ production-readiness audit now also consumes the file-ingestion surface audit as
 a top-level current-state gate, so an unregistered UploadFile/File endpoint can
 block both production readiness and `safe_current_state`. The EDI 835
 remittance parser now has matching safe structured parser errors and validation
-issues for CLP/CAS payment and adjustment parsing. Healthcare code validation
+issues for CLP/CAS/LQ payment, adjustment, and remark-code parsing, and the
+authenticated EDI 835 remittance upload surface is now registered in the
+file-ingestion audit with bounded reads, safe structured upload errors,
+metadata-only document-surface inspection, and payment summaries that do not
+return raw patient or payer control numbers. Healthcare code validation
 now rejects invalid claim ICD-10-CM and CPT/HCPCS formats before prediction or
 persistence, validates NPI check digits through a local utility for provider
 intake paths, and flags invalid EDI 837 diagnosis/procedure plus EDI 835
@@ -681,6 +685,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   segment-count guards, metadata-only document-surface inspection, safe audit
   counters, and structured per-claim parser results without raw segment
   payloads
+- [x] EDI 835 remittance upload endpoint registered in the file-ingestion audit
+  with `.835`/`.edi`/`.txt` validation, 10 MB limit, metadata-only
+  document-surface inspection, safe audit counters, and parsed
+  payment/adjustment/remark summaries without raw patient or payer control
+  numbers
 - [x] Metadata-only PHI access audit hardening for patient, claim, analytics,
   and appeal routes, with audit utility redaction for sensitive keys and
   PHI/PII-like values
@@ -834,7 +843,7 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   markers while keeping approved non-synthetic paired denial/appeal source
   gates blocked
 - [x] Manual production-gate packet carries ready file-ingestion surface audit
-  evidence with two registered upload surfaces, zero unregistered surfaces,
+  evidence with three registered upload surfaces, zero unregistered surfaces,
   and metadata-only PHI surface/safe-audit-marker attestations
 - [x] PHIplan production-readiness report includes manual packet
   `blocked_requirement_ids` without exposing raw values
@@ -843,7 +852,7 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   retrieval-vector backend, production-corpus, and prediction-fairness gates
   without exposing raw values
 - [x] PHIplan production-readiness report includes the file-ingestion surface
-  audit as a top-level current-state gate with two registered upload surfaces
+  audit as a top-level current-state gate with three registered upload surfaces
   and zero unregistered surfaces
 - [x] Production Docker/nginx packaging scaffolding with frontend health checks
   and production compose startup-guard environment parity for student default,
@@ -1271,6 +1280,9 @@ These require integration tests with real database connections or more complex m
 - [x] Add safe structured parser errors and validation issues with error code,
   parser stage, field, claim, and segment ID/index context without raw
   remittance text or segment payloads
+- [x] Add guarded `POST /api/v1/claims/remittance-upload` endpoint for EDI 835
+  `.835`, `.edi`, and `.txt` uploads with billing-role authorization,
+  metadata-only surface inspection, and safe parsed payment summaries
 
 ### 3.3 Batch Claims Upload
 - [x] Add `POST /api/v1/claims/batch-upload` endpoint

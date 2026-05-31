@@ -168,6 +168,16 @@ class TestEDI835Parser:
         assert result.validation_issues[0].error_code == "adjustment_before_claim_payment"
         assert result.validation_issues[0].parser_stage == "adjustment_parse"
         assert not hasattr(result.validation_issues[0], "raw_segment")
+        detail = result.validation_issues[0].safe_detail()
+        assert detail["safe_context"] == {
+            "edi_parser": "edi_835",
+            "raw_edi_text_included": False,
+            "raw_segment_included": False,
+            "patient_identifier_included": False,
+            "payer_control_number_included": False,
+        }
+        assert "SYNTH-CLAIM-001" not in str(detail)
+        assert "PAYER-CLAIM-001" not in str(detail)
 
     def test_malformed_cas_triplet_returns_validation_issue(self):
         from app.utils.edi_835_parser import parse_edi_835
@@ -251,6 +261,8 @@ class TestEDI835Parser:
             "edi_parser": "edi_835",
             "raw_edi_text_included": False,
             "raw_segment_included": False,
+            "patient_identifier_included": False,
+            "payer_control_number_included": False,
         }
 
     def test_no_parseable_segments_raises_structured_parser_error(self):
@@ -269,6 +281,8 @@ class TestEDI835Parser:
             "edi_parser": "edi_835",
             "raw_edi_text_included": False,
             "raw_segment_included": False,
+            "patient_identifier_included": False,
+            "payer_control_number_included": False,
         }
 
     def test_custom_isa_delimiters_are_respected(self):

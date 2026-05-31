@@ -47,6 +47,11 @@ from app.schemas.claim import (
     BatchClaimUploadServiceLine,
     BatchClaimUploadValidationIssue,
     BatchClaimsUploadResponse,
+    RemittanceClaimPaymentResult,
+    RemittanceUploadAdjustment,
+    RemittanceUploadRemarkCode,
+    RemittanceUploadResponse,
+    RemittanceUploadValidationIssue,
 )
 from app.schemas.corpus import (
     CorpusDocumentSurfaceInspectRequest,
@@ -74,6 +79,7 @@ from app.utils.edi_parser import (
     estimate_edi_837_batch_size,
     parse_edi_837,
 )
+from app.utils.edi_835_parser import EDI835ClaimPayment, EDI835ParserError, parse_edi_835
 from app.utils.healthcare_codes import validate_claim_billing_codes
 from datetime import datetime, date
 
@@ -91,6 +97,7 @@ CLAIM_DOCUMENT_AUDIT_ACTIONS = {
     "claim_document_retired",
     "claim_document_governance_viewed",
     "claim_document_audit_dashboard_viewed",
+    "remittance_uploaded",
 }
 SAFE_CLAIM_DOCUMENT_AUDIT_DETAIL_KEYS = {
     "claim_id",
@@ -118,6 +125,8 @@ SAFE_CLAIM_DOCUMENT_AUDIT_DETAIL_KEYS = {
     "surface_blocking_count",
     "surface_residual_risk_score",
     "surface_deidentification_status",
+    "segment_count",
+    "validation_issue_count",
     "active_count",
     "deleted_count",
     "expired_active_count",
@@ -125,11 +134,21 @@ SAFE_CLAIM_DOCUMENT_AUDIT_DETAIL_KEYS = {
     "skip",
     "limit",
     "result_count",
+    "remittance_claim_count",
+    "remittance_valid_claim_count",
+    "remittance_invalid_claim_count",
+    "remittance_adjustment_count",
+    "remittance_remark_code_count",
+    "payment_status_counts",
 }
 EDI_BATCH_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
 EDI_BATCH_UPLOAD_EXTENSIONS = {".edi", ".txt"}
 EDI_BATCH_UPLOAD_MAX_CLAIMS = 250
 EDI_BATCH_UPLOAD_MAX_SEGMENTS = 5000
+EDI_REMITTANCE_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+EDI_REMITTANCE_UPLOAD_EXTENSIONS = {".835", ".edi", ".txt"}
+EDI_REMITTANCE_UPLOAD_MAX_CLAIMS = 250
+EDI_REMITTANCE_UPLOAD_MAX_SEGMENTS = 5000
 CLAIM_DOCUMENT_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
 CLAIM_DOCUMENT_UPLOAD_EXTENSIONS = (
     ".pdf",
@@ -1277,6 +1296,58 @@ def _raise_batch_claim_upload_error(
     )
 
 
+def _raise_remittance_upload_error(
+    *,
+    status_code: int,
+    error_code: str,
+    parser_stage: str,
+    message: str,
+    source_filename_present: bool,
+    source_file_extension: str | None,
+    source_mime_type: str | None,
+    content_length: int | None = None,
+    field: str | None = None,
+    claim_index: int | None = None,
+    segment_index: int | None = None,
+    segment_id: str | None = None,
+    segment_count: int | None = None,
+    safe_context: dict | None = None,
+) -> None:
+    merged_safe_context = {
+        "edi_parser": "edi_835",
+        "raw_filename_included": False,
+        "raw_edi_text_included": False,
+        "raw_segment_included": False,
+        "patient_identifier_included": False,
+        "payer_control_number_included": False,
+    }
+    if safe_context:
+        merged_safe_context.update(safe_context)
+    detail = {
+        "error_code": error_code,
+        "parser_stage": parser_stage,
+        "message": message,
+        "source_filename_present": source_filename_present,
+        "source_file_extension": source_file_extension,
+        "source_mime_type": source_mime_type,
+        "content_length": content_length,
+        "field": field,
+        "claim_index": claim_index,
+        "segment_index": segment_index,
+        "segment_id": segment_id,
+        "segment_count": segment_count,
+        "safe_context": merged_safe_context,
+    }
+    logger.warning(
+        "EDI 835 remittance upload rejected",
+        extra={"remittance_upload_error": detail},
+    )
+    raise HTTPException(
+        status_code=status_code,
+        detail=detail,
+    )
+
+
 def _raise_upload_document_error(
     *,
     status_code: int,
@@ -1417,6 +1488,82 @@ def _batch_claim_upload_result(claim: EDI837Claim) -> BatchClaimUploadResult:
             _batch_claim_validation_issue(issue)
             for issue in claim.validation_issues
         ],
+    )
+
+
+def _remittance_validation_issue(issue) -> RemittanceUploadValidationIssue:
+    detail = issue.safe_detail() if hasattr(issue, "safe_detail") else {}
+    return RemittanceUploadValidationIssue(
+        message=str(detail.get("message") or getattr(issue, "message", "")),
+        field=str(detail.get("field") or getattr(issue, "field", "")),
+        error_code=str(detail.get("error_code") or getattr(issue, "error_code", "")),
+        parser_stage=str(
+            detail.get("parser_stage") or getattr(issue, "parser_stage", "")
+        ),
+        severity=str(detail.get("severity") or getattr(issue, "severity", "error")),
+        claim_index=detail.get("claim_index", getattr(issue, "claim_index", None)),
+        segment_index=detail.get("segment_index", getattr(issue, "segment_index", None)),
+        segment_id=detail.get("segment_id", getattr(issue, "segment_id", None)),
+        code_list_id=detail.get("code_list_id", getattr(issue, "code_list_id", None)),
+        code_status=detail.get("code_status", getattr(issue, "code_status", None)),
+        code_category=detail.get("code_category", getattr(issue, "code_category", None)),
+        safe_context=detail.get("safe_context", {}),
+    )
+
+
+def _remittance_adjustment(adjustment) -> RemittanceUploadAdjustment:
+    return RemittanceUploadAdjustment(
+        segment_index=adjustment.segment_index,
+        group_code=adjustment.group_code,
+        reason_code=adjustment.reason_code,
+        amount=adjustment.amount,
+        quantity=adjustment.quantity,
+        reason_code_status=adjustment.reason_code_status,
+        reason_code_category=adjustment.reason_code_category,
+        reason_code_list_id=adjustment.reason_code_list_id,
+    )
+
+
+def _remittance_remark_code(remark_code) -> RemittanceUploadRemarkCode:
+    return RemittanceUploadRemarkCode(
+        segment_index=remark_code.segment_index,
+        qualifier=remark_code.qualifier,
+        remark_code=remark_code.remark_code,
+        remark_code_status=remark_code.remark_code_status,
+        remark_code_category=remark_code.remark_code_category,
+        remark_code_list_id=remark_code.remark_code_list_id,
+    )
+
+
+def _remittance_claim_payment_result(
+    claim: EDI835ClaimPayment,
+) -> RemittanceClaimPaymentResult:
+    validation_issues = [
+        _remittance_validation_issue(issue)
+        for issue in claim.validation_issues
+    ]
+    has_errors = any(issue.severity == "error" for issue in claim.validation_issues)
+    return RemittanceClaimPaymentResult(
+        claim_index=claim.claim_index,
+        status="validation_failed" if has_errors else "ready_for_remittance_review",
+        payment_status=claim.payment_status,
+        patient_control_number_present=bool(claim.patient_control_number),
+        payer_claim_control_number_present=bool(claim.payer_claim_control_number),
+        claim_status_code=claim.claim_status_code,
+        total_charge_amount=claim.total_charge_amount,
+        paid_amount=claim.paid_amount,
+        patient_responsibility_amount=claim.patient_responsibility_amount,
+        adjustment_count=len(claim.adjustments),
+        remark_code_count=len(claim.remark_codes),
+        adjustments=[
+            _remittance_adjustment(adjustment)
+            for adjustment in claim.adjustments
+        ],
+        remark_codes=[
+            _remittance_remark_code(remark_code)
+            for remark_code in claim.remark_codes
+        ],
+        validation_issues=validation_issues,
     )
 
 
@@ -2000,6 +2147,248 @@ async def batch_upload_claims(
         transaction_control_number=parse_result.transaction_control_number,
         document_surface_inspection=document_surface_inspection,
         claims=claim_results,
+    )
+
+
+@router.post("/remittance-upload", response_model=RemittanceUploadResponse)
+async def upload_remittance(
+    request: Request = None,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_roles(*WRITE_ROLES)),
+    db: Session = Depends(get_db),
+):
+    original_filename = _safe_upload_basename(file.filename)
+    source_filename_present = bool(original_filename)
+    source_file_extension = _source_file_extension(original_filename)
+    raw_mime_type = getattr(file, "content_type", None)
+    source_mime_type = raw_mime_type if isinstance(raw_mime_type, str) else None
+
+    if _has_disallowed_inner_upload_extension(original_filename):
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="suspicious_extension_chain",
+            parser_stage="file_validation",
+            message="Uploaded EDI 835 filename contains a blocked inner extension.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            safe_context={
+                "inner_extension_chain_checked": True,
+            },
+        )
+
+    if source_file_extension not in EDI_REMITTANCE_UPLOAD_EXTENSIONS:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="unsupported_file_type",
+            parser_stage="file_validation",
+            message=(
+                "Remittance uploads accept EDI 835 files with .835, .edi, "
+                "or .txt extensions."
+            ),
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+        )
+
+    content = await _read_upload_bytes_with_limit(
+        file,
+        EDI_REMITTANCE_UPLOAD_MAX_BYTES,
+    )
+    content_length = len(content)
+    if content_length == 0:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="empty_file",
+            parser_stage="file_validation",
+            message="Uploaded EDI 835 file is empty.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+        )
+    if content_length > EDI_REMITTANCE_UPLOAD_MAX_BYTES:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="file_too_large",
+            parser_stage="file_validation",
+            message="Uploaded EDI 835 file exceeds the 10 MB limit.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+        )
+
+    try:
+        edi_text = content.decode("utf-8")
+    except UnicodeDecodeError:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="invalid_text_encoding",
+            parser_stage="text_decode",
+            message="Uploaded EDI 835 file must be UTF-8 text.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+        )
+
+    try:
+        parse_result = parse_edi_835(edi_text)
+    except EDI835ParserError as exc:
+        parser_detail = exc.safe_detail()
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code=parser_detail["error_code"],
+            parser_stage=parser_detail["parser_stage"],
+            message=str(exc),
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+            field=parser_detail["field"],
+            claim_index=parser_detail["claim_index"],
+            segment_index=parser_detail["segment_index"],
+            segment_id=parser_detail["segment_id"],
+            segment_count=parser_detail["segment_count"],
+            safe_context=parser_detail["safe_context"],
+        )
+
+    if parse_result.segment_count > EDI_REMITTANCE_UPLOAD_MAX_SEGMENTS:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="too_many_segments",
+            parser_stage="post_parse_batch_validation",
+            message="Uploaded EDI 835 file exceeds the supported segment count.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+            field="segment_count",
+            segment_count=parse_result.segment_count,
+            safe_context={
+                "post_parse_guard": True,
+                "max_segment_count": EDI_REMITTANCE_UPLOAD_MAX_SEGMENTS,
+            },
+        )
+
+    if len(parse_result.claims) > EDI_REMITTANCE_UPLOAD_MAX_CLAIMS:
+        _raise_remittance_upload_error(
+            status_code=400,
+            error_code="too_many_claim_payments",
+            parser_stage="post_parse_batch_validation",
+            message="Uploaded EDI 835 file exceeds the supported claim payment count.",
+            source_filename_present=source_filename_present,
+            source_file_extension=source_file_extension,
+            source_mime_type=source_mime_type,
+            content_length=content_length,
+            field="claim_payment_count",
+            segment_count=parse_result.segment_count,
+            safe_context={
+                "post_parse_guard": True,
+                "claim_payment_count": len(parse_result.claims),
+                "max_claim_payment_count": EDI_REMITTANCE_UPLOAD_MAX_CLAIMS,
+            },
+        )
+
+    upload_document_id = uuid.uuid4().hex[:12].upper()
+    document_surface_inspection = _inspect_document_surfaces(
+        source_id=f"EDI-835-{upload_document_id}",
+        document_id=f"EDI-835-DOC-{upload_document_id}",
+        source_filename=original_filename,
+        source_mime_type=source_mime_type or "application/edi-x12",
+        visible_text=edi_text,
+        metadata={
+            "source_filename_present": source_filename_present,
+            "source_file_extension": source_file_extension,
+            "source_mime_type": source_mime_type or "application/edi-x12",
+            "upload_size_bytes": content_length,
+            "edi_parser": "edi_835",
+            "segment_count": parse_result.segment_count,
+            "claim_payment_count": len(parse_result.claims),
+            "validation_issue_count": len(parse_result.validation_issues),
+        },
+    )
+    claim_payment_results = [
+        _remittance_claim_payment_result(claim)
+        for claim in parse_result.claims
+    ]
+    invalid_claim_payment_count = sum(
+        1
+        for claim in claim_payment_results
+        if claim.status == "validation_failed"
+    )
+    valid_claim_payment_count = (
+        len(claim_payment_results) - invalid_claim_payment_count
+    )
+    adjustment_count = sum(
+        claim.adjustment_count
+        for claim in claim_payment_results
+    )
+    remark_code_count = sum(
+        claim.remark_code_count
+        for claim in claim_payment_results
+    )
+    payment_status_counts: dict[str, int] = {}
+    for claim in claim_payment_results:
+        payment_status_counts[claim.payment_status] = (
+            payment_status_counts.get(claim.payment_status, 0) + 1
+        )
+
+    log_audit(
+        db=db,
+        action="remittance_uploaded",
+        user_id=_current_user_id(current_user),
+        details={
+            "source_filename_present": source_filename_present,
+            "source_file_extension": source_file_extension,
+            "source_mime_type": source_mime_type or "application/edi-x12",
+            "original_size": content_length,
+            "processed_size": content_length,
+            "was_resized": False,
+            "was_converted": False,
+            "document_type": "edi_835_remittance",
+            "remittance_claim_count": len(claim_payment_results),
+            "remittance_valid_claim_count": valid_claim_payment_count,
+            "remittance_invalid_claim_count": invalid_claim_payment_count,
+            "remittance_adjustment_count": adjustment_count,
+            "remittance_remark_code_count": remark_code_count,
+            "payment_status_counts": payment_status_counts,
+            "validation_issue_count": len(parse_result.validation_issues),
+            "segment_count": parse_result.segment_count,
+            "access_scope": CLAIM_DOCUMENT_ACCESS_SCOPE_BILLING_TEAM,
+            "document_access_scope": CLAIM_DOCUMENT_ACCESS_SCOPE_BILLING_TEAM,
+            "surface_count": document_surface_inspection.surface_count,
+            "surface_blocking_count": (
+                document_surface_inspection.blocking_surface_count
+            ),
+            "surface_residual_risk_score": (
+                document_surface_inspection.residual_risk_score
+            ),
+            "surface_deidentification_status": (
+                document_surface_inspection.deidentification_status
+            ),
+        },
+        ip_address=_request_ip(request),
+    )
+
+    return RemittanceUploadResponse(
+        accepted=bool(claim_payment_results),
+        source_filename_present=source_filename_present,
+        source_file_extension=source_file_extension,
+        source_mime_type=source_mime_type or "application/edi-x12",
+        segment_count=parse_result.segment_count,
+        claim_payment_count=len(claim_payment_results),
+        valid_claim_payment_count=valid_claim_payment_count,
+        invalid_claim_payment_count=invalid_claim_payment_count,
+        adjustment_count=adjustment_count,
+        remark_code_count=remark_code_count,
+        validation_issue_count=len(parse_result.validation_issues),
+        interchange_control_number=parse_result.interchange_control_number,
+        group_control_number=parse_result.group_control_number,
+        transaction_control_number=parse_result.transaction_control_number,
+        document_surface_inspection=document_surface_inspection,
+        claim_payments=claim_payment_results,
     )
 
 

@@ -14,6 +14,7 @@ This document describes the current EDI handling in:
 - `app/utils/edi_parser.py`
 - `app/utils/edi_835_parser.py`
 - `tests/unit/test_claims_batch_upload.py`
+- `tests/unit/test_claims_remittance_upload.py`
 - `tests/unit/test_edi_835_parser.py`
 
 It is not a full X12 implementation guide and does not approve production
@@ -77,13 +78,18 @@ Parser errors and warnings expose only safe context:
 | `segment_count` | Safe aggregate segment count when available |
 | `safe_context` | Flags proving raw EDI text and raw segment payloads were not included |
 
-## EDI 835 Parser Utility
+## EDI 835 Remittance Upload
 
-Current parser utility:
+Current API route:
 
-| Utility | Current exposure |
-|---|---|
-| `app/utils/edi_835_parser.py` | Internal parser and unit-tested utility; no public upload endpoint is currently registered. |
+| Method | Route | Required roles |
+|---|---|---|
+| `POST` | `/api/v1/claims/remittance-upload` | `admin`, `billing_staff` |
+
+The route accepts UTF-8 text uploads with `.835`, `.edi`, or `.txt`
+extensions and a maximum size of 10 MB. It rejects unsupported extensions,
+empty files, oversized uploads, non-UTF-8 payloads, and disguised inner
+extension chains before parsing or audit-log creation.
 
 The 835 parser extracts safe claim-payment and adjustment summaries from CLP
 and CAS segments. It detects envelope delimiters the same way as the 837 parser.
@@ -96,14 +102,34 @@ and CAS segments. It detects envelope delimiters the same way as the 837 parser.
 | Claim payment | `CLP` control reference, status code, total charge amount, paid amount, responsibility amount, payer reference |
 | Payment status | Derived as `paid`, `partially_paid`, `denied`, or `unknown` |
 | Adjustments | `CAS` group code, reason code, amount, and optional quantity |
+| Remark codes | `LQ` qualifier, remark code, and local lifecycle status metadata |
 
 Current validation checks include missing CLP segments, CAS before CLP, missing
 CAS group code, incomplete CAS adjustment triplets, missing reason codes,
-invalid adjustment amounts, and missing/invalid CLP amount fields.
+invalid adjustment amounts, LQ before CLP, invalid remark codes, and
+missing/invalid CLP amount fields.
+
+### 835 Response Boundaries
+
+The remittance upload response returns structured parse summaries:
+
+- Accepted flag.
+- Source file extension and MIME type.
+- Segment, claim-payment, valid-payment, invalid-payment, adjustment, remark,
+  and validation-issue counts.
+- Envelope control values.
+- Metadata-only document-surface inspection summary.
+- Per-claim payment status, financial amounts, adjustment summaries, remark-code
+  summaries, and validation issues.
+
+Patient control numbers and payer claim-control numbers are represented only as
+presence booleans. The response and audit events must not include raw EDI text,
+raw segment payloads, raw filenames, raw patient control numbers, raw payer
+control numbers, PHI, credentials, or production document content.
 
 ## Future EDI Endpoint Requirements
 
-Any future EDI 835 upload route or expanded clearinghouse integration must:
+Any future expanded EDI or clearinghouse integration must:
 
 - Require bearer authentication and role-scoped authorization.
 - Register the route in `llm-distill/scripts/audit_file_ingestion_surfaces.py`.
@@ -117,4 +143,3 @@ Any future EDI 835 upload route or expanded clearinghouse integration must:
 - Log safe aggregate metadata only.
 - Keep real clearinghouse credentials and production EDI files outside source
   control.
-

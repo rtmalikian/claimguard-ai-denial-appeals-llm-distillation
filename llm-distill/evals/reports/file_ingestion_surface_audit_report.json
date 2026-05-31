@@ -1,7 +1,7 @@
 {
   "api_root": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1",
   "blocked_reasons": [],
-  "generated_at": "2026-05-31T05:32:41.293969+00:00",
+  "generated_at": "2026-05-31T17:55:19.540077+00:00",
   "notes": [
     "This audit uses AST/source metadata and does not inspect uploaded file contents.",
     "Any future UploadFile/File endpoint must be registered here and show metadata-only surface inspection plus governance/audit markers before production use.",
@@ -9,9 +9,9 @@
   ],
   "ready": true,
   "summary": {
-    "discovered_count": 2,
-    "expected_count": 2,
-    "registered_count": 2,
+    "discovered_count": 3,
+    "expected_count": 3,
+    "registered_count": 3,
     "unregistered_count": 0
   },
   "surfaces": [
@@ -59,6 +59,52 @@
         "safe_context"
       ],
       "route": "/claims/batch-upload",
+      "status": "ready"
+    },
+    {
+      "coverage_notes": [
+        "Accepts only text EDI 835 remittance files with .835, .edi, or .txt extensions and a 10 MB limit.",
+        "Runs metadata-only document surface inspection over filename, MIME type, EDI text, and parser metadata.",
+        "Returns safe per-claim payment, adjustment, and remark-code summaries without raw patient or payer control numbers.",
+        "Rejected uploads return structured parser-stage, field, and segment context without raw filenames, EDI text, raw segment payloads, patient identifiers, or payer control numbers."
+      ],
+      "expected_module_path": "app/api/v1/claims.py",
+      "file_parameter_names": [
+        "file"
+      ],
+      "function_name": "upload_remittance",
+      "methods": [
+        "POST"
+      ],
+      "missing_markers": [],
+      "module_path": "app/api/v1/claims.py",
+      "registered": true,
+      "required_markers": [
+        "_inspect_document_surfaces",
+        "document_surface_inspection",
+        "CLAIM_DOCUMENT_ACCESS_SCOPE_BILLING_TEAM",
+        "remittance_uploaded",
+        "source_filename_present",
+        "source_file_extension",
+        "source_mime_type",
+        "edi_parser",
+        "segment_count",
+        "claim_payment_count",
+        "validation_issue_count",
+        "surface_count",
+        "surface_blocking_count",
+        "surface_residual_risk_score",
+        "surface_deidentification_status",
+        "_raise_remittance_upload_error",
+        "EDI835ParserError",
+        "error_code",
+        "parser_stage",
+        "field",
+        "segment_index",
+        "segment_id",
+        "safe_context"
+      ],
+      "route": "/claims/remittance-upload",
       "status": "ready"
     },
     {

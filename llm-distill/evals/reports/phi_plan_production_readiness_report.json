@@ -170,7 +170,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:37:17.781581+00:00",
+  "generated_at": "2026-05-31T17:55:20.014092+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -226,9 +226,9 @@
         "blocked_reasons": [],
         "ready": true,
         "summary": {
-          "discovered_count": 2,
-          "expected_count": 2,
-          "registered_count": 2,
+          "discovered_count": 3,
+          "expected_count": 3,
+          "registered_count": 3,
           "unregistered_count": 0
         },
         "surface_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json",

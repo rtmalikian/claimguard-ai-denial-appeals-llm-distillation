@@ -90,8 +90,8 @@
   },
   "file_ingestion_surface_audit": {
     "file_ingestion_surface_report_ready": true,
-    "expected_upload_surface_count": 2,
-    "registered_upload_surface_count": 2,
+    "expected_upload_surface_count": 3,
+    "registered_upload_surface_count": 3,
     "unregistered_upload_surface_count": 0,
     "metadata_only_surface_inspection_attested": true,
     "safe_audit_marker_coverage_attested": true

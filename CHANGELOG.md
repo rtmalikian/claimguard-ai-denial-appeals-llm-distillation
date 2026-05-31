@@ -2,6 +2,98 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 10:55:38 PDT - Guarded EDI 835 remittance upload surface
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add an authenticated, registered EDI 835 remittance upload surface that
+  uses the existing structured remittance parser, returns safe payment,
+  adjustment, and remark-code summaries without raw patient or payer control
+  numbers, and refreshes PHIplan file-ingestion/manual-gate evidence from two
+  registered upload surfaces to three while preserving the blocked production
+  state.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260531-104519-edi835-remittance-upload-surface/root/PHIplan.md` | Documented the guarded EDI 835 upload endpoint, three-surface audit evidence, and rollback instructions. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py` | Added `POST /claims/remittance-upload`, safe EDI 835 upload errors, remittance response builders, audit counters, and registered audit action metadata. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/schemas/claim.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/app/schemas/claim.py` | Added remittance upload response models with control numbers represented as presence booleans. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/edi_835_parser.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/edi_835_parser.py` | Extended safe parser details and validation logs with no raw remittance, patient identifier, or payer control-number flags. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docs/edi-formats.md` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/docs/edi-formats.md` | Documented current EDI 835 upload route, accepted extensions, parser coverage, response boundaries, and future integration requirements. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation scratchpad/checklists from two to three registered upload surfaces and marked the EDI 835 upload endpoint complete. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_edi_835_parser.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_edi_835_parser.py` | Added safe-detail assertions proving validation issues and parser errors do not expose raw claim/control values. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_file_ingestion_surface_audit.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_file_ingestion_surface_audit.py` | Updated expected discovered/registered upload-surface count to three and asserted EDI 835 upload coverage markers. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Updated manual-gate file-ingestion evidence expectations from two to three registered upload surfaces. | Restore backup over the same path. |
+| `llm-distill/scripts/audit_file_ingestion_surfaces.py` | `backups/20260531-104519-edi835-remittance-upload-surface/llm-distill/scripts/audit_file_ingestion_surfaces.py` | Registered `/claims/remittance-upload` with required metadata-only surface, safe error, and audit markers. | Restore backup over the same path. |
+| `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260531-104519-edi835-remittance-upload-surface/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Updated expected and registered upload-surface counts to three. | Restore backup over the same path. |
+| `llm-distill/evals/reports/file_ingestion_surface_audit_report.json` | `backups/20260531-104519-edi835-remittance-upload-surface/llm-distill/evals/reports/file_ingestion_surface_audit_report.json` | Refreshed file-ingestion evidence with `discovered_count=3`, `registered_count=3`, and `unregistered_count=0`. | Restore backup over the same path or rerun `audit_file_ingestion_surfaces.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260531-104519-edi835-remittance-upload-surface/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260531-104519-edi835-remittance-upload-surface/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness with `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `backups/20260531-104519-edi835-remittance-upload-surface/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260531-104519-edi835-remittance-upload-surface/root/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_remittance_upload.py`:
+  synthetic EDI 835 upload tests for successful safe response output,
+  unsupported extensions, parse errors with safe context, and disguised inner
+  extension blocking before file reads.
+
+Rollback for the added test: delete it after restoring the modified files from
+backup.
+
+### Validation
+- `find backups/20260531-104519-edi835-remittance-upload-surface -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py health-ai-medical-billing-medical-corporations-20260414_180528/app/schemas/claim.py health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/edi_835_parser.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_remittance_upload.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_edi_835_parser.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_file_ingestion_surface_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py llm-distill/scripts/audit_file_ingestion_surfaces.py`:
+  passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_claims_remittance_upload.py tests/unit/test_edi_835_parser.py tests/unit/test_file_ingestion_surface_audit.py tests/unit/test_phi_plan_manual_gate_packet.py -q -p no:cacheprovider`
+  from the application directory: passed, 46 tests with pre-existing
+  SQLAlchemy/SlowAPI/Pydantic deprecation warnings.
+- `python3 llm-distill/scripts/audit_file_ingestion_surfaces.py`:
+  passed and refreshed the file-ingestion report with three discovered, three
+  registered, and zero unregistered upload surfaces.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`:
+  passed and refreshed the manual gate packet report with
+  `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`:
+  passed and refreshed top-level PHIplan readiness with
+  `production_ready=False`, `safe_current_state=True`, `blocked=6`, and
+  `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS`
+  warning was emitted and no key material was written to reports.
+- JSON load checks passed for the updated manual gate template and refreshed
+  report files.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_claims_remittance_upload.py tests/unit/test_claims_batch_upload.py tests/unit/test_edi_835_parser.py tests/unit/test_file_ingestion_surface_audit.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q -p no:cacheprovider`
+  from the application directory: passed, 65 tests with pre-existing
+  SQLAlchemy/SlowAPI/Pydantic deprecation warnings.
+- PHI scan over changed code, tests, scripts, templates, and refreshed reports
+  returned only pre-existing schema/default label findings in `claims.py` and
+  `claim.py`; no matched values were printed.
+- Documentation PHI scan returned only expected findings for Raphael's required
+  attribution email plus historical DOB/MRN/member-label strings; no matched
+  values were printed.
+- High-confidence secret-pattern scan over changed non-changelog files returned
+  no matches.
+
+### Failed Or Avoided Approaches
+- Avoided raw patient control numbers, raw payer claim-control numbers, raw
+  filenames, raw EDI text, raw segment payloads, production remittance files,
+  clearinghouse connectivity, ERA/EFT autoposting, production corpus changes,
+  student-default changes, and any claim that PHIplan production readiness is
+  complete.
+
+### Notes
+- Rollback: delete
+  `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_remittance_upload.py`,
+  restore every modified file from
+  `backups/20260531-104519-edi835-remittance-upload-surface/`, then rerun the
+  file-ingestion, manual-gate, and production-readiness validators only if
+  refreshed reports are needed after rollback.
+- This slice adds a guarded EDI 835 upload surface and audit evidence; it does
+  not complete the full PHIplan objective.
+
 ## 2026-05-31 10:38:43 PDT - Production corpus collection/license checklist evidence
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

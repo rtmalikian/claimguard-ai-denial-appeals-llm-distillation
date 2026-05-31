@@ -60,6 +60,8 @@ class EDI835ParserError(ValueError):
                 "edi_parser": "edi_835",
                 "raw_edi_text_included": False,
                 "raw_segment_included": False,
+                "patient_identifier_included": False,
+                "payer_control_number_included": False,
             },
         }
 
@@ -79,6 +81,29 @@ class EDI835ValidationIssue:
     code_list_id: Optional[str] = None
     code_status: Optional[str] = None
     code_category: Optional[str] = None
+
+    def safe_detail(self) -> dict:
+        """Return structured issue context without raw EDI payload values."""
+        return {
+            "message": self.message,
+            "field": self.field,
+            "error_code": self.error_code,
+            "parser_stage": self.parser_stage,
+            "severity": self.severity,
+            "claim_index": self.claim_index,
+            "segment_index": self.segment_index,
+            "segment_id": self.segment_id,
+            "code_list_id": self.code_list_id,
+            "code_status": self.code_status,
+            "code_category": self.code_category,
+            "safe_context": {
+                "edi_parser": "edi_835",
+                "raw_edi_text_included": False,
+                "raw_segment_included": False,
+                "patient_identifier_included": False,
+                "payer_control_number_included": False,
+            },
+        }
 
 
 @dataclass
@@ -597,6 +622,8 @@ class EDI835Parser:
                             "edi_parser": "edi_835",
                             "raw_edi_text_included": False,
                             "raw_segment_included": False,
+                            "patient_identifier_included": False,
+                            "payer_control_number_included": False,
                         },
                     }
                 },

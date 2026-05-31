@@ -140,7 +140,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-05-31T17:37:14.041865+00:00",
+  "generated_at": "2026-05-31T17:55:19.505266+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -335,10 +335,10 @@
     {
       "blockers": [],
       "evidence": {
-        "expected_upload_surface_count": 2,
+        "expected_upload_surface_count": 3,
         "file_ingestion_surface_report_ready": true,
         "metadata_only_surface_inspection_attested": true,
-        "registered_upload_surface_count": 2,
+        "registered_upload_surface_count": 3,
         "safe_audit_marker_coverage_attested": true,
         "unregistered_upload_surface_count": 0
       },
