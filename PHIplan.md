@@ -913,7 +913,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   surface. The validator now requires `CLAIMGUARD_RUNTIME_PROFILE` to remain
   `student_denial_workflow_local_only`, rejects unapproved or secret/proxy-
   shaped launchd environment-variable names, and omits raw environment values
-  from reports. It now also verifies the source-controlled supervisor runbook
+  from reports. The runtime supervision path now includes
+  `llm-distill/scripts/render_mlx_launchd_private_copy.py`, a non-installing
+  renderer that writes a private launchd plist outside source control, refuses
+  repository output paths, keeps the runtime profile allowlisted, and returns
+  only redacted booleans/counts. The validator now also verifies this renderer
+  exists with required no-source-control-output, loopback/runtime-profile, and
+  redacted-summary markers. It now also verifies the source-controlled supervisor runbook
   at `llm-distill/docs/mlx-runtime-supervisor-runbook.md` exists with required
   local-only, private-copy, rollback, and no-raw-value markers, without
   emitting the runbook text. It now also verifies the source-controlled runtime

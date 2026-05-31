@@ -24,12 +24,14 @@ approved for production default routing.
 
 ## Required Validation Steps
 
-1. MLX runtime preflight required before loading the private launchd service.
-2. Private launchd user session load required before auto-launch readiness.
-3. Student status endpoint check required after the runtime starts.
-4. Student runtime health check required before any default routing request.
-5. Supervisor restart test required before production auto-launch readiness.
-6. Rollback to NVIDIA required if any validation step fails.
+1. Private launchd plist render required outside source control before loading
+   the private launchd service.
+2. MLX runtime preflight required before loading the private launchd service.
+3. Private launchd user session load required before auto-launch readiness.
+4. Student status endpoint check required after the runtime starts.
+5. Student runtime health check required before any default routing request.
+6. Supervisor restart test required before production auto-launch readiness.
+7. Rollback to NVIDIA required if any validation step fails.
 
 ## Evidence Rules
 

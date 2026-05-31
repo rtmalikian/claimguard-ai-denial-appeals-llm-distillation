@@ -2,6 +2,96 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-05-31 11:32:39 PDT - MLX launchd private renderer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: advance the PHIplan production process supervisor/auto-launch path by
+  adding a safe renderer for a private MLX launchd plist copy, without
+  installing launchd services, enabling student-default routing, storing
+  private paths, or adding approval references, PHI, secrets, raw runtime
+  output, or production document content.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/root/PHIplan.md` | Documented the non-installing private launchd renderer and remaining private owner/runtime blockers. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md` | Updated implementation tracking for the safe MLX private launchd renderer. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | Added renderer coverage for safe private plist writes, source-control output refusal, and validator evidence. | Restore backup over the same path. |
+| `llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/data/runtime_supervision/supervisor_evidence.template.json` | Added boolean/path evidence that the private launchd renderer is available. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-supervisor-runbook.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/docs/mlx-runtime-supervisor-runbook.md` | Added private renderer steps before launchd load. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-validation-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/docs/mlx-runtime-validation-checklist.md` | Added private launchd render as a validation precondition. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` | Added outside-source-control private launchd render to owner handoff gates. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added a safe renderer requirement that checks marker coverage without emitting script text. | Restore backup over the same path. |
+| `llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed supervisor evidence; renderer requirement is ready, `safe_to_review=true`, `supervisor_ready=false`, and `blocked=2`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/root/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/scripts/render_mlx_launchd_private_copy.py`: renders a private
+  launchd plist from the checked-in template, refuses output inside source
+  control, keeps the MLX runtime profile allowlisted, writes private output
+  with `0600` permissions, and prints only redacted booleans/counts.
+
+Rollback for the added script: delete it after restoring the modified files
+above.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer -type f | sort`:
+  passed; backups exist for every modified existing file in this slice.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/render_mlx_launchd_private_copy.py ../llm-distill/scripts/validate_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor.py`
+  from the application directory: passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_mlx_runtime_supervisor.py -q -p no:cacheprovider`:
+  first run failed 2 renderer tests because the dynamic import helper did not
+  place the dataclass module in `sys.modules`; rerun after fixing the test
+  helper passed, 11 tests.
+- `python3 llm-distill/scripts/render_mlx_launchd_private_copy.py --dry-run --output /private/tmp/claimguard-render-test.plist`:
+  passed and printed only redacted booleans/counts.
+- `python3 llm-distill/scripts/render_mlx_launchd_private_copy.py --output /private/tmp/claimguard-render-test.plist`:
+  passed, wrote a private plist with `0600` permissions, and the temporary file
+  was removed.
+- `python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --report llm-distill/evals/reports/mlx_runtime_supervisor_report.json`:
+  passed with `supervisor_ready=False`, `safe_to_review=True`, and `blocked=2`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`:
+  passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`,
+  and `warning_item_count=1`; the local development `ENCRYPTION_KEYS` warning
+  was emitted and no key material was written to reports.
+- `python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --report /private/tmp/claimguard-mlx-launchd-renderer-supervisor-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because private owner and live runtime
+  validation remain blocked; report stayed `safe_to_review=true`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-mlx-launchd-renderer-phi-plan-report.json --fail-on-blocked`:
+  intentionally returned exit status 2 because PHIplan production readiness
+  remains blocked; report stayed `safe_current_state=true`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over the changed
+  renderer, validator, test, evidence, refreshed reports, and temporary
+  reports: passed with no findings.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed public
+  docs: returned only required Raphael attribution `email_like` findings.
+- High-confidence secret-pattern scan over changed files returned no matches
+  after synthetic blocked-value fixtures were renamed to avoid secret-shaped
+  test variable assignments.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided installing or loading launchd services, enabling
+  `CLAIMGUARD_STUDENT_USE_BY_DEFAULT`, storing private deployment paths in
+  evidence, storing approval references, adding environment secrets, or
+  claiming runtime supervision is production-ready.
+- The first renderer test run failed due to the dynamic import helper, not the
+  renderer behavior; the helper now inserts the module before execution.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260531-112750-mlx-launchd-private-renderer/`,
+  delete `llm-distill/scripts/render_mlx_launchd_private_copy.py`, then rerun
+  the MLX runtime supervisor and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice makes the private launchd preparation path concrete and testable;
+  it does not complete the full PHIplan objective.
+
 ## 2026-05-31 11:20:38 PDT - Retrieval embedding reindex operation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

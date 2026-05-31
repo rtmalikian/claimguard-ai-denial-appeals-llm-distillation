@@ -170,6 +170,11 @@ environment surface is allowlisted, requires
 `CLAIMGUARD_RUNTIME_PROFILE=student_denial_workflow_local_only`, rejects
 unapproved or secret/proxy-shaped environment-variable names, and never emits
 raw environment values in reports. The supervisor evidence now also verifies
+the non-installing private launchd renderer at
+`llm-distill/scripts/render_mlx_launchd_private_copy.py`; the renderer refuses
+source-control output paths, writes only a private plist copy, keeps the
+runtime profile allowlisted, and emits a redacted summary without local paths
+or environment values. The supervisor evidence now also verifies
 the source-controlled runbook at
 `llm-distill/docs/mlx-runtime-supervisor-runbook.md` has required private-copy,
 local-only runtime, rollback, and no-raw-value markers without emitting the
@@ -750,6 +755,8 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   review, health-check review, manual-start command review, rollback review,
   source-controlled runbook documentation, and environment-file exclusion while
   leaving runtime owner and live runtime validation blocked
+- [x] Non-installing MLX private launchd renderer that refuses source-control
+  output paths and emits only redacted booleans/counts for private operator use
 - [x] MLX runtime supervisor evidence validates a source-controlled runtime
   validation checklist with required MLX preflight, student status endpoint,
   runtime health, launchd load, restart-test, rollback, boolean-only, and
@@ -1472,8 +1479,10 @@ query indexes.
   Local progress: supervisor evidence now requires the checked-in owner
   handoff checklist at
   `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` while keeping
-  `supervisor_ready=false` until private owner assignment, runtime preflight,
-  health/status checks, launchd load evidence, and restart testing are complete.
+  `supervisor_ready=false`; a private launchd plist renderer is now available
+  for non-installing operator preparation, but private owner assignment,
+  runtime preflight, health/status checks, launchd load evidence, and restart
+  testing remain required.
 
 ### 6.2 Documentation
 - [x] Create API documentation with authentication requirements

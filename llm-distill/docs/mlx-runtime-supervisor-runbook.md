@@ -22,17 +22,22 @@ installed, loaded, health checked, or approved for production default routing.
 
 ## Private Operator Steps
 
-1. Copy the launchd template to a private operator path.
-2. Replace placeholder paths with the deployment path in the private copy.
-3. Confirm the private plist still runs `mlx_lm.server` directly, uses
+1. Render a private launchd plist with
+   `llm-distill/scripts/render_mlx_launchd_private_copy.py`; write the output
+   outside this repository.
+2. Confirm the renderer refuses source-control output paths and reports only
+   redacted booleans/counts.
+3. Replace placeholder paths only through the rendered private copy outside
+   source control.
+4. Confirm the private plist still runs `mlx_lm.server` directly, uses
    `--adapter-path`, binds to `127.0.0.1`, keeps `KeepAlive` enabled, and has
    stdout/stderr log paths outside this repository.
-4. Run the MLX runtime preflight and confirm the accepted adapter path resolves
+5. Run the MLX runtime preflight and confirm the accepted adapter path resolves
    before loading launchd.
-5. Load the private plist in the user launchd session only after private
+6. Load the private plist in the user launchd session only after private
    operator ownership is assigned.
-6. Check the local MLX server health and the ClaimGuard student status endpoint.
-7. Perform a supervised restart test and record only boolean evidence in
+7. Check the local MLX server health and the ClaimGuard student status endpoint.
+8. Perform a supervised restart test and record only boolean evidence in
    `llm-distill/data/runtime_supervision/supervisor_evidence.template.json`.
 
 ## Rollback To NVIDIA

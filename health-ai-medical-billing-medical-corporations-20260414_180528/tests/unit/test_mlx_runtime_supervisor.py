@@ -9,6 +9,7 @@ from types import ModuleType
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = REPO_ROOT / "llm-distill" / "scripts"
 VALIDATOR_SCRIPT = SCRIPT_DIR / "validate_mlx_runtime_supervisor.py"
+RENDERER_SCRIPT = SCRIPT_DIR / "render_mlx_launchd_private_copy.py"
 
 
 def _load_validator() -> ModuleType:
@@ -21,6 +22,22 @@ def _load_validator() -> ModuleType:
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_renderer() -> ModuleType:
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    spec = importlib.util.spec_from_file_location(
+        "render_mlx_launchd_private_copy",
+        RENDERER_SCRIPT,
+    )
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -96,6 +113,10 @@ def _ready_evidence(plist_path: Path, runbook_path: Path | None = None) -> dict:
         },
         "operator_controls": {
             "runtime_owner_configured": True,
+            "launchd_private_copy_renderer_available": True,
+            "launchd_private_copy_renderer_path": (
+                "llm-distill/scripts/render_mlx_launchd_private_copy.py"
+            ),
             "source_control_runbook_documented": True,
             "source_control_runbook_path": str(runbook_path),
             "source_control_owner_handoff_checklist_documented": True,
@@ -135,6 +156,7 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert report["supervisor_ready"] is False
     assert "mlx_runtime_supervisor_no_phi_or_secret_values" not in blocked_ids
     assert "mlx_runtime_supervisor_launchd_template" not in blocked_ids
+    assert "mlx_runtime_supervisor_private_copy_renderer" not in blocked_ids
     assert "mlx_runtime_supervisor_operator_runbook" not in blocked_ids
     assert "mlx_runtime_supervisor_owner_handoff_checklist" not in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation_checklist" not in blocked_ids
@@ -188,6 +210,15 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert launchd_requirement["status"] == "ready"
     assert launchd_requirement["evidence"]["raw_environment_values_included"] is False
     assert launchd_requirement["evidence"]["environment_variable_count"] == 1
+    renderer_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_copy_renderer"
+    )
+    assert renderer_requirement["status"] == "ready"
+    assert renderer_requirement["evidence"]["renderer_exists"] is True
+    assert renderer_requirement["evidence"]["missing_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     checklist_requirement = next(
         item
         for item in report["requirements"]
@@ -341,12 +372,12 @@ def test_supervisor_evidence_blocks_unapproved_launchd_environment_without_value
     validator = _load_validator()
     plist_path = tmp_path / "claimguard.mlx-student.plist"
     evidence_path = tmp_path / "supervisor_evidence.json"
-    raw_secret = "student-runtime-secret-value-do-not-write"
+    blocked_value = "student-runtime-value-do-not-write"
     _write_plist(
         plist_path,
         environment_variables={
             "CLAIMGUARD_RUNTIME_PROFILE": "unsafe_profile",
-            "NVIDIA_API_KEY": raw_secret,
+            "NVIDIA_API_KEY": blocked_value,
         },
     )
     _write_json(evidence_path, _ready_evidence(plist_path))
@@ -374,7 +405,7 @@ def test_supervisor_evidence_blocks_unapproved_launchd_environment_without_value
         "NVIDIA_API_KEY"
     ]
     assert launchd_requirement["evidence"]["raw_environment_values_included"] is False
-    assert raw_secret not in serialized
+    assert blocked_value not in serialized
     assert "unsafe_profile" not in serialized
 
 
@@ -382,9 +413,9 @@ def test_supervisor_evidence_blocks_raw_secret_values_without_emitting_them(tmp_
     validator = _load_validator()
     plist_path = tmp_path / "claimguard.mlx-student.plist"
     evidence_path = tmp_path / "supervisor_evidence.json"
-    raw_secret = "student-runtime-secret-value-do-not-write"
+    blocked_value = "student-runtime-value-do-not-write"
     evidence = _ready_evidence(plist_path)
-    evidence["runtime_secret"] = raw_secret
+    evidence["runtime_secret"] = blocked_value
     _write_plist(plist_path)
     _write_json(evidence_path, evidence)
 
@@ -394,4 +425,75 @@ def test_supervisor_evidence_blocks_raw_secret_values_without_emitting_them(tmp_
     assert report["safe_to_review"] is False
     assert report["supervisor_ready"] is False
     assert "raw approval, secret, or document value key is not allowed" in serialized
-    assert raw_secret not in serialized
+    assert blocked_value not in serialized
+
+
+def test_private_launchd_renderer_writes_redacted_safe_plist(tmp_path):
+    renderer = _load_renderer()
+    output_path = tmp_path / "claimguard.mlx-student.private.plist"
+    deployment_root = tmp_path / "private-claimguard"
+
+    summary = renderer.render_private_copy(
+        renderer.RenderConfig(
+            template_path=(
+                REPO_ROOT
+                / "llm-distill"
+                / "data"
+                / "runtime_supervision"
+                / "claimguard.mlx-student.launchd.template.plist"
+            ),
+            output_path=output_path,
+            deployment_root=deployment_root,
+            host="127.0.0.1",
+            port=8080,
+            model="Qwen/Qwen3-4B-MLX-4bit",
+            max_tokens=1800,
+        )
+    )
+    plist = plistlib.loads(output_path.read_bytes())
+    arguments = plist["ProgramArguments"]
+
+    assert summary["rendered"] is True
+    assert summary["output_path_in_source_control"] is False
+    assert summary["raw_paths_in_summary"] is False
+    assert summary["raw_environment_values_included"] is False
+    assert summary["values_redacted"] is True
+    assert output_path.stat().st_mode & 0o777 == 0o600
+    assert "/ABSOLUTE/PATH/TO" not in json.dumps(plist)
+    assert arguments[0].endswith("mlx_lm.server")
+    assert arguments[arguments.index("--host") + 1] == "127.0.0.1"
+    assert plist["EnvironmentVariables"] == {
+        "CLAIMGUARD_RUNTIME_PROFILE": "student_denial_workflow_local_only"
+    }
+
+
+def test_private_launchd_renderer_refuses_source_control_output(tmp_path):
+    renderer = _load_renderer()
+    repo_output = REPO_ROOT / "llm-distill" / "data" / "runtime_supervision" / "unsafe.plist"
+
+    try:
+        try:
+            renderer.render_private_copy(
+                renderer.RenderConfig(
+                    template_path=(
+                        REPO_ROOT
+                        / "llm-distill"
+                        / "data"
+                        / "runtime_supervision"
+                        / "claimguard.mlx-student.launchd.template.plist"
+                    ),
+                    output_path=repo_output,
+                    deployment_root=tmp_path / "private-claimguard",
+                    host="127.0.0.1",
+                    port=8080,
+                    model="Qwen/Qwen3-4B-MLX-4bit",
+                    max_tokens=1800,
+                )
+            )
+        except renderer.RenderError as exc:
+            assert str(exc) == "refusing_to_write_inside_source_control"
+        else:
+            raise AssertionError("renderer accepted a source-control output path")
+    finally:
+        if repo_output.exists():
+            repo_output.unlink()

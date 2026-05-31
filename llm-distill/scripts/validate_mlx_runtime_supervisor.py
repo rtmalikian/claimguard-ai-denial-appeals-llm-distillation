@@ -17,6 +17,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DISTILL_DIR = REPO_ROOT / "llm-distill"
 DEFAULT_EVIDENCE = DISTILL_DIR / "data" / "runtime_supervision" / "supervisor_evidence.template.json"
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "mlx_runtime_supervisor_report.json"
+DEFAULT_PRIVATE_COPY_RENDERER = (
+    DISTILL_DIR / "scripts" / "render_mlx_launchd_private_copy.py"
+)
 EXPECTED_ARTIFACT = "claimguard_mlx_runtime_supervisor_evidence"
 FORBIDDEN_VALUE_KEY_FRAGMENTS = {
     "api_key",
@@ -80,6 +83,15 @@ OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS = (
     "no approval reference values",
     "no raw runtime output",
     "supervisor_ready=false",
+)
+PRIVATE_COPY_RENDERER_REQUIRED_MARKERS = (
+    "Render a private MLX launchd plist copy without installing it.",
+    "refusing_to_write_inside_source_control",
+    "CLAIMGUARD_RUNTIME_PROFILE",
+    "student_denial_workflow_local_only",
+    "LOOPBACK_HOSTS",
+    "raw_environment_values_included",
+    "values_redacted",
 )
 FORBIDDEN_LAUNCHD_ENV_KEY_FRAGMENTS = {
     "api_key",
@@ -397,6 +409,59 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     )
 
 
+def private_copy_renderer_requirement(
+    evidence_path: Path,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    section = evidence.get("operator_controls", {})
+    configured = bool_value(section, "launchd_private_copy_renderer_available")
+    configured_path = str_value(section, "launchd_private_copy_renderer_path")
+    renderer_path = (
+        resolve_repo_path(configured_path, evidence_path)
+        if configured_path
+        else DEFAULT_PRIVATE_COPY_RENDERER
+    )
+    blockers: list[str] = []
+    present_marker_count = 0
+    missing_marker_count = len(PRIVATE_COPY_RENDERER_REQUIRED_MARKERS)
+    if not configured:
+        blockers.append("launchd_private_copy_renderer_not_available")
+    if not renderer_path.exists():
+        blockers.append("launchd_private_copy_renderer_missing")
+    else:
+        try:
+            renderer_text = renderer_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            renderer_text = ""
+            blockers.append("launchd_private_copy_renderer_must_be_utf8")
+        present_marker_count = sum(
+            1
+            for marker in PRIVATE_COPY_RENDERER_REQUIRED_MARKERS
+            if marker in renderer_text
+        )
+        missing_marker_count = (
+            len(PRIVATE_COPY_RENDERER_REQUIRED_MARKERS) - present_marker_count
+        )
+        if missing_marker_count:
+            blockers.append("launchd_private_copy_renderer_required_markers_missing")
+    return requirement(
+        requirement_id="mlx_runtime_supervisor_private_copy_renderer",
+        name="Private launchd plist renderer is source-controlled and safe",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "launchd_private_copy_renderer_available": configured,
+            "renderer_path": str(renderer_path),
+            "renderer_exists": renderer_path.exists(),
+            "required_marker_count": len(PRIVATE_COPY_RENDERER_REQUIRED_MARKERS),
+            "present_marker_count": present_marker_count,
+            "missing_marker_count": missing_marker_count,
+            "raw_renderer_text_included": False,
+            "values_redacted": True,
+        },
+    )
+
+
 def owner_handoff_checklist_requirement(evidence_path: Path, evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("operator_controls", {})
     checklist_configured = bool_value(
@@ -558,6 +623,7 @@ def build_report(evidence_path: Path) -> dict[str, Any]:
         evidence_format_requirement(evidence),
         no_phi_or_secret_values_requirement(evidence_path, evidence, plist_path),
         launchd_template_requirement(evidence if isinstance(evidence, dict) else {}, plist_path),
+        private_copy_renderer_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         operator_runbook_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         owner_handoff_checklist_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         operator_controls_requirement(evidence if isinstance(evidence, dict) else {}),
