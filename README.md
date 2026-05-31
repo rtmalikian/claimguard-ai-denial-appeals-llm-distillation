@@ -117,6 +117,11 @@ approval references, production documents, PHI, or raw claim data.
 - [Deployment guide](health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md)
 - [Backup and disaster recovery](health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md)
 
+The GitHub-facing README and technical distillation breakdown are checked by
+`python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`
+so the public link, analysis statistics, tool list, attribution, and redacted
+documentation posture do not silently drift.
+
 ## Commercial License And Use Restrictions
 
 This project is source-available under a commercial license, not open source

@@ -601,6 +601,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   testing, disaster recovery sequence, recovery objectives, and pre-production
   evidence checks without adding backup artifacts, credentials, PHI, production
   EDI files, raw documents, or production data to the repository.
+- Add public GitHub documentation drift validation with
+  `llm-distill/scripts/validate_public_repo_docs.py`. The validator checks that
+  `README.md` links to
+  `docs/technical-llm-distillation-analysis.md`, that the technical breakdown
+  includes aggregate LLM distillation statistics and tool references from
+  checked-in evidence reports, that Raphael Malikian attribution remains
+  present, and that public docs do not expose raw local paths, secret-shaped
+  values, PHI-like identifiers, source text, prompts, approval references, or
+  production document content.
 - Add local AI safety guardrails at
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/ai_safety.py`.
   Document analysis now treats denial-letter text as untrusted source evidence,

@@ -2,6 +2,54 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-05-31 16:55:41 PDT - Public distillation docs validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: ensure the GitHub-facing README links to a technical LLM distillation
+  breakdown with analysis statistics and tools used, and add a validator so the
+  public link, aggregate stats, tool list, attribution, and redacted public-doc
+  posture do not silently drift.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../README.md` | `backups/20260531-165223-public-distillation-docs/root/README.md.bak` | Documented the public-doc validation command under the existing technical LLM distillation breakdown link. | Restore backup over `../README.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260531-165223-public-distillation-docs/docs/technical-llm-distillation-analysis.md.bak` | Added report provenance/drift-guard statistics and removed a private temp-path literal from the public command example. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260531-165223-public-distillation-docs/root/PHIplan.md.bak` | Documented public GitHub documentation drift validation as a PHI-safe documentation control. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260531-165223-public-distillation-docs/app/implementation.md.bak` | Updated implementation tracking for README technical-link and public-doc validator coverage. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260531-165223-public-distillation-docs/app/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260531-165223-public-distillation-docs/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/scripts/validate_public_repo_docs.py`
+- `tests/unit/test_public_repo_docs.py`
+
+### Validation
+- `find backups/20260531-165223-public-distillation-docs -type f | sort`: passed; backups exist for every modified existing file.
+- `python3 -m py_compile ../llm-distill/scripts/validate_public_repo_docs.py tests/unit/test_public_repo_docs.py`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --json --fail-on-blocked`: passed with `ready=true`, `blocker_count=0`, `readme_links_technical_breakdown=true`, `expected_stat_count=30`, and `required_tool_marker_count=12`.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/claimguard-pycache python3 -m pytest tests/unit/test_public_repo_docs.py -q -p no:cacheprovider`: passed, 1 test.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json ../README.md ../docs/technical-llm-distillation-analysis.md ../PHIplan.md implementation.md ../llm-distill/scripts/validate_public_repo_docs.py tests/unit/test_public_repo_docs.py`: expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing implementation label text; the new validator and unit test had zero findings, and manual inspection found no raw PHI/PII values, secrets, approval references, production claim data, prompts, source text, or production documents introduced.
+- Secret-pattern scan over `git diff -- .`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Initial public-doc validation failed because the technical breakdown contained a private temp-path literal and omitted the current distillation total requirement count; fixed the public documentation and reran the validator successfully.
+- Avoided checking in raw model responses, raw documents, prompts, private approval references, local private paths, PHI, PII, secrets, production claim data, or production document content.
+- Avoided marking any production PHIplan gate ready; this slice is public documentation drift protection only.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260531-165223-public-distillation-docs/`, delete
+  `../llm-distill/scripts/validate_public_repo_docs.py`, and delete
+  `tests/unit/test_public_repo_docs.py`.
+- This slice satisfies the GitHub README technical-breakdown link request and
+  adds regression coverage; it does not complete the full PHIplan objective or
+  approve production readiness.
+
 ## 2026-05-31 16:45:16 PDT - Manual gate dependent report readiness gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

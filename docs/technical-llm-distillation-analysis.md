@@ -24,6 +24,27 @@ Primary evidence files:
 - [`llm-distill/evals/reports/student_acceptance_report.json`](../llm-distill/evals/reports/student_acceptance_report.json)
 - [`llm-distill/evals/reports/phi_plan_production_readiness_report.json`](../llm-distill/evals/reports/phi_plan_production_readiness_report.json)
 
+### Report Provenance And Drift Guard
+
+The GitHub-facing `README.md` links to this document, and
+`llm-distill/scripts/validate_public_repo_docs.py` checks that the link,
+required section headings, report links, tool references, architect
+attribution, and aggregate statistics remain present. The validator re-reads
+the checked-in JSON reports and blocks if the public docs omit the current
+values.
+
+Public-doc validation checks these aggregate evidence counts without exposing
+raw documents, prompts, source text, private approval references, PHI, or
+secrets:
+
+| Evidence area | Checked-in value |
+|---|---:|
+| Distillation ready requirements | 23 |
+| Distillation total requirements | 25 |
+| Public-doc expected statistic count | 30 |
+| Public-doc required tool markers | 12 |
+| Public-doc validation raw value exposure | 0 |
+
 ## Distillation Pipeline
 
 1. Source and safety specification
@@ -388,7 +409,7 @@ Run focused unit tests from the application directory:
 
 ```bash
 cd health-ai-medical-billing-medical-corporations-20260414_180528
-PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache \
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/claimguard-pycache \
   python3 -m pytest \
   tests/unit/test_retrieval_store.py \
   tests/unit/test_retrieval_semantic_provider.py \

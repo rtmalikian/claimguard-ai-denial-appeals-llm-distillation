@@ -438,6 +438,12 @@ runbook covering automated PostgreSQL dump procedure, off-repository encrypted
 storage rules, restore verification, recovery sequence, recovery objectives,
 and pre-production evidence without storing backup artifacts, credentials, PHI,
 or production document content in the repository.
+The public GitHub-facing README now links to a technical LLM distillation
+breakdown with analysis statistics and tools used, and the repository includes
+a public-doc validator that checks the link, section headings, report links,
+aggregate statistics, tool references, attribution, and absence of raw local
+paths, secret-shaped values, PHI-like identifiers, approval references, source
+text, prompts, and production document content in those public docs.
 AI safety hardening now adds local metadata-only prompt-injection detection,
 untrusted-document prompt boundaries, hallucination-risk checks for unsupported
 approval/payment/deadline/no-review certainty, deterministic document-analysis
@@ -1038,6 +1044,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Backup and disaster recovery runbook with off-repository encrypted
   backup storage rules, automated dump procedure, restore verification, and
   metadata-only evidence guidance
+- [x] Public GitHub README link to a technical LLM distillation breakdown with
+  analysis statistics and tools used, plus validator coverage for link
+  presence, report links, aggregate stats, tool markers, attribution, and
+  redacted public documentation posture
 - [x] AI safety guardrails for prompt-injection-like document instructions,
   hallucination-risk certainty language, and metadata-only NVIDIA unavailable
   fallback in document analysis and denial workflow
