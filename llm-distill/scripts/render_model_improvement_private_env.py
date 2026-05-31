@@ -110,6 +110,9 @@ def _validate_evidence_report(value: str) -> str:
         raise RenderError("evidence report path contains unsupported characters")
     if Path(cleaned).is_absolute():
         raise RenderError("evidence report path must be repository-relative")
+    report_path = (REPO_ROOT / cleaned).resolve()
+    if not path_is_within(report_path, REPO_ROOT):
+        raise RenderError("evidence report path must stay inside source control")
     return cleaned
 
 
@@ -123,10 +126,40 @@ def _validate_approved_attestations(config: RenderConfig) -> None:
         raise RenderError("approved model improvement requires explicit attestations")
 
 
+def _load_evidence_report(report_path: Path) -> dict[str, Any]:
+    if not report_path.exists():
+        raise RenderError("model-improvement evidence report is unavailable")
+    if not report_path.is_file():
+        raise RenderError("model-improvement evidence report path must be a file")
+    try:
+        payload = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RenderError("model-improvement evidence report is unreadable") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("model-improvement evidence report must be a JSON object")
+    return payload
+
+
+def _validate_evidence_report_ready(evidence_report: str) -> None:
+    report_path = (REPO_ROOT / evidence_report).resolve()
+    report = _load_evidence_report(report_path)
+    blocked_items = report.get("blocked_items")
+    blocked_item_count = report.get("blocked_item_count")
+    if report.get("safe_to_review") is not True:
+        raise RenderError("model-improvement evidence report is not safe to review")
+    if report.get("model_improvement_ready") is not True:
+        raise RenderError("model-improvement evidence report is not ready")
+    if blocked_item_count not in (0, None):
+        raise RenderError("model-improvement evidence report has blocked requirements")
+    if isinstance(blocked_items, list) and blocked_items:
+        raise RenderError("model-improvement evidence report has blocked requirements")
+
+
 def _build_environment(config: RenderConfig) -> dict[str, str]:
     evidence_report = _validate_evidence_report(config.evidence_report)
     if config.approved_model_improvement:
         _validate_approved_attestations(config)
+        _validate_evidence_report_ready(evidence_report)
         approval_reference = _load_private_value(
             config.approval_reference_env,
             "approval reference",
@@ -195,6 +228,8 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         "evidence_report_configured": bool(
             env["USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT"]
         ),
+        "evidence_report_checked": config.approved_model_improvement,
+        "evidence_report_ready": config.approved_model_improvement,
         "environment_variable_count": len(env),
         "output_path_in_source_control": False,
         "raw_env_values_included": False,

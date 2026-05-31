@@ -36,7 +36,9 @@ notice version, or configured with an approval reference.
 5. Configure the approval reference outside source control.
 6. Render the private environment file outside source control with
    `llm-distill/scripts/render_model_improvement_private_env.py`, and confirm
-   its command output includes redacted booleans/counts only.
+   its command output includes redacted booleans/counts only. Approved mode
+   must refuse to write an enabled env file unless the configured
+   model-improvement evidence report is safe to review, ready, and unblocked.
 7. Verify per-request attestations are enforced before any use of user data.
 8. Verify retention and revocation behavior before enabling any production
    model-improvement path.

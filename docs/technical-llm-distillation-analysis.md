@@ -215,10 +215,12 @@ gates are complete.
 The renderer refuses output inside source control, requires explicit legal,
 BAA, consent, request, retention, revocation, per-request attestation, and
 evidence-readiness attestations before approved mode, reads approval reference
-and consent notice version from private environment variables, writes the
-private env file with `0600` permissions, and prints only redacted
-booleans/counts. It does not approve user-data use, validate legal/BAA records,
-train a model, or store approval/consent values in checked-in reports.
+and consent notice version from private environment variables, verifies the
+configured model-improvement evidence report is safe, ready, and unblocked
+before writing an enabled private env, writes the private env file with `0600`
+permissions, and prints only redacted booleans/counts. It does not approve
+user-data use, validate legal/BAA records, train a model, or store
+approval/consent values in checked-in reports.
 
 ### Production Corpus Private Evidence Controls
 
@@ -334,7 +336,8 @@ Safety and validation:
   no-raw-output gates are complete.
 - `llm-distill/scripts/render_model_improvement_private_env.py` for private
   model-improvement env rendering after external legal, BAA, consent, and
-  approval gates are complete.
+  approval gates are complete and the configured evidence report is safe,
+  ready, and unblocked.
 - `llm-distill/scripts/render_production_corpus_private_evidence.py` for
   private boolean-only production corpus evidence rendering after approved
   non-synthetic pair, privacy, license, residual-risk, training-scope,

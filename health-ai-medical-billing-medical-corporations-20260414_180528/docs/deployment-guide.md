@@ -214,9 +214,12 @@ python3 ../llm-distill/scripts/render_model_improvement_private_env.py \
 ```
 
 The helper refuses source-control output, writes `0600`, and prints only
-redacted booleans/counts. Keep approval-reference values, consent values,
-legal/BAA documents, user data, PHI, credentials, and tokens out of source
-control, logs, screenshots, and changelogs.
+redacted booleans/counts. Approved mode also reads the configured
+model-improvement evidence report before writing and refuses to enable the
+private env if that report is missing, unsafe, blocked, or not ready. Keep
+approval-reference values, consent values, legal/BAA documents, user data, PHI,
+credentials, and tokens out of source control, logs, screenshots, and
+changelogs.
 
 ## Student Runtime Deployment Boundary
 

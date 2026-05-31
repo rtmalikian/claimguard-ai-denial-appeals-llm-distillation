@@ -898,6 +898,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   for per-request attestations, approved-corpus import opt-in blocking, safe
   audit logging review, and frontend blocker visibility while leaving legal
   approvals blocked
+- [x] Model-improvement private env renderer approved mode now refuses to write
+  an enabled private env unless the configured model-improvement evidence
+  report is safe to review, ready, and unblocked, preserving startup guard
+  parity while keeping legal approvals blocked
 - [x] User-data model-improvement evidence marks local governance controls
   ready for source-controlled approval runbook documentation, data-use scope
   documentation, retention review, and revocation-path review while keeping
@@ -1558,7 +1562,9 @@ query indexes.
   model-improvement evidence now requires the checked-in operator runbook at
   `llm-distill/docs/model-improvement-approval-runbook.md` and keeps
   `model_improvement_ready=false` until private approval, consent, BAA, and
-  explicit request gates are complete.
+  explicit request gates are complete. The private env renderer now also
+  verifies the configured evidence report is safe, ready, and unblocked before
+  writing enabled user-data model-improvement settings.
 - [ ] Add full corpus collection and licensing review before any training data
   build. Local progress: source-controlled collection/license checklist
   documentation is now required and validated, but real collection inventory,

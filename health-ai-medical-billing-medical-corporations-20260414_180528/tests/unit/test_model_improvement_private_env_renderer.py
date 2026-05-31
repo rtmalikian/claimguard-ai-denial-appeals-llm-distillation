@@ -11,6 +11,10 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = REPO_ROOT / "llm-distill" / "scripts"
 RENDERER_SCRIPT = SCRIPT_DIR / "render_model_improvement_private_env.py"
+READY_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/model_improvement_ready_report.json"
+)
 
 
 def _load_renderer() -> ModuleType:
@@ -44,6 +48,8 @@ def test_conservative_dry_run_redacts_values(tmp_path):
     assert summary["baa_confirmed"] is False
     assert summary["consent_notice_version_configured"] is False
     assert summary["approval_reference_configured"] is False
+    assert summary["evidence_report_checked"] is False
+    assert summary["evidence_report_ready"] is False
     assert summary["raw_env_values_included"] is False
     assert summary["approval_reference_value_included"] is False
     assert summary["consent_notice_value_included"] is False
@@ -84,6 +90,32 @@ def test_approved_mode_requires_private_reference_and_consent(tmp_path):
                 revocation_reviewed=True,
                 per_request_attestations_reviewed=True,
                 evidence_ready_attested=True,
+                evidence_report=READY_REPORT_FIXTURE,
+            )
+        )
+
+
+def test_approved_mode_requires_ready_evidence_report(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    monkeypatch.setenv(
+        renderer.DEFAULT_APPROVAL_REFERENCE_ENV,
+        "MODEL-IMPROVEMENT-REF-TEST",
+    )
+    monkeypatch.setenv(renderer.DEFAULT_CONSENT_NOTICE_ENV, "CONSENT-VERSION-TEST")
+
+    with pytest.raises(renderer.RenderError, match="evidence report is not ready"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "model-improvement.env",
+                approved_model_improvement=True,
+                model_improvement_request_attested=True,
+                legal_approval_attested=True,
+                baa_confirmed_attested=True,
+                consent_notice_attested=True,
+                retention_reviewed=True,
+                revocation_reviewed=True,
+                per_request_attestations_reviewed=True,
+                evidence_ready_attested=True,
             )
         )
 
@@ -108,6 +140,7 @@ def test_approved_mode_writes_private_env_and_redacts_summary(monkeypatch, tmp_p
             revocation_reviewed=True,
             per_request_attestations_reviewed=True,
             evidence_ready_attested=True,
+            evidence_report=READY_REPORT_FIXTURE,
         )
     )
 
@@ -121,6 +154,8 @@ def test_approved_mode_writes_private_env_and_redacts_summary(monkeypatch, tmp_p
     assert summary["baa_confirmed"] is True
     assert summary["consent_notice_version_configured"] is True
     assert summary["approval_reference_configured"] is True
+    assert summary["evidence_report_checked"] is True
+    assert summary["evidence_report_ready"] is True
     assert summary["values_redacted"] is True
     assert approval_reference in output_text
     assert consent_notice in output_text
@@ -129,6 +164,19 @@ def test_approved_mode_writes_private_env_and_redacts_summary(monkeypatch, tmp_p
     assert "USER_DATA_MODEL_IMPROVEMENT_ENABLED=true" in output_text
     assert "USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED=true" in output_text
     assert "USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED=true" in output_text
+    assert f"USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT={READY_REPORT_FIXTURE}" in output_text
+
+
+def test_evidence_report_path_must_stay_inside_source_control(tmp_path):
+    renderer = _load_renderer()
+
+    with pytest.raises(renderer.RenderError, match="inside source control"):
+        renderer.render_private_env(
+            renderer.RenderConfig(
+                output_path=tmp_path / "model-improvement.env",
+                evidence_report="../private-model-improvement-report.json",
+            )
+        )
 
 
 def test_renderer_refuses_source_control_output():
