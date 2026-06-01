@@ -2,6 +2,69 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 02:12:39 PDT - Prediction fairness private reference count validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the prediction-fairness private evidence renderer so approved
+  mode refuses to write ready private fairness evidence unless the private
+  aggregate monitoring summary matches the loaded private governance-reference
+  count and explicitly excludes private reference values.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-021001-prediction-fairness-private-report-gate/PHIplan.md` | Documented private monitoring-summary reference-count parity and the avoided circular self-report gate. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-021001-prediction-fairness-private-report-gate/docs/technical-llm-distillation-analysis.md` | Updated the technical breakdown to note private reference-count parity and redacted output behavior. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260601-021001-prediction-fairness-private-report-gate/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and the open fairness-monitoring item for private reference-count validation. | Restore backup over `implementation.md`. |
+| `../llm-distill/scripts/render_prediction_fairness_private_evidence.py` | `backups/20260601-021001-prediction-fairness-private-report-gate/llm-distill/scripts/render_prediction_fairness_private_evidence.py` | Added approved-mode private reference-count validation, mismatch refusal, private-reference/raw-value exclusion flags, and redacted summary counts. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_prediction_fairness_evidence.py` | `backups/20260601-021001-prediction-fairness-private-report-gate/llm-distill/scripts/validate_prediction_fairness_evidence.py` | Added private reference-count validation markers to the source-controlled prediction-fairness private renderer check. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/prediction_fairness_evidence_report.json` | `backups/20260601-021001-prediction-fairness-private-report-gate/llm-distill/evals/reports/prediction_fairness_evidence_report.json` | Refreshed prediction-fairness evidence; `prediction_fairness_monitoring_ready=false`, `safe_to_review=true`, `blocked=3`, and the private renderer has 28/28 markers. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_prediction_fairness_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-021001-prediction-fairness-private-report-gate/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-021001-prediction-fairness-private-report-gate/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_prediction_fairness_private_evidence_renderer.py` | `backups/20260601-021001-prediction-fairness-private-report-gate/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_private_evidence_renderer.py` | Added coverage for private reference-count mismatch refusal, private-reference-value flag refusal, and redacted count output in approved mode. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-021001-prediction-fairness-private-report-gate/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-021001-prediction-fairness-private-report-gate/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-021001-prediction-fairness-private-report-gate -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/render_prediction_fairness_private_evidence.py ../llm-distill/scripts/validate_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_private_evidence_renderer.py tests/unit/test_prediction_fairness_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_private_evidence_renderer.py tests/unit/test_prediction_fairness_evidence.py -q`: passed, 21 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_private_evidence_renderer.py tests/unit/test_prediction_fairness_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 69 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_prediction_fairness_evidence.py --report ../llm-distill/evals/reports/prediction_fairness_evidence_report.json`: passed with `prediction_fairness_monitoring_ready=False`, `safe_to_review=True`, `blocked=3`, and 28/28 private renderer markers present.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_prediction_fairness_evidence.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- Changed code/report PHI scan returned `{"findings": []}`. Documentation/changelog PHI scan findings were limited to expected Raphael attribution emails and existing label text; no raw PHI/PII values were introduced.
+- Value-shaped secret scan, JSON parsing checks, `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`, and `git diff --check` passed; no private references, private summary paths, raw demographic values, production outcome rows, legal/privacy documents, PHI, secrets, credentials, or production document content were introduced.
+
+### Failed Or Avoided Approaches
+- Avoided adding a self-referential report-readiness gate to
+  `../llm-distill/scripts/render_prediction_fairness_private_evidence.py`
+  because this renderer creates the evidence packet that the report validator
+  consumes; startup and manual gates still block production while the report is
+  missing, unsafe, blocked, or not ready.
+- Avoided accepting private monitoring summaries that omit private governance
+  reference counts, report mismatched counts, or claim private reference values
+  are included.
+- Avoided storing private references, private summary paths, raw demographic
+  values, production outcome rows, legal/privacy documents, PHI, secrets, or
+  production document content in source control.
+- Avoided marking prediction-fairness monitoring, the manual production gate,
+  or PHIplan production readiness complete; approved outcome data, sample size,
+  calibration, latest monitoring run, alert ownership, and legal/privacy review
+  remain external blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-021001-prediction-fairness-private-report-gate/`,
+  then rerun the prediction-fairness, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens the private prediction-fairness evidence handoff; it
+  does not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 02:03:25 PDT - Production corpus private summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

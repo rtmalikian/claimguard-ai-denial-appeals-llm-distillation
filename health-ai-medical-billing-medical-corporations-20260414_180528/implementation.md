@@ -338,11 +338,15 @@ requires approved outcome, sample-size, calibration, threshold-review,
 monitoring, latest-run, legal/privacy, rollback, metadata-only audit, and
 no-raw-value attestations before approved mode, reads private references and a
 private aggregate monitoring-summary path only from environment variables,
-validates required readiness booleans, positive aggregate counts, and explicit
-no-raw-value flags, rejects unsupported fields or raw-value inclusion flags,
-writes `0600` private output, and reports redacted booleans/counts without
-storing private references, private summary paths, raw demographic values, or
-production outcome rows.
+validates required readiness booleans, positive aggregate counts, private
+reference-count parity, and explicit no-raw-value flags, rejects unsupported
+fields, raw-value inclusion flags, or count mismatches, writes `0600` private
+output, and reports redacted booleans/counts without storing private
+references, private summary paths, raw demographic values, or production
+outcome rows. The renderer does not require its own evidence report before
+writing evidence because that report is produced by validating the rendered
+packet; startup and manual gates still block production while the report is
+missing, unsafe, blocked, or not ready.
 The manual production-gate packet now also carries
 `manual_prediction_fairness_monitoring_evidence`, including the dedicated
 prediction-fairness evidence-report readiness flag plus boolean-only outcome
@@ -1957,9 +1961,9 @@ def validate_npi(npi: str) -> bool:
   source-controlled monitoring runbook, calibration checklist, monitoring
   validation checklist, legal/privacy checklist, and private evidence renderer
   sub-gates are ready; the private renderer now validates a private aggregate
-  monitoring summary before ready evidence can be written, and the current
-  evidence remains blocked until approved outcome data and governance review
-  exist.
+  monitoring summary and private reference-count parity before ready evidence
+  can be written, and the current evidence remains blocked until approved
+  outcome data and governance review exist.
 - [ ] Corpus-derived MLX fine-tuning remains blocked in `--run` mode until
   `llm-distill/scripts/validate_production_corpus_evidence.py` produces a safe
   ready report with approved non-synthetic paired denial/appeal examples.

@@ -492,12 +492,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   no-raw-value attestations before approved mode, reads private governance
   references and a private aggregate monitoring-summary path from environment
   variables, validates that the summary has required readiness booleans,
-  positive aggregate counts, and explicit no-raw-value flags, and rejects
-  unsupported fields or raw-value inclusion flags. It writes private output
-  with `0600` permissions and prints only redacted booleans/counts. This
-  prepares the private fairness-evidence handoff without storing references,
-  private summary paths, raw demographic values, production outcome rows, claim
-  content, legal records, or approval documents in source control. The PHIplan
+  positive aggregate counts, private reference-count parity, and explicit
+  no-raw-value flags, and rejects unsupported fields, raw-value inclusion
+  flags, or count mismatches. It writes private output with `0600` permissions
+  and prints only redacted booleans/counts. This prepares the private
+  fairness-evidence handoff without storing references, private summary paths,
+  raw demographic values, production outcome rows, claim content, legal
+  records, or approval documents in source control. The renderer intentionally
+  does not require its own evidence report before writing evidence because that
+  report is produced by validating the rendered packet. The PHIplan
   production-readiness audit blocks
   on that report until approved outcome data, monitoring ownership, latest run
   evidence, and legal/privacy governance are complete outside source control.

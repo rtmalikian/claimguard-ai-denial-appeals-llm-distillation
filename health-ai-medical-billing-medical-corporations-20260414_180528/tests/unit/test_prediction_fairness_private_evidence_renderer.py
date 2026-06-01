@@ -71,7 +71,12 @@ def _monitoring_summary_payload(**overrides):
         "production_outcome_rows_included": False,
         "individual_identifiers_included": False,
         "approval_reference_values_included": False,
+        "private_reference_values_included": False,
+        "credential_values_included": False,
+        "phi_or_secret_values_included": False,
+        "production_document_content_included": False,
         "values_redacted": True,
+        "private_reference_count": 7,
         "evaluated_outcome_count": 240,
         "monitored_group_count": 6,
         "disparity_metric_count": 3,
@@ -221,6 +226,45 @@ def test_approved_mode_rejects_summary_with_raw_value_flags(monkeypatch, tmp_pat
         )
 
 
+def test_approved_mode_rejects_private_reference_count_mismatch(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    summary_path = tmp_path / "fairness-monitoring-summary.json"
+    _write_private_summary(summary_path, private_reference_count=6)
+    _set_private_references(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="private reference count mismatch"):
+        renderer.render_private_evidence(
+            _approved_config(
+                renderer,
+                tmp_path / "prediction-fairness.private.json",
+            )
+        )
+
+
+def test_approved_mode_rejects_private_reference_value_summary_flag(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    summary_path = tmp_path / "fairness-monitoring-summary.json"
+    _write_private_summary(summary_path, private_reference_values_included=True)
+    _set_private_references(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(
+        renderer.RenderError,
+        match="private_reference_values_included=false",
+    ):
+        renderer.render_private_evidence(
+            _approved_config(
+                renderer,
+                tmp_path / "prediction-fairness.private.json",
+            )
+        )
+
+
 def test_approved_mode_rejects_unsupported_private_summary_fields(
     monkeypatch,
     tmp_path,
@@ -266,6 +310,7 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(monkeypatch, t
     assert summary["private_monitoring_summary_checked"] is True
     assert summary["private_monitoring_summary_path_env_configured"] is True
     assert summary["private_monitoring_summary_path_value_included"] is False
+    assert summary["private_monitoring_summary_private_reference_count"] == 7
     assert summary["private_monitoring_summary_evaluated_outcome_count"] == 240
     assert summary["private_monitoring_summary_monitored_group_count"] == 6
     assert summary["private_monitoring_summary_disparity_metric_count"] == 3
@@ -279,6 +324,7 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(monkeypatch, t
     )
     assert payload["private_monitoring_summary_path_value_included"] is False
     assert payload["private_monitoring_summary_checked"] is True
+    assert payload["private_monitoring_summary_private_reference_count"] == 7
     assert payload["private_monitoring_summary_evaluated_outcome_count"] == 240
     assert payload["calibrated_threshold"]["approved_outcome_dataset_available"] is True
     assert payload["fairness_monitoring"]["latest_monitoring_run_passed"] is True

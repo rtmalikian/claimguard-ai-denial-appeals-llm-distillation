@@ -299,12 +299,17 @@ demographic-grouping, monitoring, alert-owner, latest-run, legal/privacy,
 rollback, metadata-only audit, and no-raw-value attestations before approved
 mode, reads private governance references and a private aggregate monitoring
 summary path from environment variables, validates required readiness booleans,
-positive aggregate counts, and explicit no-raw-value flags, and rejects
-unsupported fields or raw-value inclusion flags. The private evidence file is
-written with `0600` permissions and the command summary prints only redacted
-booleans/counts. It does not store the private references, private summary
-path, raw demographic values, production outcome rows, claim content, or
-approval documents in either the checked-in report or its command output.
+positive aggregate counts, private reference-count parity, and explicit
+no-raw-value flags, and rejects unsupported fields, raw-value inclusion flags,
+or count mismatches. The private evidence file is written with `0600`
+permissions and the command summary prints only redacted booleans/counts. It
+does not store the private references, private summary path, raw demographic
+values, production outcome rows, claim content, or approval documents in
+either the checked-in report or its command output. The renderer does not
+require its own prediction-fairness evidence report before writing evidence
+because that report is produced by validating the rendered evidence packet;
+startup and manual-gate controls continue to block production while that report
+is missing, unsafe, blocked, or not ready.
 
 ### Retrieval Vector Private Env Controls
 

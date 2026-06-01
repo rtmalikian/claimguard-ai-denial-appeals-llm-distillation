@@ -50,12 +50,17 @@ REQUIRED_MONITORING_SUMMARY_TRUE_FLAGS = {
     "values_redacted",
 }
 REQUIRED_MONITORING_SUMMARY_FALSE_FLAGS = {
+    "private_reference_values_included",
     "raw_demographic_values_included",
     "production_outcome_rows_included",
     "individual_identifiers_included",
     "approval_reference_values_included",
+    "credential_values_included",
+    "phi_or_secret_values_included",
+    "production_document_content_included",
 }
 REQUIRED_MONITORING_SUMMARY_POSITIVE_COUNTS = {
+    "private_reference_count",
     "evaluated_outcome_count",
     "monitored_group_count",
     "disparity_metric_count",
@@ -201,7 +206,11 @@ def _load_private_monitoring_summary_payload(summary_path: Path) -> dict[str, An
     return payload
 
 
-def _validate_private_monitoring_summary(summary_path: Path) -> dict[str, int]:
+def _validate_private_monitoring_summary(
+    summary_path: Path,
+    *,
+    private_reference_count: int,
+) -> dict[str, int]:
     payload = _load_private_monitoring_summary_payload(summary_path)
     unsupported_keys = sorted(set(payload) - ALLOWED_MONITORING_SUMMARY_KEYS)
     if unsupported_keys:
@@ -218,7 +227,11 @@ def _validate_private_monitoring_summary(summary_path: Path) -> dict[str, int]:
         if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
             raise RenderError(f"private monitoring summary requires positive {key}")
 
+    if payload["private_reference_count"] != private_reference_count:
+        raise RenderError("private monitoring summary private reference count mismatch")
+
     return {
+        "private_reference_count": int(payload["private_reference_count"]),
         "evaluated_outcome_count": int(payload["evaluated_outcome_count"]),
         "monitored_group_count": int(payload["monitored_group_count"]),
         "disparity_metric_count": int(payload["disparity_metric_count"]),
@@ -255,6 +268,7 @@ def _load_private_references(config: RenderConfig) -> list[str]:
 def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
     private_reference_count = 0
     private_monitoring_summary = {
+        "private_reference_count": 0,
         "evaluated_outcome_count": 0,
         "monitored_group_count": 0,
         "disparity_metric_count": 0,
@@ -265,10 +279,11 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         monitoring_summary_path = _load_private_monitoring_summary_path(
             config.monitoring_summary_path_env
         )
-        private_monitoring_summary = _validate_private_monitoring_summary(
-            monitoring_summary_path
-        )
         private_reference_count = len(_load_private_references(config))
+        private_monitoring_summary = _validate_private_monitoring_summary(
+            monitoring_summary_path,
+            private_reference_count=private_reference_count,
+        )
         status = "production_monitoring_ready"
         calibrated_ready = True
         monitoring_ready = True
@@ -293,6 +308,9 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         "private_monitoring_summary_path_configured": bool(config.approved_monitoring),
         "private_monitoring_summary_path_value_included": False,
         "private_monitoring_summary_checked": bool(config.approved_monitoring),
+        "private_monitoring_summary_private_reference_count": (
+            private_monitoring_summary["private_reference_count"]
+        ),
         "private_monitoring_summary_evaluated_outcome_count": (
             private_monitoring_summary["evaluated_outcome_count"]
         ),
@@ -397,6 +415,9 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
         "private_monitoring_summary_path_value_included": False,
         "private_monitoring_summary_checked": evidence[
             "private_monitoring_summary_checked"
+        ],
+        "private_monitoring_summary_private_reference_count": evidence[
+            "private_monitoring_summary_private_reference_count"
         ],
         "private_monitoring_summary_evaluated_outcome_count": evidence[
             "private_monitoring_summary_evaluated_outcome_count"
