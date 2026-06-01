@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = Path("/private/tmp/claimguard-production-corpus.private.evidence.json")
 DEFAULT_MANIFEST_PATH = "llm-distill/data/corpus/manifest.json"
 DEFAULT_PRIVATE_MANIFEST_PATH_ENV = "PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH"
+DEFAULT_PRIVATE_SUMMARY_PATH_ENV = "PRODUCTION_CORPUS_PRIVATE_SUMMARY_PATH"
 DEFAULT_PRIVACY_REVIEW_REFERENCE_ENV = "PRODUCTION_CORPUS_PRIVACY_REVIEW_REFERENCE"
 DEFAULT_LICENSE_REVIEW_REFERENCE_ENV = "PRODUCTION_CORPUS_LICENSE_REVIEW_REFERENCE"
 DEFAULT_RESIDUAL_RISK_REVIEW_REFERENCE_ENV = (
@@ -73,6 +74,7 @@ REQUIRED_ATTESTATIONS = {
 }
 ALLOWED_ENV_KEYS = {
     DEFAULT_PRIVATE_MANIFEST_PATH_ENV,
+    DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
     DEFAULT_PRIVACY_REVIEW_REFERENCE_ENV,
     DEFAULT_LICENSE_REVIEW_REFERENCE_ENV,
     DEFAULT_RESIDUAL_RISK_REVIEW_REFERENCE_ENV,
@@ -90,6 +92,56 @@ FORBIDDEN_ENV_KEY_FRAGMENTS = {
 }
 SAFE_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS = {
+    "approved_non_synthetic_pair_attested",
+    "privacy_review_attested",
+    "license_review_attested",
+    "residual_risk_review_attested",
+    "training_scope_reviewed",
+    "no_phi_review_attested",
+    "source_license_scope_documented",
+    "pair_ids_reviewed_outside_source_control",
+    "source_documents_reviewed_outside_source_control",
+    "metadata_only_manifest_attested",
+    "no_raw_document_content_attested",
+    "no_raw_values_attested",
+    "private_manifest_path_configured",
+    "private_manifest_metadata_checked",
+    "approved_non_synthetic_pair_metadata_ready",
+    "no_phi_or_secret_values_attested",
+    "values_redacted",
+}
+REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS = {
+    "private_summary_path_value_included",
+    "private_manifest_path_value_included",
+    "approval_reference_value_included",
+    "raw_private_values_included",
+    "raw_document_content_included",
+    "source_document_values_included",
+    "pair_id_values_included",
+    "source_paths_or_urls_included",
+    "checksum_values_included",
+    "credential_values_included",
+    "phi_or_secret_values_included",
+    "production_document_content_included",
+}
+REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS = {
+    "private_manifest_record_count",
+    "private_manifest_candidate_role_count",
+    "private_manifest_complete_pair_count",
+    "private_reference_count",
+    "pair_review_count",
+    "source_document_review_count",
+    "privacy_review_count",
+    "license_review_count",
+    "residual_risk_review_count",
+    "training_scope_review_count",
+}
+ALLOWED_PRIVATE_SUMMARY_KEYS = (
+    REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS
+)
 
 
 class RenderError(ValueError):
@@ -101,6 +153,7 @@ class RenderConfig:
     output_path: Path
     approved_production_corpus: bool = False
     private_manifest_path_env: str = DEFAULT_PRIVATE_MANIFEST_PATH_ENV
+    private_summary_path_env: str = DEFAULT_PRIVATE_SUMMARY_PATH_ENV
     privacy_review_reference_env: str = DEFAULT_PRIVACY_REVIEW_REFERENCE_ENV
     license_review_reference_env: str = DEFAULT_LICENSE_REVIEW_REFERENCE_ENV
     residual_risk_review_reference_env: str = (
@@ -175,6 +228,27 @@ def _load_private_manifest_path(env_name: str) -> Path:
     return manifest_path
 
 
+def _load_private_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private production corpus summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError(
+            "private production corpus summary path contains unsupported characters"
+        )
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError(
+            "private production corpus summary path must be outside source control"
+        )
+    if not summary_path.exists():
+        raise RenderError("private production corpus summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private production corpus summary path must be a file")
+    return summary_path
+
+
 def _load_private_manifest_payload(manifest_path: Path) -> dict[str, Any]:
     try:
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -184,6 +258,20 @@ def _load_private_manifest_payload(manifest_path: Path) -> dict[str, Any]:
         raise RenderError("private manifest must be valid JSON") from exc
     if not isinstance(payload, dict):
         raise RenderError("private manifest must be a JSON object")
+    return payload
+
+
+def _load_private_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError(
+            "private production corpus summary must be UTF-8 JSON"
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private production corpus summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private production corpus summary must be a JSON object")
     return payload
 
 
@@ -257,12 +345,80 @@ def _load_private_references(config: RenderConfig) -> list[str]:
     ]
 
 
-def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
+def _validate_private_production_corpus_summary(
+    summary_path: Path,
+    *,
+    private_reference_count: int,
+    private_manifest_metadata: dict[str, int],
+) -> dict[str, int]:
+    payload = _load_private_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_PRIVATE_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private production corpus summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private production corpus summary requires {key}=true")
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private production corpus summary requires {key}=false")
+
+    counts: dict[str, int] = {}
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(
+                f"private production corpus summary requires positive {key}"
+            )
+        counts[key] = int(value)
+
+    expected_counts = {
+        "private_manifest_record_count": private_manifest_metadata["record_count"],
+        "private_manifest_candidate_role_count": private_manifest_metadata[
+            "candidate_role_count"
+        ],
+        "private_manifest_complete_pair_count": private_manifest_metadata[
+            "complete_pair_count"
+        ],
+        "private_reference_count": private_reference_count,
+    }
+    for key, expected_value in expected_counts.items():
+        if counts[key] != expected_value:
+            raise RenderError(
+                "private production corpus summary manifest/reference count mismatch"
+            )
+    if counts["pair_review_count"] < private_manifest_metadata["complete_pair_count"]:
+        raise RenderError("private production corpus summary pair review count mismatch")
+    if (
+        counts["source_document_review_count"]
+        < private_manifest_metadata["candidate_role_count"]
+    ):
+        raise RenderError(
+            "private production corpus summary source-document review count mismatch"
+        )
+    return counts
+
+
+def _evidence_payload(
+    config: RenderConfig,
+) -> tuple[dict[str, Any], int, dict[str, int]]:
     private_reference_count = 0
     private_manifest_metadata = {
         "record_count": 0,
         "candidate_role_count": 0,
         "complete_pair_count": 0,
+    }
+    private_summary_counts = {
+        "private_manifest_record_count": 0,
+        "private_manifest_candidate_role_count": 0,
+        "private_manifest_complete_pair_count": 0,
+        "private_reference_count": 0,
+        "pair_review_count": 0,
+        "source_document_review_count": 0,
+        "privacy_review_count": 0,
+        "license_review_count": 0,
+        "residual_risk_review_count": 0,
+        "training_scope_review_count": 0,
     }
     if config.approved_production_corpus:
         _validate_approved_attestations(config)
@@ -271,14 +427,21 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         )
         private_manifest_metadata = _private_manifest_metadata(private_manifest_path)
         private_reference_count = len(_load_private_references(config))
+        private_summary_counts = _validate_private_production_corpus_summary(
+            _load_private_summary_path(config.private_summary_path_env),
+            private_reference_count=private_reference_count,
+            private_manifest_metadata=private_manifest_metadata,
+        )
         status = "production_corpus_ready_private_review_complete"
         manifest_path = None
         private_manifest_path_env = config.private_manifest_path_env
+        private_summary_path_env = config.private_summary_path_env
         corpus_ready = True
     else:
         status = "private_renderer_default_non_synthetic_pair_blocked"
         manifest_path = DEFAULT_MANIFEST_PATH
         private_manifest_path_env = None
+        private_summary_path_env = None
         corpus_ready = False
 
     evidence = {
@@ -290,9 +453,13 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         "no_raw_document_content_attested": True,
         "manifest_path": manifest_path,
         "private_manifest_path_env": private_manifest_path_env,
+        "private_summary_path_env": private_summary_path_env,
         "private_manifest_path_configured": corpus_ready,
         "private_manifest_path_value_included": False,
+        "private_summary_path_configured": corpus_ready,
+        "private_summary_path_value_included": False,
         "private_manifest_metadata_checked": corpus_ready,
+        "private_production_corpus_summary_checked": corpus_ready,
         "private_manifest_record_count": private_manifest_metadata["record_count"],
         "private_manifest_candidate_role_count": private_manifest_metadata[
             "candidate_role_count"
@@ -331,7 +498,7 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
             "source_documents_reviewed_outside_source_control": corpus_ready,
         },
     }
-    return evidence, private_reference_count
+    return evidence, private_reference_count, private_summary_counts
 
 
 def _json_file_text(payload: dict[str, Any]) -> str:
@@ -343,7 +510,9 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
     if path_is_within(output_path, REPO_ROOT):
         raise RenderError("refusing_to_write_inside_source_control")
 
-    evidence, private_reference_count = _evidence_payload(config)
+    evidence, private_reference_count, private_summary_counts = _evidence_payload(
+        config
+    )
     review = evidence["corpus_review"]
     pairing = evidence["pairing_requirements"]
     summary = {
@@ -382,6 +551,44 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
         "private_manifest_complete_pair_count": evidence[
             "private_manifest_complete_pair_count"
         ],
+        "private_production_corpus_summary_checked": evidence[
+            "private_production_corpus_summary_checked"
+        ],
+        "private_production_corpus_summary_path_env_configured": (
+            bool(evidence["private_summary_path_env"])
+        ),
+        "private_production_corpus_summary_path_value_included": False,
+        "private_production_corpus_summary_manifest_record_count": (
+            private_summary_counts["private_manifest_record_count"]
+        ),
+        "private_production_corpus_summary_candidate_role_count": (
+            private_summary_counts["private_manifest_candidate_role_count"]
+        ),
+        "private_production_corpus_summary_complete_pair_count": (
+            private_summary_counts["private_manifest_complete_pair_count"]
+        ),
+        "private_production_corpus_summary_private_reference_count": (
+            private_summary_counts["private_reference_count"]
+        ),
+        "private_production_corpus_summary_pair_review_count": (
+            private_summary_counts["pair_review_count"]
+        ),
+        "private_production_corpus_summary_source_document_review_count": (
+            private_summary_counts["source_document_review_count"]
+        ),
+        "private_production_corpus_summary_privacy_review_count": (
+            private_summary_counts["privacy_review_count"]
+        ),
+        "private_production_corpus_summary_license_review_count": (
+            private_summary_counts["license_review_count"]
+        ),
+        "private_production_corpus_summary_residual_risk_review_count": (
+            private_summary_counts["residual_risk_review_count"]
+        ),
+        "private_production_corpus_summary_training_scope_review_count": (
+            private_summary_counts["training_scope_review_count"]
+        ),
+        "private_production_corpus_summary_raw_values_included": False,
         "private_manifest_path_value_included": False,
         "raw_private_values_included": False,
         "approval_reference_value_included": False,
@@ -406,6 +613,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         output_path=args.output,
         approved_production_corpus=args.approved_production_corpus,
         private_manifest_path_env=args.private_manifest_path_env,
+        private_summary_path_env=args.private_summary_path_env,
         privacy_review_reference_env=args.privacy_review_reference_env,
         license_review_reference_env=args.license_review_reference_env,
         residual_risk_review_reference_env=args.residual_risk_review_reference_env,
@@ -438,6 +646,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--private-manifest-path-env",
         default=DEFAULT_PRIVATE_MANIFEST_PATH_ENV,
+    )
+    parser.add_argument(
+        "--private-summary-path-env",
+        default=DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
     )
     parser.add_argument(
         "--privacy-review-reference-env",

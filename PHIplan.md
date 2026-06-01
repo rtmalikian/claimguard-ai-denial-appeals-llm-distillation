@@ -1006,16 +1006,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   non-synthetic pair, privacy, license, residual-risk, training-scope, no-PHI,
   source/license, pair-id, source-document, metadata-only manifest,
   no-raw-document, and no-raw-value attestations before approved mode, reads
-  private manifest and review references from environment variables, verifies
-  the private manifest metadata contains at least one approved non-synthetic
-  denial/appeal pair before writing ready private evidence, stores only the
-  manifest-path environment variable name in private evidence, writes private
-  output with `0600` permissions, and prints only redacted booleans/counts. The
-  validator resolves the private manifest path from that environment variable
-  at operator runtime without emitting the raw path in reports. This prepares
-  the private production-corpus evidence handoff without
-  storing raw denial letters, raw appeal letters, source paths, private
-  manifest paths, checksums, approval references, credentials, PHI, secrets, or
+  private manifest and review references plus a private aggregate production
+  corpus summary path from environment variables, verifies the private manifest
+  metadata contains at least one approved non-synthetic denial/appeal pair
+  before writing ready private evidence, validates required private summary
+  readiness booleans, positive manifest/review counts, no-raw-value flags,
+  unsupported-field rejection, and count mismatch refusal, stores only
+  environment-variable names in private evidence, writes private output with
+  `0600` permissions, and prints only redacted booleans/counts. The validator
+  resolves the private manifest path from that environment variable at operator
+  runtime without emitting the raw path in reports. This prepares the private
+  production-corpus evidence handoff without storing raw denial letters, raw
+  appeal letters, source paths, private manifest paths, private summary paths,
+  checksums, approval references, pair ids, credentials, PHI, secrets, or
   production document content in source control.
 - Add a non-secret MLX student runtime supervisor evidence template at
   `llm-distill/data/runtime_supervision/` plus
@@ -1231,8 +1234,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   ready, add at least one approved non-synthetic paired denial/appeal source
   reviewed outside source control, render the final private corpus evidence
   file with `llm-distill/scripts/render_production_corpus_private_evidence.py`,
-  confirm that only the private manifest-path environment variable name is
-  serialized, then rerun
+  provide the private aggregate production corpus summary required by approved
+  mode, confirm that only environment-variable names are serialized for private
+  paths, then rerun
   `llm-distill/scripts/validate_production_corpus_evidence.py`.
 - When adding future automated file-ingestion workflows beyond
   `/api/v1/claims/upload-document`, `/api/v1/claims/batch-upload`, and

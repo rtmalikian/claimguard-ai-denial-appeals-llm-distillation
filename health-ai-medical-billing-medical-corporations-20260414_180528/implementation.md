@@ -893,9 +893,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   source/license, pair-id, source-document, metadata-only manifest,
   no-raw-document, and no-raw-value attestations for approved mode, reads
   private manifest/review references from environment variables only, serializes
-  only the private manifest-path env var name, writes `0600` output, and reports
-  redacted booleans/counts while preserving external non-synthetic-pair
-  blockers
+  only private path env var names, validates a private aggregate production
+  corpus summary for required readiness booleans, positive manifest/review
+  counts, no-raw-value flags, unsupported-field rejection, and count mismatch
+  refusal, writes `0600` output, and reports redacted booleans/counts while
+  preserving external non-synthetic-pair blockers
 - [x] Boolean-only user-data model-improvement evidence template, validator,
   and report wired into PHIplan production-readiness blockers
 - [x] Boolean-only prediction fairness monitoring evidence template, validator,
@@ -1648,8 +1650,11 @@ query indexes.
   `llm-distill/scripts/render_production_corpus_private_evidence.py` can render
   the final private evidence file only after external pair/source and review
   attestations exist and private manifest metadata contains at least one
-  approved non-synthetic denial/appeal pair, while keeping raw private manifest
-  paths out of evidence and validator reports.
+  approved non-synthetic denial/appeal pair, while also validating a private
+  aggregate production corpus summary and keeping raw private manifest paths,
+  private summary paths, approval references, pair ids, source paths, checksums,
+  PHI, secrets, and production document content out of evidence and validator
+  reports.
 - [ ] Configure real legal approval reference, BAA confirmation, and consent
   notice version before enabling user-data model improvement. Local progress:
   model-improvement evidence now requires the checked-in operator runbook at

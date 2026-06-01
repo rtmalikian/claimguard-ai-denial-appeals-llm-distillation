@@ -2,6 +2,75 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 02:03:25 PDT - Production corpus private summary validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the production-corpus private evidence renderer so approved
+  mode refuses to write ready private production corpus evidence unless a
+  private aggregate production-corpus summary has been validated.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/PHIplan.md` | Documented private aggregate production-corpus summary validation before ready private corpus evidence can be written. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/docs/technical-llm-distillation-analysis.md` | Updated the technical breakdown to note private production-corpus summary validation and redacted output behavior. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and the open production-corpus item for private summary validation. | Restore backup over the same path. |
+| `llm-distill/scripts/render_production_corpus_private_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/llm-distill/scripts/render_production_corpus_private_evidence.py` | Added approved-mode private summary path loading, JSON validation, required readiness booleans, positive manifest/review counts, no-raw-value flags, unsupported-field rejection, count mismatch refusal, and redacted summary counts. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_production_corpus_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/llm-distill/scripts/validate_production_corpus_evidence.py` | Added private summary validation markers to the source-controlled production-corpus private evidence renderer check. | Restore backup over the same path. |
+| `llm-distill/evals/reports/production_corpus_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/llm-distill/evals/reports/production_corpus_evidence_report.json` | Refreshed production-corpus evidence; `production_corpus_ready=false`, `safe_to_review=true`, `blocked=1`, and the private renderer has 24/24 markers. | Restore backup over the same path or rerun `llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py` | Added coverage for required private summary paths, source-control path refusal, incomplete summary refusal, raw-value flag refusal, unsupported field refusal, count mismatch refusal, and redacted summary counts in approved output. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/render_production_corpus_private_evidence.py llm-distill/scripts/validate_production_corpus_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py`: passed, 23 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 71 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_production_corpus_evidence.py --report llm-distill/evals/reports/production_corpus_evidence_report.json`: passed with `production_corpus_ready=False`, `safe_to_review=True`, `blocked=1`, and 24/24 private renderer markers present.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_production_corpus_evidence.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- Changed code/report PHI scan returned `{"findings": []}`. Documentation/changelog PHI scan findings were limited to expected Raphael attribution emails and existing label text; no raw PHI/PII values were introduced.
+- Value-shaped secret scan, JSON parsing checks, `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`, and `git diff --check` passed; no private manifest paths, private summary paths, approval reference values, pair ids, source paths, checksums, credentials, PHI, secrets, raw denial letters, raw appeal letters, or production document content were introduced.
+
+### Failed Or Avoided Approaches
+- The first backup command accidentally used zsh's special `path` variable and
+  did not copy files; no edits had been made, and the backup was rerun with a
+  non-reserved variable before implementation.
+- The first focused pytest run failed with an `IndentationError` in the newly
+  patched summary validator; the indentation was corrected before final
+  validation.
+- The first expected-blocked wrappers used zsh's read-only `status` variable
+  after validators ran; they were rerun with a safe variable name and returned
+  the expected exit status 2.
+- The first token-format scan pattern was too broad and matched hyphenated
+  label text such as `risk-review`; the final value-shaped scan used token
+  boundaries and returned no findings.
+- Avoided treating approved-mode attestations, private review references, or
+  private manifest metadata as sufficient production-corpus readiness without a
+  private aggregate summary.
+- Avoided accepting arbitrary private summary fields that could smuggle
+  approval references, pair ids, source paths, checksums, raw documents, PHI,
+  secrets, or unsupported production evidence into the private evidence
+  artifact.
+- Avoided marking production corpus readiness, the manual production gate, or
+  PHIplan production readiness complete; approved non-synthetic denial/appeal
+  pair review remains an external blocker.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-015800-production-corpus-private-summary-validation/`,
+  then rerun the production-corpus, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens the private production-corpus evidence handoff; it
+  does not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 01:51:09 PDT - Retrieval vector private env summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

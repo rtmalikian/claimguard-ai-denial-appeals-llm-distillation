@@ -271,12 +271,16 @@ review, pair/source, metadata-only manifest, no-raw-document, and no-raw-value
 attestations before approved mode, reads the private manifest path and review
 references from environment variables, validates that the private manifest
 metadata contains at least one approved non-synthetic denial/appeal pair before
-writing ready private evidence, stores only the manifest-path env var name in
-private evidence, writes the private evidence file with `0600` permissions, and
-prints only redacted booleans/counts. The validator resolves that env var at
+writing ready private evidence, and validates a private aggregate production
+corpus summary for required readiness booleans, positive manifest/review
+counts, no-raw-value flags, unsupported-field rejection, and count mismatch
+refusal. It stores only environment-variable names in private evidence, writes
+the private evidence file with `0600` permissions, and prints only redacted
+booleans/counts. The validator resolves the private manifest env var at
 operator runtime without emitting the raw private manifest path in reports. It
 does not add approved production pairs, open raw source documents, or store
-review reference values in checked-in reports.
+review reference values, private summary paths, pair ids, source paths,
+checksums, PHI, secrets, or production document content in checked-in reports.
 
 ### Prediction-Fairness Private Evidence Controls
 
@@ -397,8 +401,9 @@ Safety and validation:
 - `llm-distill/scripts/render_production_corpus_private_evidence.py` for
   private boolean-only production corpus evidence rendering after approved
   non-synthetic pair, privacy, license, residual-risk, training-scope,
-  pair/source, and metadata-only manifest gates are complete, with private
-  manifest paths resolved from env vars and redacted from output evidence.
+  pair/source, and metadata-only manifest gates are complete, with approved
+  mode validating private manifest metadata and a private aggregate production
+  corpus summary before ready evidence can be written.
 - `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
   private boolean-only prediction-fairness evidence rendering after approved
   outcome, monitoring, latest-run, and legal/privacy gates are complete, with

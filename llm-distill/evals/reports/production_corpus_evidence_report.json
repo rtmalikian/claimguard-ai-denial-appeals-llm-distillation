@@ -46,7 +46,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-06-01T07:28:57.408095+00:00",
+  "generated_at": "2026-06-01T09:02:31.968833+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -159,12 +159,12 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 17,
+        "present_marker_count": 24,
         "private_evidence_renderer_exists": true,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_production_corpus_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
-        "required_marker_count": 17,
+        "required_marker_count": 24,
         "source_control_private_evidence_renderer_documented": true,
         "values_redacted": true
       },
