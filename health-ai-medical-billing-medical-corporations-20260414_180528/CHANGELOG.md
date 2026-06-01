@@ -2,6 +2,57 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 13:09:25 PDT - Production readiness repo-relative path reporting
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: keep the checked-in PHIplan production-readiness report useful for
+  reviewers while preventing local absolute workstation paths or arbitrary
+  outside evidence paths from being written into top-level readiness evidence.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-130444-production-readiness-relative-paths/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added `safe_report_path(...)` so source-controlled evidence paths serialize as repo-relative paths and outside paths in load errors serialize as `external_path_redacted`. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-130444-production-readiness-relative-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Regenerated the top-level PHIplan readiness report with repo-relative evidence paths; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warnings=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260601-130444-production-readiness-relative-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added regression coverage for repo-relative evidence paths and outside-path redaction. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-130444-production-readiness-relative-paths/PHIplan.md.bak` | Documented repo-relative path serialization and outside-path redaction for the top-level PHIplan production-readiness report. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-130444-production-readiness-relative-paths/docs/technical-llm-distillation-analysis.md.bak` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-130444-production-readiness-relative-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-130444-production-readiness-relative-paths/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-130444-production-readiness-relative-paths -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 13 tests, 1 existing SQLAlchemy deprecation warning.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_monitoring_metrics.py -q`: passed, 19 tests, 8 existing framework deprecation warnings.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/|external_path_redacted" ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with no matches.
+- Expected blocked PHIplan check with `--fail-on-blocked` returned exit status 2, preserving current production blockers.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries in `../PHIplan.md` and `../docs/technical-llm-distillation-analysis.md`; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, approval values, raw report values, local workstation paths, credentials, or adapter weight contents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw report values, adapter weight contents, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing any PHIplan blocker semantics or marking approval-driven
+  gates ready.
+- Avoided emitting caller-provided outside paths in load errors; outside paths
+  are reduced to `external_path_redacted`.
+- Avoided broad normalization of older low-level reports in this slice; this
+  change is scoped to the top-level PHIplan production-readiness report.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-130444-production-readiness-relative-paths/`, then rerun
+  `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` if
+  refreshed top-level readiness evidence is needed after rollback.
+- This slice improves public-report hygiene; it does not complete the full
+  PHIplan objective or clear the six current production blockers.
+
 ## 2026-06-01 12:58:28 PDT - Student acceptance source-control path hardening
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

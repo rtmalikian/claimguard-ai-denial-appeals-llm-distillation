@@ -527,6 +527,99 @@ def test_production_audit_does_not_emit_secret_reference_values(tmp_path):
     assert '"approval_reference_configured": true' in serialized
 
 
+def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
+    monkeypatch,
+    tmp_path,
+):
+    audit = _load_audit()
+    repo_root = tmp_path / "repo"
+    report_dir = repo_root / "llm-distill" / "evals" / "reports"
+    data_dir = repo_root / "llm-distill" / "data"
+    app_dir = repo_root / "health-ai-medical-billing-medical-corporations-20260414_180528"
+    distillation_report = report_dir / "distillation.json"
+    corpus_manifest = data_dir / "corpus" / "manifest.json"
+    synthetic_run = report_dir / "synthetic_900_run.json"
+    manual_gate_packet_report = report_dir / "manual_gate_packet_report.json"
+    runtime_supervisor_report = report_dir / "runtime_supervisor_report.json"
+    vector_backend_report = report_dir / "vector_backend_report.json"
+    production_corpus_report = report_dir / "production_corpus_report.json"
+    model_improvement_report = report_dir / "model_improvement_report.json"
+    file_ingestion_surface_report = report_dir / "file_ingestion_surface_report.json"
+    prediction_fairness_report = report_dir / "prediction_fairness_report.json"
+    production_compose = app_dir / "docker-compose.production.yml"
+    monitoring_module = app_dir / "app" / "api" / "v1" / "monitoring.py"
+    outside_missing_report = tmp_path / "outside" / "private-report.json"
+
+    monkeypatch.setattr(audit, "REPO_ROOT", repo_root)
+    _write_json(distillation_report, {"release_ready": True})
+    _write_json(
+        corpus_manifest,
+        {
+            "records": [
+                _manifest_record(pair_id="PAIR-SYN-1", role="denial_letter"),
+                _manifest_record(pair_id="PAIR-SYN-1", role="appeal_letter"),
+            ]
+        },
+    )
+    _write_json(synthetic_run, _synthetic_900_report())
+    _write_json(manual_gate_packet_report, _manual_gate_packet_report(False))
+    _write_json(runtime_supervisor_report, _runtime_supervisor_report(False))
+    _write_json(vector_backend_report, _vector_backend_report(False))
+    _write_json(production_corpus_report, _production_corpus_evidence_report(False))
+    _write_json(model_improvement_report, _model_improvement_evidence_report(False))
+    _write_json(file_ingestion_surface_report, _file_ingestion_surface_report(True))
+    _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(False))
+    _write_compose(
+        production_compose,
+        {
+            name: "${" + name + (":-" + default if default else "") + "}"
+            for name, default in audit.REQUIRED_PRODUCTION_COMPOSE_GUARD_DEFAULTS.items()
+        },
+    )
+    monitoring_module.parent.mkdir(parents=True, exist_ok=True)
+    monitoring_module.write_text(
+        "\n".join(
+            [
+                *(f"{name} = '{name}'" for name in sorted(audit.REQUIRED_MONITORING_GATE_METRICS)),
+                '@router.get("/phi-plan-readiness")',
+                "_safe_phi_plan_readiness_payload",
+                "blocked_requirement_ids",
+                "ready_requirement_ids",
+                "raw_report_paths_included",
+                "raw_evidence_included",
+                "raw_approval_or_reference_values_included",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    report = audit.build_report(
+        settings_like=_settings(),
+        corpus_manifest_path=corpus_manifest,
+        distillation_report_path=distillation_report,
+        synthetic_900_run_report_path=synthetic_run,
+        manual_gate_packet_report_path=manual_gate_packet_report,
+        runtime_supervisor_report_path=runtime_supervisor_report,
+        vector_backend_report_path=vector_backend_report,
+        production_corpus_report_path=production_corpus_report,
+        model_improvement_report_path=model_improvement_report,
+        file_ingestion_surface_report_path=file_ingestion_surface_report,
+        prediction_fairness_report_path=prediction_fairness_report,
+        production_compose_path=production_compose,
+        monitoring_module_path=monitoring_module,
+    )
+    serialized = json.dumps(report, sort_keys=True)
+    _, missing_errors = audit.load_json(outside_missing_report)
+
+    assert str(repo_root) not in serialized
+    assert "llm-distill/evals/reports/distillation.json" in serialized
+    assert "llm-distill/data/corpus/manifest.json" in serialized
+    assert "health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml" in serialized
+    assert missing_errors == ["missing file: external_path_redacted"]
+    assert str(outside_missing_report) not in json.dumps(missing_errors)
+
+
 def test_production_audit_blocks_unready_file_ingestion_surface_report(tmp_path):
     audit = _load_audit()
     report_path = tmp_path / "file_ingestion_surface_report.json"

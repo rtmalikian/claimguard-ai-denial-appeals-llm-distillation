@@ -15,7 +15,7 @@
           "manual_student_default_cutover_evidence",
           "manual_user_data_model_improvement_evidence"
         ],
-        "packet_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+        "packet_report_path": "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
         "production_gate_ready": false,
         "safe_to_review": true
       },
@@ -36,7 +36,7 @@
         "approval_reference_configured": false,
         "cutover_approved": false,
         "distillation_release_ready": true,
-        "distillation_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+        "distillation_report_path": "llm-distill/evals/reports/distillation_readiness_audit_report.json",
         "rollback_to_nvidia": false,
         "runtime_supervised": false,
         "runtime_supervisor_blocked_requirement_ids": [
@@ -45,7 +45,7 @@
           "mlx_runtime_supervisor_runtime_validation"
         ],
         "runtime_supervisor_ready": false,
-        "runtime_supervisor_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+        "runtime_supervisor_report_path": "llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
         "runtime_supervisor_safe_to_review": true,
         "student_auto_launch_requested": false,
         "student_use_by_default": false
@@ -73,7 +73,7 @@
         "model_improvement_blocked_requirement_ids": [
           "model_improvement_legal_controls"
         ],
-        "model_improvement_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/model_improvement_evidence_report.json",
+        "model_improvement_report_path": "llm-distill/evals/reports/model_improvement_evidence_report.json",
         "model_improvement_report_ready": false,
         "model_improvement_report_safe_to_review": true
       },
@@ -105,7 +105,7 @@
           "retrieval_vector_backend_runtime_validation"
         ],
         "vector_backend_has_url_or_credentials": false,
-        "vector_backend_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/retrieval_vector_backend_report.json",
+        "vector_backend_report_path": "llm-distill/evals/reports/retrieval_vector_backend_report.json",
         "vector_backend_report_ready": false,
         "vector_backend_report_safe_to_review": true
       },
@@ -133,13 +133,13 @@
           "public_government_source": 7,
           "synthetic_deidentified_pair": 6
         },
-        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "manifest_path": "llm-distill/data/corpus/manifest.json",
         "minimum_required_production_pair_count": 1,
         "production_corpus_blocked_requirement_ids": [
           "production_corpus_manifest_pair_evidence",
           "production_corpus_private_summary_metadata"
         ],
-        "production_corpus_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/production_corpus_evidence_report.json",
+        "production_corpus_report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
         "production_corpus_report_ready": false,
         "production_corpus_report_safe_to_review": true,
         "record_count": 13,
@@ -163,7 +163,7 @@
           "prediction_fairness_governance_controls",
           "prediction_fairness_private_monitoring_summary"
         ],
-        "prediction_fairness_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+        "prediction_fairness_report_path": "llm-distill/evals/reports/prediction_fairness_evidence_report.json",
         "prediction_fairness_report_ready": false,
         "prediction_fairness_report_safe_to_review": true,
         "values_redacted": true
@@ -174,7 +174,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T19:57:12.293476+00:00",
+  "generated_at": "2026-06-01T20:08:18.887328+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -209,7 +209,7 @@
       "evidence": {
         "api_environment_found": true,
         "approval_reference_values_included": false,
-        "compose_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml",
+        "compose_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml",
         "configured_guard_env_var_count": 19,
         "forbidden_guard_env_vars": [],
         "missing_guard_env_vars": [],
@@ -235,7 +235,7 @@
           "registered_count": 3,
           "unregistered_count": 0
         },
-        "surface_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
+        "surface_report_path": "llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
         "values_redacted": true
       },
       "name": "Automated file-ingestion endpoints have PHI surface and governance coverage",
@@ -248,7 +248,7 @@
       "evidence": {
         "missing_runtime_metrics": [],
         "missing_source_metrics": [],
-        "monitoring_module_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
+        "monitoring_module_path": "health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
         "raw_approval_or_report_values_included": false,
         "raw_document_text_included": false,
         "raw_metric_output_included": false,
@@ -270,7 +270,7 @@
       "evidence": {
         "missing_payload_keys": [],
         "missing_source_markers": [],
-        "monitoring_module_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
+        "monitoring_module_path": "health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py",
         "raw_approval_or_report_values_included": false,
         "raw_document_text_included": false,
         "raw_evidence_included": false,
@@ -302,7 +302,7 @@
           "manual_student_default_cutover_evidence",
           "manual_user_data_model_improvement_evidence"
         ],
-        "packet_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+        "packet_report_path": "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
         "production_gate_ready": false,
         "safe_to_review": true
       },
@@ -323,7 +323,7 @@
         "approval_reference_configured": false,
         "cutover_approved": false,
         "distillation_release_ready": true,
-        "distillation_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+        "distillation_report_path": "llm-distill/evals/reports/distillation_readiness_audit_report.json",
         "rollback_to_nvidia": false,
         "runtime_supervised": false,
         "runtime_supervisor_blocked_requirement_ids": [
@@ -332,7 +332,7 @@
           "mlx_runtime_supervisor_runtime_validation"
         ],
         "runtime_supervisor_ready": false,
-        "runtime_supervisor_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+        "runtime_supervisor_report_path": "llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
         "runtime_supervisor_safe_to_review": true,
         "student_auto_launch_requested": false,
         "student_use_by_default": false
@@ -360,7 +360,7 @@
         "model_improvement_blocked_requirement_ids": [
           "model_improvement_legal_controls"
         ],
-        "model_improvement_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/model_improvement_evidence_report.json",
+        "model_improvement_report_path": "llm-distill/evals/reports/model_improvement_evidence_report.json",
         "model_improvement_report_ready": false,
         "model_improvement_report_safe_to_review": true
       },
@@ -392,7 +392,7 @@
           "retrieval_vector_backend_runtime_validation"
         ],
         "vector_backend_has_url_or_credentials": false,
-        "vector_backend_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/retrieval_vector_backend_report.json",
+        "vector_backend_report_path": "llm-distill/evals/reports/retrieval_vector_backend_report.json",
         "vector_backend_report_ready": false,
         "vector_backend_report_safe_to_review": true
       },
@@ -420,13 +420,13 @@
           "public_government_source": 7,
           "synthetic_deidentified_pair": 6
         },
-        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "manifest_path": "llm-distill/data/corpus/manifest.json",
         "minimum_required_production_pair_count": 1,
         "production_corpus_blocked_requirement_ids": [
           "production_corpus_manifest_pair_evidence",
           "production_corpus_private_summary_metadata"
         ],
-        "production_corpus_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/production_corpus_evidence_report.json",
+        "production_corpus_report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
         "production_corpus_report_ready": false,
         "production_corpus_report_safe_to_review": true,
         "record_count": 13,
@@ -450,7 +450,7 @@
           "prediction_fairness_governance_controls",
           "prediction_fairness_private_monitoring_summary"
         ],
-        "prediction_fairness_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+        "prediction_fairness_report_path": "llm-distill/evals/reports/prediction_fairness_evidence_report.json",
         "prediction_fairness_report_ready": false,
         "prediction_fairness_report_safe_to_review": true,
         "values_redacted": true
@@ -470,7 +470,7 @@
         "data_ready": true,
         "manifest_ready": true,
         "no_metal_device": true,
-        "run_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
+        "run_report_path": "llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
         "training_attempted": false,
         "training_succeeded": null
       },
@@ -507,7 +507,7 @@
         "data_ready": true,
         "manifest_ready": true,
         "no_metal_device": true,
-        "run_report_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
+        "run_report_path": "llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
         "training_attempted": false,
         "training_succeeded": null
       },

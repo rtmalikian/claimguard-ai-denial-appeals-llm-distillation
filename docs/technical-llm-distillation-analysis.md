@@ -187,6 +187,12 @@ Performance details from the checked-in live benchmark reports:
 | Complete approved production pair count | 0 |
 | Prediction fairness report ready | false |
 
+The top-level PHIplan production-readiness report uses repository-relative
+paths for source-controlled evidence and redacts outside paths from load-error
+evidence. This keeps public readiness metadata useful without publishing local
+workstation paths, approval values, PHI, secrets, raw source text, vectors, or
+production outcome rows.
+
 The synthetic-900 SFT export is ready as a data artifact, but its full LoRA run
 is blocked in the current headless session because MLX cannot access a Metal
 device. That block is recorded separately from the reviewed-label adapter run.

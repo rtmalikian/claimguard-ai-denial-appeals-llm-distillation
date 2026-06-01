@@ -151,6 +151,17 @@ COMPOSE_ENV_INTERPOLATION_RE = re.compile(
     r"^\$\{(?P<name>[A-Z0-9_]+)(?::-(?P<default>.*))?\}$"
 )
 PROMETHEUS_METRIC_RE = re.compile(r"^([a-zA-Z_:][a-zA-Z0-9_:]*)\s+[-+]?\d", re.MULTILINE)
+EXTERNAL_PATH_REDACTION = "external_path_redacted"
+
+
+def safe_report_path(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    resolved_path = path.expanduser().resolve()
+    try:
+        return resolved_path.relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return EXTERNAL_PATH_REDACTION
 
 
 def load_runtime_settings() -> Any:
@@ -165,11 +176,11 @@ def load_runtime_settings() -> Any:
 
 def load_json(path: Path) -> tuple[Any | None, list[str]]:
     if not path.exists():
-        return None, [f"missing file: {path}"]
+        return None, [f"missing file: {safe_report_path(path)}"]
     try:
         return json.loads(path.read_text(encoding="utf-8")), []
     except json.JSONDecodeError as exc:
-        return None, [f"invalid JSON: {path}: {exc}"]
+        return None, [f"invalid JSON: {safe_report_path(path)}: {exc}"]
 
 
 def attr_bool(settings_like: Any, name: str, default: bool = False) -> bool:
@@ -281,7 +292,7 @@ def production_compose_startup_guard_env_requirement(compose_path: Path) -> dict
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "compose_path": str(compose_path),
+            "compose_path": safe_report_path(compose_path),
             "api_environment_found": bool(env_values),
             "required_guard_env_var_count": len(required_names),
             "configured_guard_env_var_count": len(required_names - set(missing_names)),
@@ -381,7 +392,7 @@ def monitoring_gate_metrics_requirement(monitoring_module_path: Path) -> dict[st
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "monitoring_module_path": str(monitoring_module_path),
+            "monitoring_module_path": safe_report_path(monitoring_module_path),
             "required_metric_count": len(REQUIRED_MONITORING_GATE_METRICS),
             "source_metric_count": len(metric_names_in_source),
             "runtime_metric_count": len(runtime_metric_names),
@@ -554,7 +565,7 @@ def monitoring_readiness_endpoint_requirement(
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "monitoring_module_path": str(monitoring_module_path),
+            "monitoring_module_path": safe_report_path(monitoring_module_path),
             "required_source_marker_count": len(REQUIRED_MONITORING_READINESS_ENDPOINT_MARKERS),
             "source_marker_count": len(source_markers_present),
             "missing_source_markers": missing_source_markers,
@@ -633,7 +644,7 @@ def student_cutover_requirement(
     supervisor_ready: bool | None = None
     supervisor_blocked_requirement_ids: list[str] = []
     if runtime_supervisor_report_path is not None:
-        supervisor_report_path = str(runtime_supervisor_report_path)
+        supervisor_report_path = safe_report_path(runtime_supervisor_report_path)
         supervisor_report, supervisor_errors = load_json(runtime_supervisor_report_path)
         errors.extend(supervisor_errors)
         if isinstance(supervisor_report, dict):
@@ -667,7 +678,7 @@ def student_cutover_requirement(
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "distillation_report_path": str(distillation_report_path),
+            "distillation_report_path": safe_report_path(distillation_report_path),
             "distillation_release_ready": distillation_release_ready,
             "student_use_by_default": student_use_default,
             "student_auto_launch_requested": student_auto_launch,
@@ -702,7 +713,7 @@ def model_improvement_requirement(
     report_blocked_requirement_ids: list[str] = []
     errors: list[str] = []
     if model_improvement_report_path is not None:
-        report_path = str(model_improvement_report_path)
+        report_path = safe_report_path(model_improvement_report_path)
         model_improvement_report, model_improvement_errors = load_json(model_improvement_report_path)
         errors.extend(model_improvement_errors)
         if isinstance(model_improvement_report, dict):
@@ -756,7 +767,7 @@ def prediction_fairness_monitoring_requirement(
     report_blocked_requirement_ids: list[str] = []
     errors: list[str] = []
     if prediction_fairness_report_path is not None:
-        report_path = str(prediction_fairness_report_path)
+        report_path = safe_report_path(prediction_fairness_report_path)
         fairness_report, fairness_errors = load_json(prediction_fairness_report_path)
         errors.extend(fairness_errors)
         if isinstance(fairness_report, dict):
@@ -831,7 +842,7 @@ def vector_backend_requirement(
     report_blocked_requirement_ids: list[str] = []
     errors: list[str] = []
     if vector_backend_report_path is not None:
-        report_path = str(vector_backend_report_path)
+        report_path = safe_report_path(vector_backend_report_path)
         vector_report, vector_errors = load_json(vector_backend_report_path)
         errors.extend(vector_errors)
         if isinstance(vector_report, dict):
@@ -908,7 +919,7 @@ def production_corpus_requirement(
     report_ready: bool | None = None
     report_blocked_requirement_ids: list[str] = []
     if production_corpus_report_path is not None:
-        report_path = str(production_corpus_report_path)
+        report_path = safe_report_path(production_corpus_report_path)
         corpus_report, corpus_errors = load_json(production_corpus_report_path)
         blockers.extend(corpus_errors)
         if isinstance(corpus_report, dict):
@@ -951,7 +962,7 @@ def production_corpus_requirement(
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "manifest_path": str(corpus_manifest_path),
+            "manifest_path": safe_report_path(corpus_manifest_path),
             "record_count": len(records),
             "counts_by_source_type": counts_by_source_type,
             "training_source_types": training_source_types,
@@ -970,7 +981,7 @@ def production_corpus_requirement(
 def synthetic_900_adapter_requirement(run_report_path: Path) -> dict[str, Any]:
     payload, errors = load_json(run_report_path)
     warnings = list(errors)
-    evidence: dict[str, Any] = {"run_report_path": str(run_report_path)}
+    evidence: dict[str, Any] = {"run_report_path": safe_report_path(run_report_path)}
     if isinstance(payload, dict):
         blocked_reasons = [
             str(reason) for reason in payload.get("blocked_reasons", []) if str(reason).strip()
@@ -1050,7 +1061,7 @@ def manual_gate_packet_requirement(packet_report_path: Path) -> dict[str, Any]:
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "packet_report_path": str(packet_report_path),
+            "packet_report_path": safe_report_path(packet_report_path),
             "safe_to_review": safe_to_review,
             "production_gate_ready": production_gate_ready,
             "blocked_item_count": blocked_item_count,
@@ -1086,7 +1097,7 @@ def file_ingestion_surface_requirement(surface_report_path: Path) -> dict[str, A
         status="blocked" if blockers else "ready",
         blockers=blockers,
         evidence={
-            "surface_report_path": str(surface_report_path),
+            "surface_report_path": safe_report_path(surface_report_path),
             "ready": ready,
             "summary": summary,
             "blocked_reasons": blocked_reasons,

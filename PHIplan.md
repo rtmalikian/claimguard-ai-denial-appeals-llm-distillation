@@ -870,6 +870,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   prediction-fairness monitoring evidence reports so reviewers can identify
   exact remaining gates without exposing nested approval values, PHI, secrets,
   source paths, vectors, raw demographic values, outcome rows, or raw documents.
+  It now serializes source-controlled evidence paths as repository-relative
+  paths and redacts outside-report paths in load errors so the checked-in
+  top-level readiness report does not expose local workstation paths.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at
