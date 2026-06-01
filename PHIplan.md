@@ -1057,15 +1057,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   private launchd copy, restart-policy, health-check, manual-start, rollback,
   environment-file exclusion, preflight, status endpoint, runtime health,
   launchd load, restart-test, and no-raw-value attestations before approved
-  mode, reads private launchd plist and validation references from environment
-  variables, parses the private plist before writing approved evidence, and
-  rejects non-loopback hosts, missing `mlx_lm.server`/`--adapter-path`/`--port`
-  arguments, unsafe runtime profiles, missing KeepAlive/log/working-directory
-  settings, and unapproved or secret-like environment keys. It writes private
-  output with `0600` permissions and prints only redacted booleans/counts. This
-  prepares the private runtime-supervision evidence handoff without storing
-  private plist values, runtime owner values, approval references, logs,
-  endpoint responses, model output, PHI, or secrets in source control.
+  mode, reads private launchd plist, validation references, and a private
+  aggregate runtime-summary path from environment variables, parses the private
+  plist, validates required private runtime owner/preflight/health/load/restart
+  summary booleans, positive aggregate counts, and explicit no-raw-value flags
+  before writing approved evidence, and rejects non-loopback hosts, missing
+  `mlx_lm.server`/`--adapter-path`/`--port` arguments, unsafe runtime profiles,
+  missing KeepAlive/log/working-directory settings, unapproved or secret-like
+  environment keys, unsupported private summary fields, and incomplete summary
+  counts. It writes private output with `0600` permissions and prints only
+  redacted booleans/counts. This prepares the private runtime-supervision
+  evidence handoff without storing private plist values, private summary paths,
+  runtime owner values, approval references, logs, endpoint responses, model
+  output, PHI, or secrets in source control.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,
@@ -1246,6 +1250,7 @@ plan plus the active ClaimGuard `AGENTS.md`.
   follow `llm-distill/docs/mlx-runtime-supervisor-runbook.md`, render the
   final private supervisor evidence file with
   `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py`,
+  and provide the private aggregate runtime summary required by approved mode;
   then rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py` before
   setting supervised runtime flags.
 - Configure the production semantic embedding backend/vector store outside

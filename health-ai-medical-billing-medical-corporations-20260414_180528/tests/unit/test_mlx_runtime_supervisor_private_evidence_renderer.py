@@ -84,6 +84,72 @@ def _write_private_plist(
     path.write_bytes(plistlib.dumps(payload))
 
 
+def _private_summary_payload(**overrides):
+    payload = {
+        "runtime_owner_attested": True,
+        "private_launchd_copy_attested": True,
+        "restart_policy_reviewed": True,
+        "health_check_reviewed": True,
+        "manual_start_command_reviewed": True,
+        "rollback_to_nvidia_reviewed": True,
+        "environment_file_excluded_attested": True,
+        "mlx_runtime_preflight_ready": True,
+        "student_status_endpoint_checked": True,
+        "student_runtime_health_ok": True,
+        "supervisor_loaded_in_user_session": True,
+        "supervisor_restart_test_passed": True,
+        "private_plist_reviewed": True,
+        "private_plist_loopback_reviewed": True,
+        "private_plist_runtime_profile_reviewed": True,
+        "private_plist_environment_reviewed": True,
+        "private_references_configured": True,
+        "runtime_scope_reviewed": True,
+        "rollback_path_reviewed": True,
+        "no_raw_values_attested": True,
+        "values_redacted": True,
+        "private_summary_path_value_included": False,
+        "private_plist_path_value_included": False,
+        "owner_reference_value_included": False,
+        "preflight_reference_value_included": False,
+        "health_reference_value_included": False,
+        "restart_reference_value_included": False,
+        "rollback_reference_value_included": False,
+        "raw_private_values_included": False,
+        "raw_runtime_output_included": False,
+        "endpoint_output_included": False,
+        "model_output_included": False,
+        "approval_reference_value_included": False,
+        "runtime_owner_value_included": False,
+        "credential_values_included": False,
+        "phi_or_secret_values_included": False,
+        "production_document_content_included": False,
+        "private_reference_count": 5,
+        "private_plist_count": 1,
+        "launchd_program_argument_count": 11,
+        "launchd_environment_variable_count": 1,
+        "required_environment_variable_count": 1,
+        "operator_control_count": 7,
+        "runtime_validation_count": 5,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def _write_private_summary(path: Path, **overrides) -> None:
+    path.write_text(
+        json.dumps(
+            _private_summary_payload(**overrides),
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
+def _set_private_summary(monkeypatch, renderer: ModuleType, summary_path: Path) -> None:
+    monkeypatch.setenv(renderer.DEFAULT_PRIVATE_SUMMARY_PATH_ENV, str(summary_path))
+
+
 def _set_private_references(
     monkeypatch,
     renderer: ModuleType,
@@ -120,6 +186,9 @@ def test_conservative_dry_run_redacts_values(tmp_path):
     assert summary["raw_private_values_included"] is False
     assert summary["raw_runtime_output_included"] is False
     assert summary["private_plist_path_value_included"] is False
+    assert summary["private_supervisor_summary_checked"] is False
+    assert summary["private_supervisor_summary_path_value_included"] is False
+    assert summary["private_supervisor_summary_raw_values_included"] is False
     assert "RUNTIME-OWNER-REF-TEST" not in serialized
     assert not output_path.exists()
 
@@ -148,6 +217,21 @@ def test_approved_mode_requires_private_plist_path(tmp_path):
         )
 
 
+def test_approved_mode_requires_private_summary_path(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    _write_private_plist(plist_path)
+    _set_private_references(monkeypatch, renderer, plist_path)
+
+    with pytest.raises(
+        renderer.RenderError,
+        match="private supervisor summary path env var is required",
+    ):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
 def test_approved_mode_rejects_source_control_private_plist(monkeypatch, tmp_path):
     renderer = _load_renderer()
     source_control_plist = (
@@ -165,11 +249,96 @@ def test_approved_mode_rejects_source_control_private_plist(monkeypatch, tmp_pat
         )
 
 
+def test_approved_mode_rejects_source_control_summary_path(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    _write_private_plist(plist_path)
+    _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, RENDERER_SCRIPT)
+
+    with pytest.raises(renderer.RenderError, match="outside source control"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_incomplete_private_summary(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
+    _write_private_plist(plist_path)
+    _write_private_summary(summary_path, runtime_scope_reviewed=False)
+    _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="runtime_scope_reviewed=true"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_private_summary_raw_value_flags(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
+    _write_private_plist(plist_path)
+    _write_private_summary(summary_path, endpoint_output_included=True)
+    _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="endpoint_output_included=false"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_unsupported_private_summary_fields(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
+    _write_private_plist(plist_path)
+    _write_private_summary(summary_path, runtime_owner="redacted")
+    _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="unsupported fields"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_private_summary_count_mismatch(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
+    _write_private_plist(plist_path)
+    _write_private_summary(summary_path, private_reference_count=4)
+    _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="private reference count mismatch"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
 def test_approved_mode_rejects_non_loopback_private_plist(monkeypatch, tmp_path):
     renderer = _load_renderer()
     plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
     _write_private_plist(plist_path, host="0.0.0.0")
+    _write_private_summary(summary_path)
     _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
 
     with pytest.raises(renderer.RenderError, match="loopback host"):
         renderer.render_private_evidence(
@@ -183,6 +352,7 @@ def test_approved_mode_rejects_secret_like_private_plist_env_key(
 ):
     renderer = _load_renderer()
     plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
     _write_private_plist(
         plist_path,
         environment={
@@ -190,7 +360,9 @@ def test_approved_mode_rejects_secret_like_private_plist_env_key(
             "PAYER_API_TOKEN": "redacted-test-value",
         },
     )
+    _write_private_summary(summary_path)
     _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
 
     with pytest.raises(renderer.RenderError, match="secret-like environment keys"):
         renderer.render_private_evidence(
@@ -201,13 +373,16 @@ def test_approved_mode_rejects_secret_like_private_plist_env_key(
 def test_approved_mode_rejects_unsafe_runtime_profile(monkeypatch, tmp_path):
     renderer = _load_renderer()
     plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
     _write_private_plist(
         plist_path,
         environment={
             "CLAIMGUARD_RUNTIME_PROFILE": "production_or_remote_runtime",
         },
     )
+    _write_private_summary(summary_path)
     _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
 
     with pytest.raises(renderer.RenderError, match="unsafe runtime profile"):
         renderer.render_private_evidence(
@@ -221,8 +396,11 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
 ):
     renderer = _load_renderer()
     plist_path = tmp_path / "private-launchd.plist"
+    summary_path = tmp_path / "runtime-summary.json"
     _write_private_plist(plist_path)
+    _write_private_summary(summary_path)
     private_values = _set_private_references(monkeypatch, renderer, plist_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
     output_path = tmp_path / "mlx-supervisor.private.json"
 
     summary = renderer.render_private_evidence(
@@ -242,6 +420,17 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert summary["supervisor_loaded_in_user_session"] is True
     assert summary["supervisor_restart_test_passed"] is True
     assert summary["private_reference_count"] == len(private_values) - 1
+    assert summary["private_supervisor_summary_checked"] is True
+    assert summary["private_supervisor_summary_path_env_configured"] is True
+    assert summary["private_supervisor_summary_path_value_included"] is False
+    assert summary["private_supervisor_summary_private_reference_count"] == 5
+    assert summary["private_supervisor_summary_private_plist_count"] == 1
+    assert summary["private_supervisor_summary_launchd_program_argument_count"] == 11
+    assert summary["private_supervisor_summary_launchd_environment_variable_count"] == 1
+    assert summary["private_supervisor_summary_required_environment_variable_count"] == 1
+    assert summary["private_supervisor_summary_operator_control_count"] == 7
+    assert summary["private_supervisor_summary_runtime_validation_count"] == 5
+    assert summary["private_supervisor_summary_raw_values_included"] is False
     assert summary["private_plist_metadata_checked"] is True
     assert summary["private_plist_program_arguments_checked"] is True
     assert summary["private_plist_environment_checked"] is True
@@ -253,11 +442,23 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert summary["private_plist_path_value_included"] is False
     assert summary["values_redacted"] is True
     assert str(plist_path) not in serialized_summary
+    assert str(summary_path) not in output_text
+    assert str(summary_path) not in serialized_summary
     assert payload["evidence_status"] == (
         "supervisor_ready_private_runtime_validation_complete"
     )
     assert payload["launchd_template"]["plist_path"] == str(plist_path)
     assert payload["private_plist_validation"]["private_plist_uses_loopback"] is True
+    assert (
+        payload["private_summary_validation"]["private_supervisor_summary_checked"]
+        is True
+    )
+    assert (
+        payload["private_summary_validation"][
+            "private_supervisor_summary_path_value_included"
+        ]
+        is False
+    )
     assert (
         payload["private_plist_validation"]["private_plist_runtime_profile_ok"]
         is True

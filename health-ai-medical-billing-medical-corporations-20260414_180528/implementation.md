@@ -1054,6 +1054,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   MLX server/adapter/port arguments, unsafe runtime profiles, missing launchd
   operational settings, and unapproved or secret-like environment keys before
   writing ready private evidence
+- [x] MLX runtime supervisor private evidence renderer approved mode now also
+  validates a private aggregate runtime summary for required owner, preflight,
+  health, load, restart, rollback, no-raw-value booleans, positive aggregate
+  counts, explicit raw-value exclusion flags, unsupported-field rejection, and
+  count mismatch refusal before writing ready private evidence
 - [x] Student default cutover now has a source-controlled private env renderer
   that refuses repository output, requires approval/runtime/distillation/
   rollback attestations for approved-cutover mode, reads the approval reference
@@ -1669,9 +1674,10 @@ query indexes.
   `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` while keeping
   `supervisor_ready=false`; a private launchd plist renderer is now available
   for non-installing operator preparation, and the private supervisor evidence
-  renderer now validates the private plist structure before ready evidence can
-  be written. Private owner assignment, runtime preflight, health/status
-  checks, launchd load evidence, and restart testing remain required.
+  renderer now validates the private plist structure and a private aggregate
+  runtime summary before ready evidence can be written. Private owner
+  assignment, runtime preflight, health/status checks, launchd load evidence,
+  and restart testing remain required.
 
 ### 6.2 Documentation
 - [x] Create API documentation with authentication requirements

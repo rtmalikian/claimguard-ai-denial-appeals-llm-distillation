@@ -43,7 +43,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
-  "generated_at": "2026-06-01T07:36:47.618325+00:00",
+  "generated_at": "2026-06-01T08:40:15.227102+00:00",
   "notes": [
     "This validator reads local JSON and plist templates only; it does not install launchd services, start mlx_lm.server, call model endpoints, or enable student default routing.",
     "Approval references, environment secrets, and production document details must remain outside source control.",
@@ -127,12 +127,12 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 24,
+        "present_marker_count": 33,
         "private_evidence_renderer_exists": true,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
-        "required_marker_count": 24,
+        "required_marker_count": 33,
         "source_control_private_evidence_renderer_documented": true,
         "values_redacted": true
       },

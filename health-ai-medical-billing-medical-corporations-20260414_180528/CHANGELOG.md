@@ -2,6 +2,58 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 01:40:41 PDT - MLX supervisor private summary validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the MLX runtime supervisor private evidence renderer so
+  approved mode refuses to write ready supervisor evidence unless a private
+  aggregate runtime summary has been validated.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/PHIplan.md` | Documented private aggregate runtime-summary validation before ready MLX supervisor evidence can be written. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/docs/technical-llm-distillation-analysis.md` | Updated the technical breakdown to note private runtime-summary validation for MLX supervisor evidence rendering. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and the open supervisor item for private runtime-summary validation. | Restore backup over `implementation.md`. |
+| `../llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` | Added approved-mode private runtime-summary path loading, JSON validation, required readiness booleans, positive aggregate counts, no-raw-value flags, unsupported-field rejection, count mismatch refusal, and redacted summary counts. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added private runtime-summary validation markers to the source-controlled MLX supervisor private evidence renderer check. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed MLX supervisor evidence; `supervisor_ready=false`, `safe_to_review=true`, `blocked=2`, and the private evidence renderer has 33/33 markers. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py` | Added coverage for required private summary paths, source-control path refusal, incomplete summary refusal, raw-value flag refusal, unsupported field refusal, count mismatch refusal, and redacted summary counts in approved output. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-013707-mlx-supervisor-private-summary-validation/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-013707-mlx-supervisor-private-summary-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py ../llm-distill/scripts/validate_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py -q`: passed, 15 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py tests/unit/test_mlx_runtime_supervisor.py -q`: passed, 27 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 75 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_mlx_runtime_supervisor.py --report ../llm-distill/evals/reports/mlx_runtime_supervisor_report.json`: passed with `supervisor_ready=False`, `safe_to_review=True`, `blocked=2`, and 33/33 private evidence renderer markers present.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_mlx_runtime_supervisor.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- Changed code/report PHI scan returned `{"findings": []}`. Documentation/changelog PHI scan findings were limited to expected Raphael attribution emails and existing label text; no raw PHI/PII values were introduced.
+- Value-shaped secret scan, JSON parsing checks, `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`, and `git diff --check` passed; no secrets, runtime owner values, approval/reference values, private summary paths, raw runtime output, endpoint output, model output, or production document content were introduced.
+
+### Failed Or Avoided Approaches
+- Avoided treating explicit attestations, private plist validation, and private references as sufficient runtime-supervisor readiness evidence.
+- Avoided storing private summary paths, runtime owner values, private reference values, raw endpoint output, model output, raw runtime output, credentials, PHI, secrets, or production document content in checked-in reports.
+- Avoided accepting arbitrary private summary fields that could smuggle identifiers, endpoint values, runtime output, credentials, or unsupported evidence into the ready supervisor evidence artifact.
+- Avoided marking MLX runtime supervision, student cutover, the manual production gate, or PHIplan production readiness complete; private runtime ownership, live runtime validation, external approval, and supervisor evidence remain blocked.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-013707-mlx-supervisor-private-summary-validation/`, then
+  rerun the MLX supervisor, manual gate, and PHIplan readiness validators if
+  refreshed reports are needed after rollback.
+- This slice strengthens the private MLX runtime supervisor handoff; it does
+  not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 01:28:47 PDT - Model-improvement private summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
