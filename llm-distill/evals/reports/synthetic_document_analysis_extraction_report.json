@@ -4,8 +4,8 @@
   "blockers": [],
   "evidence": {
     "checked_denial_count": 900,
-    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
-    "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "corpus_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
+    "manifest_path": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
     "minimum_required_denial_count": 800,
     "missing_claim_amount_count": 0,
     "missing_denial_reason_count": 0,

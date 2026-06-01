@@ -203,6 +203,13 @@ the same output sanitizer before JSON is written. The validators still inspect
 the actual source-controlled paths internally, but checked-in report payloads
 emit repository-relative paths and redact outside local paths.
 
+The repository also includes `llm-distill/scripts/sanitize_public_eval_reports.py`
+for batch-sanitizing checked-in eval report JSON artifacts. Running it across
+`llm-distill/evals/reports/*.json` removes local workstation paths from older
+generated evidence files without changing readiness booleans, blockers,
+warnings, counts, or benchmark results; `--check` verifies no report would be
+rewritten.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit

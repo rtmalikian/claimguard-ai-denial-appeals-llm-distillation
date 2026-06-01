@@ -2,6 +2,62 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 16:42:55 PDT - Public eval report path hygiene
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: remove remaining local absolute workstation paths from checked-in
+  `../llm-distill/evals/reports/*.json` public evidence artifacts without
+  changing readiness booleans, blockers, warnings, counts, benchmark metrics,
+  or production approval gates.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/sanitize_public_eval_reports.py` | New file | Added a batch sanitizer with `--check` mode for checked-in eval report JSON artifacts. | Delete the file if rolling back this slice. |
+| `tests/unit/test_sanitize_public_eval_reports.py` | New file | Added focused coverage for in-place sanitization and no-write check mode. | Delete the file if rolling back this slice. |
+| `../PHIplan.md` | `backups/20260601-164001-public-eval-report-path-hygiene/PHIplan.md` | Documented the public eval report sanitizer and check mode. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-164001-public-eval-report-path-hygiene/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/file_ingestion_surface_audit_report.json`, `../llm-distill/evals/reports/mlx_finetune_corpus_preflight_report.json`, `../llm-distill/evals/reports/mlx_finetune_preflight_report.json`, `../llm-distill/evals/reports/mlx_finetune_reviewed_report.json`, `../llm-distill/evals/reports/mlx_finetune_synthetic_900_preflight_report.json`, `../llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json`, `../llm-distill/evals/reports/mlx_runtime_bootstrap_report.json`, `../llm-distill/evals/reports/public_source_note_coverage_report.json`, `../llm-distill/evals/reports/reviewed_distillation_pipeline_report.json`, `../llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json`, `../llm-distill/evals/reports/synthetic_document_analysis_extraction_report.json`, `../llm-distill/evals/reports/teacher_label_batch_preflight_report.json`, `../llm-distill/evals/reports/teacher_review_packet_report.json` | Matching files under `backups/20260601-164001-public-eval-report-path-hygiene/llm-distill/evals/reports/` | Sanitized older checked-in eval reports so repository-owned paths serialize as repository-relative values and outside local paths are redacted. | Restore the matching backup files or rerun the source report generators followed by `../llm-distill/scripts/sanitize_public_eval_reports.py`. |
+| `../llm-distill/evals/reports/distillation_readiness_audit_report.json` | `backups/20260601-164001-public-eval-report-path-hygiene/llm-distill/evals/reports/distillation_readiness_audit_report.json` | Refreshed aggregate distillation readiness after report sanitization; remains `distillation_ready=true`, `release_ready=true`, `blocked=0`, `warnings=2`. | Restore backup or rerun `../llm-distill/scripts/run_distillation_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-164001-public-eval-report-path-hygiene/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed aggregate PHIplan readiness after report sanitization; remains `production_ready=false`, `safe_current_state=true`, `blocked=6`, `warnings=1`. | Restore backup or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `CHANGELOG.md` | `backups/20260601-164001-public-eval-report-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-164001-public-eval-report-path-hygiene/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-164001-public-eval-report-path-hygiene -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/sanitize_public_eval_reports.py ../llm-distill/scripts/report_output_sanitizer.py tests/unit/test_sanitize_public_eval_reports.py tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_sanitize_public_eval_reports.py tests/unit/test_report_output_sanitizer.py -q`: passed, 3 tests.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py`: updated 13 reports.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `changed_count=0` across 27 reports.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output ../llm-distill/evals/reports/distillation_readiness_audit_report.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_sanitize_public_eval_reports.py tests/unit/test_report_output_sanitizer.py tests/unit/test_distillation_readiness_audit.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 34 tests, 1 existing SQLAlchemy deprecation warning.
+- `find ../llm-distill/evals/reports -name '*.json' -print0 | xargs -0 -n 1 python3 -m json.tool >/dev/null`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --fail-on-blocked --report /private/tmp/claimguard-public-report-path-hygiene-blocked-check.json`: returned expected exit status 2, preserving current production blockers.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/evals/reports --glob '*.json'`: passed with no matches.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries in `../PHIplan.md` and `../docs/technical-llm-distillation-analysis.md`. No patient PHI, production document content, approval values, raw report values, local workstation paths, credentials, or adapter weight contents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw report values, adapter weight contents, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing readiness semantics or rerunning model training.
+- Avoided changing source report generator behavior in this slice; the new
+  sanitizer provides a public-artifact hygiene pass for checked-in eval reports.
+- Avoided clearing approval-driven PHIplan production blockers.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-164001-public-eval-report-path-hygiene/` and delete the
+  two new files listed above, then rerun aggregate readiness audits if
+  refreshed reports are needed after rollback.
+- This slice removes local path exposure from checked-in eval report artifacts;
+  it does not complete the full PHIplan objective or approve
+  production/student-default use.
+
 ## 2026-06-01 16:33:45 PDT - PHIplan evidence report path sanitization
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

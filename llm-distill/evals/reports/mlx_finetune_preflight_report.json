@@ -4,10 +4,10 @@
     "adapter_output": {
       "exists_after_run": true,
       "exists_before_run": false,
-      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+      "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
     },
     "data": {
-      "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+      "data_dir": "llm-distill/data/distillation/mlx_sft_reviewed",
       "errors": [],
       "ready": true,
       "split_reports": {
@@ -15,7 +15,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/test.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_reviewed/test.jsonl",
           "phi_findings": [],
           "record_count": 1
         },
@@ -23,7 +23,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 8,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/train.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_reviewed/train.jsonl",
           "phi_findings": [],
           "record_count": 8
         },
@@ -31,7 +31,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/valid.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_reviewed/valid.jsonl",
           "phi_findings": [],
           "record_count": 1
         }
@@ -72,7 +72,7 @@
     "Qwen/Qwen3-4B-MLX-4bit",
     "--train",
     "--data",
-    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+    "llm-distill/data/distillation/mlx_sft_reviewed",
     "--iters",
     "60",
     "--batch-size",
@@ -87,7 +87,7 @@
     "--steps-per-eval",
     "30",
     "--adapter-path",
-    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
   ],
   "generated_at": "2026-05-30T03:47:00.358742+00:00",
   "manifest": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
@@ -101,7 +101,7 @@
   "process": {
     "returncode": 0,
     "stderr_tail": "\nFetching 7 files:   0%|          | 0/7 [00:00<?, ?it/s]\nFetching 7 files: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 7/7 [00:00<00:00, 111212.61it/s]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.09s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.10s/it]\n",
-    "stdout_tail": "e sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 40: Train loss 0.284, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.804, Trained Tokens 31285, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 50: Train loss 0.117, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 34.095, Trained Tokens 39139, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6683 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 60: Val loss 0.290, Val took 16.167s\nIter 60: Train loss 0.055, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.629, Trained Tokens 46987, Peak mem 10.042 GB\nSaved final weights to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed/adapters.safetensors.\n"
+    "stdout_tail": "e sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 40: Train loss 0.284, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.804, Trained Tokens 31285, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 50: Train loss 0.117, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 34.095, Trained Tokens 39139, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6683 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 60: Val loss 0.290, Val took 16.167s\nIter 60: Train loss 0.055, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.629, Trained Tokens 46987, Peak mem 10.042 GB\nSaved final weights to llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed/adapters.safetensors.\n"
   },
   "ready": true,
   "training_attempted": true,

@@ -311,7 +311,7 @@
     "path": "llm-distill/data/distillation/teacher_responses_from_review.jsonl"
   },
   "review_packet_ready": true,
-  "seed_input": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+  "seed_input": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
   "seed_record_count": 10,
   "teacher_model": "codex_gpt5_synthetic_review",
   "training_ready": true,

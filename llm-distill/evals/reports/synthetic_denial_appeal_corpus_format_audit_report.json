@@ -28,7 +28,7 @@
       "profile_missing_count": 0,
       "split_path_mismatch_count": 0
     },
-    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+    "corpus_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
     "counts": {
       "appeal_format": {
         "clinical_reconsideration_packet": 112,
@@ -94,14 +94,14 @@
     },
     "documentation": {
       "exists": true,
-      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/README.md",
+      "path": "llm-distill/data/corpus/generated_synthetic_pairs/README.md",
       "phi_scan_finding_count": 0,
       "ready": true,
       "required_marker_count": 10
     },
     "duplicate_pair_group_count": 0,
     "duplicate_text_group_count": 0,
-    "generation_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
+    "generation_report": "llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
     "generation_report_counts": {
       "appeal_format": {
         "clinical_reconsideration_packet": 112,
@@ -181,7 +181,7 @@
       }
     },
     "letter_count": 1800,
-    "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "manifest": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
     "manifest_record_count": 1800,
     "manifest_version": "synthetic-large-900",
     "pair_count": 900,
@@ -469,7 +469,7 @@
       "exists": true,
       "font_family_count": 8,
       "layout_profile_count": 12,
-      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json",
+      "path": "llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json",
       "phi_scan_finding_count": 0,
       "ready": true,
       "rendered_html_count": 1800,

@@ -1,5 +1,5 @@
 {
-  "audit_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json",
+  "audit_report": "llm-distill/evals/reports/distillation_readiness_audit_report.json",
   "audit_summary": {
     "blocked_count": 7,
     "blocked_requirement_ids": [
@@ -22,45 +22,45 @@
   "command_results": [
     {
       "command": [
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_mlx_runtime_preflight.py",
+        ".venv-mlx/bin/python",
+        "llm-distill/scripts/run_mlx_runtime_preflight.py",
         "--output",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json"
+        "llm-distill/evals/reports/mlx_runtime_preflight_report.json"
       ],
       "returncode": 0,
       "stderr_tail": "",
-      "stdout_tail": "wrote MLX runtime preflight report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json\n",
+      "stdout_tail": "wrote MLX runtime preflight report to llm-distill/evals/reports/mlx_runtime_preflight_report.json\n",
       "timed_out": false,
       "timeout_seconds": 120
     },
     {
       "command": [
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_mlx_finetune.py",
+        ".venv-mlx/bin/python",
+        "llm-distill/scripts/run_mlx_finetune.py",
         "--output",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+        "llm-distill/evals/reports/mlx_finetune_preflight_report.json"
       ],
       "returncode": 0,
       "stderr_tail": "",
-      "stdout_tail": "wrote MLX fine-tune preflight report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json\n",
+      "stdout_tail": "wrote MLX fine-tune preflight report to llm-distill/evals/reports/mlx_finetune_preflight_report.json\n",
       "timed_out": false,
       "timeout_seconds": 120
     },
     {
       "command": [
         "/opt/homebrew/opt/python@3.14/bin/python3.14",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/run_distillation_readiness_audit.py",
+        "llm-distill/scripts/run_distillation_readiness_audit.py",
         "--output",
-        "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json"
+        "llm-distill/evals/reports/distillation_readiness_audit_report.json"
       ],
       "returncode": 0,
       "stderr_tail": "",
-      "stdout_tail": "wrote distillation readiness audit report to /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/distillation_readiness_audit_report.json\n",
+      "stdout_tail": "wrote distillation readiness audit report to llm-distill/evals/reports/distillation_readiness_audit_report.json\n",
       "timed_out": false,
       "timeout_seconds": 120
     }
   ],
-  "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+  "fine_tune_report": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
   "fine_tune_summary": {
     "blocked_reasons": [
       "manifest training_allowed is not true",
@@ -84,7 +84,7 @@
     "A bootstrap_ready=true report proves local package and CLI tooling only; the model server and reviewed-label training gates must still pass separately."
   ],
   "package": "mlx-lm",
-  "runtime_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json",
+  "runtime_report": "llm-distill/evals/reports/mlx_runtime_preflight_report.json",
   "runtime_summary": {
     "blocked_reasons": [
       "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
@@ -99,6 +99,6 @@
     "ready": false,
     "server_available": false
   },
-  "venv_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx",
-  "venv_python": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/python"
+  "venv_path": ".venv-mlx",
+  "venv_python": ".venv-mlx/bin/python"
 }

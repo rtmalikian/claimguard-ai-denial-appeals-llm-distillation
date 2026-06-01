@@ -80,9 +80,9 @@
       "prompt_chars": 4592
     }
   ],
-  "requests": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_requests.jsonl",
+  "requests": "llm-distill/data/distillation/teacher_label_requests.jsonl",
   "response_error_count": 0,
-  "response_output": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_responses_pending.jsonl",
+  "response_output": "llm-distill/data/distillation/teacher_responses_pending.jsonl",
   "response_success_count": 0,
   "resume": false,
   "run_attempted": false,

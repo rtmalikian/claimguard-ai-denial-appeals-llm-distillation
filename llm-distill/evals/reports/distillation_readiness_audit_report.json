@@ -2,7 +2,7 @@
   "blocked_item_count": 0,
   "blocked_items": [],
   "distillation_ready": true,
-  "generated_at": "2026-06-01T20:22:34.379787+00:00",
+  "generated_at": "2026-06-01T23:41:23.447925+00:00",
   "next_required_actions": [
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves production runtime/default cutover, CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=true, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE is configured, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=true, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=false.",
     "Complete remaining PHIplan production controls before using real-world corpus examples: admin review/import UI, role-scoped document access, retention/deletion workflows, audit dashboards, and legal/BAA/consent review.",

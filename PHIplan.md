@@ -885,6 +885,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production-gate packet now apply the same report-output sanitizer before
   writing their checked-in JSON reports, while still validating real filesystem
   paths internally.
+- Add `llm-distill/scripts/sanitize_public_eval_reports.py` so checked-in
+  evaluation report JSON artifacts can be sanitized in one pass before public
+  release or commit. The command rewrites only report payload paths, preserving
+  readiness semantics while converting repository-owned paths to
+  repository-relative values and redacting outside local paths; `--check`
+  verifies that no checked-in eval report would still need path sanitization.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at

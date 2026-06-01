@@ -4,10 +4,10 @@
     "adapter_output": {
       "exists_after_run": null,
       "exists_before_run": false,
-      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
+      "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
     },
     "data": {
-      "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus",
+      "data_dir": "llm-distill/data/distillation/mlx_sft_corpus",
       "errors": [],
       "ready": true,
       "split_reports": {
@@ -15,7 +15,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/test.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_corpus/test.jsonl",
           "phi_findings": [],
           "record_count": 1
         },
@@ -23,7 +23,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/train.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_corpus/train.jsonl",
           "phi_findings": [],
           "record_count": 1
         },
@@ -31,7 +31,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/valid.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_corpus/valid.jsonl",
           "phi_findings": [],
           "record_count": 1
         }
@@ -91,7 +91,7 @@
     "--steps-per-eval",
     "30",
     "--adapter-path",
-    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
+    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-corpus"
   ],
   "generated_at": "2026-05-30T23:10:16.532848+00:00",
   "manifest": "llm-distill/data/distillation/mlx_sft_corpus/manifest.json",

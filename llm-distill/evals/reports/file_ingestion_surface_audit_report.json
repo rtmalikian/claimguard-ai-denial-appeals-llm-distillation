@@ -1,5 +1,5 @@
 {
-  "api_root": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1",
+  "api_root": "health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1",
   "blocked_reasons": [],
   "generated_at": "2026-05-31T17:55:19.540077+00:00",
   "notes": [

@@ -10,7 +10,7 @@
     "duplicate_registry_source_ids": [],
     "expected_public_source_count": 7,
     "invalid_training_flag_count": 0,
-    "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+    "manifest_path": "llm-distill/data/corpus/manifest.json",
     "marker_missing_count": 0,
     "missing_file_count": 0,
     "missing_registry_source_ids": [],
@@ -19,7 +19,7 @@
       "values_redacted": true
     },
     "public_source_note_record_count": 7,
-    "registry_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/source_registry.json",
+    "registry_path": "llm-distill/data/source_registry.json",
     "training_exclusion_attested": true
   },
   "generated_at": "2026-05-31T04:11:44.061618+00:00",

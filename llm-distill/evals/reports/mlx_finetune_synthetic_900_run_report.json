@@ -6,10 +6,10 @@
     "adapter_output": {
       "exists_after_run": null,
       "exists_before_run": false,
-      "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
+      "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
     },
     "data": {
-      "data_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900",
+      "data_dir": "llm-distill/data/distillation/mlx_sft_synthetic_900",
       "errors": [],
       "ready": true,
       "split_reports": {
@@ -17,7 +17,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 90,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/test.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/test.jsonl",
           "phi_findings": [],
           "record_count": 90
         },
@@ -25,7 +25,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 720,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/train.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/train.jsonl",
           "phi_findings": [],
           "record_count": 720
         },
@@ -33,7 +33,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 90,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/valid.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/valid.jsonl",
           "phi_findings": [],
           "record_count": 90
         }
@@ -72,7 +72,7 @@
       "help_returncode": 1,
       "path": ".venv-mlx/bin/mlx_lm.lora",
       "runtime_ready": false,
-      "stderr_tail": "Traceback (most recent call last):\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/bin/mlx_lm.lora\", line 4, in <module>\n    from mlx_lm.lora import main\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx_lm/__init__.py\", line 9, in <module>\n    from .convert import convert\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx_lm/convert.py\", line 8, in <module>\n    import mlx.nn as nn\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/__init__.py\", line 4, in <module>\n    from mlx.nn.layers import *\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/__init__.py\", line 3, in <module>\n    from mlx.nn.layers.activations import (\n    ...<52 lines>...\n    )\n  File \"/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/.venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/activations.py\", line 19, in <module>\n    @partial(mx.compile, shapeless=True)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\nException ignored in atexit callback <nanobind.nb_func object at 0x10939a460>:\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\n",
+      "stderr_tail": "Traceback (most recent call last):\n  File \".venv-mlx/bin/mlx_lm.lora\", line 4, in <module>\n    from mlx_lm.lora import main\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/__init__.py\", line 9, in <module>\n    from .convert import convert\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/convert.py\", line 8, in <module>\n    import mlx.nn as nn\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/__init__.py\", line 4, in <module>\n    from mlx.nn.layers import *\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/__init__.py\", line 3, in <module>\n    from mlx.nn.layers.activations import (\n    ...<52 lines>...\n    )\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/activations.py\", line 19, in <module>\n    @partial(mx.compile, shapeless=True)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\nException ignored in atexit callback <nanobind.nb_func object at 0x10939a460>:\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\n",
       "stdout_tail": ""
     }
   },
