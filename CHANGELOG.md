@@ -2,6 +2,55 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 01:28:47 PDT - Model-improvement private summary validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the user-data model-improvement private environment renderer so
+  approved mode refuses to write enabled settings unless a private aggregate
+  approval summary has been validated.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/PHIplan.md` | Documented private aggregate model-improvement approval-summary validation before enabled settings are written. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/docs/technical-llm-distillation-analysis.md` | Updated the technical breakdown to note private approval-summary validation for the model-improvement renderer. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and the open model-improvement item for private approval-summary validation. | Restore backup over the same path. |
+| `llm-distill/scripts/render_model_improvement_private_env.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/llm-distill/scripts/render_model_improvement_private_env.py` | Added approved-mode private approval-summary path loading, JSON validation, required readiness booleans, positive aggregate counts, no-raw-value flags, unsupported-field rejection, redacted summary counts, and kept the private summary path out of rendered output. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_model_improvement_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/llm-distill/scripts/validate_model_improvement_evidence.py` | Added private approval-summary validation markers to the source-controlled model-improvement private env renderer check. | Restore backup over the same path. |
+| `llm-distill/evals/reports/model_improvement_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/llm-distill/evals/reports/model_improvement_evidence_report.json` | Refreshed model-improvement evidence; `model_improvement_ready=false`, `safe_to_review=true`, `blocked=1`, and the private env renderer has 25/25 markers. | Restore backup over the same path or rerun `llm-distill/scripts/validate_model_improvement_evidence.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_private_env_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_private_env_renderer.py` | Added coverage for required private summary paths, source-control path refusal, incomplete summary refusal, raw-value flag refusal, unsupported field refusal, count mismatch refusal, and redacted summary counts in approved output. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/render_model_improvement_private_env.py llm-distill/scripts/validate_model_improvement_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_private_env_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_private_env_renderer.py -q`: passed, 13 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_private_env_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_evidence.py -q`: passed, 21 tests.
+- `python3 llm-distill/scripts/validate_model_improvement_evidence.py --report llm-distill/evals/reports/model_improvement_evidence_report.json`: passed with `model_improvement_ready=False`, `safe_to_review=True`, `blocked=1`, and 25/25 private env renderer markers present.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Final PHI/PII scan, value-shaped secret scan, JSON parsing checks, and `git diff --check` were run before commit; no raw PHI/PII values, secrets, approval-reference values, consent-version values, private summary paths, raw environment values, user data, legal/BAA documents, or production document content were introduced.
+
+### Failed Or Avoided Approaches
+- Avoided treating attestations plus private approval and consent values as sufficient user-data model-improvement evidence.
+- Avoided storing private summary paths, approval references, consent values, raw evidence reports, user data, legal documents, BAA documents, endpoint values, credentials, PHI, secrets, or production document content in checked-in reports.
+- Avoided accepting arbitrary private summary fields that could smuggle identifiers, approval values, consent values, user data, endpoint values, credentials, or unsupported evidence into the enabled env artifact.
+- Avoided marking user-data model improvement, the manual production gate, or PHIplan production readiness complete; legal approval, BAA confirmation, consent, explicit request, and evidence readiness remain external blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-012500-model-improvement-private-summary-validation/`,
+  then rerun the model-improvement, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens the private user-data model-improvement handoff; it
+  does not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 01:20:05 PDT - Student cutover private summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

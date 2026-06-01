@@ -944,13 +944,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   inside source control, requires explicit legal/BAA/consent/request/
   retention/revocation/per-request/evidence-readiness attestations before
   approved mode, reads the approval reference and consent notice version from
-  private environment variables, verifies the configured model-improvement
-  evidence report is safe to review, ready, and unblocked before writing an
-  enabled private env, writes private output with `0600` permissions, and
-  prints only redacted booleans/counts. This prepares the private runtime
-  configuration path without approving user-data use, enabling model
-  improvement, storing approval or consent values, or weakening the current
-  blocker.
+  private environment variables, reads a private aggregate approval-summary
+  path from an environment variable, verifies the configured model-improvement
+  evidence report is safe to review, ready, and unblocked, validates required
+  legal/BAA/consent/retention/revocation/per-request private summary booleans,
+  positive aggregate counts, and explicit no-raw-value flags before writing an
+  enabled private env, rejects unsupported private summary fields, writes
+  private output with `0600` permissions, and prints only redacted
+  booleans/counts. This prepares the private runtime configuration path
+  without approving user-data use, enabling model improvement, storing private
+  summary paths, approval or consent values, user data, or weakening the
+  current blocker.
   The
   application startup guard consumes the same checked-in report path through
   `USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT` only when user-data model
@@ -1203,9 +1207,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/docs/model-improvement-approval-runbook.md` and render any
   final env file with
   `llm-distill/scripts/render_model_improvement_private_env.py` for private
-  approval-reference and consent-version handling; approved renderer mode will
-  also refuse to write if the configured model-improvement evidence report is
-  missing, unsafe, blocked, or not ready. Keep the local governance and
+  approval-reference, consent-version, and aggregate summary handling;
+  approved renderer mode will also refuse to write if the configured
+  model-improvement evidence report is missing, unsafe, blocked, not ready, or
+  if the private aggregate summary is missing or incomplete. Keep the local governance and
   `model_improvement_safety_boundaries` evidence ready so data-use scope,
   retention, revocation, external PHI de-identification, raw PHI training,
   production user-data use, and training-job eligibility remain explicitly

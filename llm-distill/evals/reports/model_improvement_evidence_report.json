@@ -28,7 +28,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/model_improvement_evidence/model_improvement_evidence.template.json",
-  "generated_at": "2026-05-31T23:13:27.122408+00:00",
+  "generated_at": "2026-06-01T08:28:39.638001+00:00",
   "model_improvement_ready": false,
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external legal, BAA, consent, or approval systems.",
@@ -115,12 +115,12 @@
         "approval_reference_value_included": false,
         "consent_notice_value_included": false,
         "missing_marker_count": 0,
-        "present_marker_count": 16,
+        "present_marker_count": 25,
         "private_env_renderer_exists": true,
         "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_model_improvement_private_env.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
-        "required_marker_count": 16,
+        "required_marker_count": 25,
         "source_control_private_env_renderer_documented": true,
         "values_redacted": true
       },
