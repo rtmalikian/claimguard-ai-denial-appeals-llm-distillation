@@ -1052,7 +1052,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   checked-in manifest paths, missing private summary checks, zero private
   manifest/reference/review counts, count mismatches, or marked private path,
   reference, raw-document, source, checksum, credential, PHI, or production
-  content inclusion keep production corpus readiness blocked. This prepares the
+  content inclusion keep production corpus readiness blocked. The
+  source-controlled runbook, collection/license checklist, pair/source
+  checklist, and private evidence renderer paths must resolve inside this
+  repository; outside or temporary paths block readiness before marker text is
+  read, so matching private files cannot satisfy source-controlled production
+  corpus gates. This prepares the
   private production-corpus evidence handoff without storing raw denial
   letters, raw appeal letters, source paths, private manifest paths, private
   summary paths, checksums, approval references, pair ids, credentials, PHI,

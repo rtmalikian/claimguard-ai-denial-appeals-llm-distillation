@@ -29,6 +29,39 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _write_marker_file(
+    path: Path,
+    markers: tuple[str, ...],
+    unique_text: str,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join([*markers, unique_text]), encoding="utf-8")
+
+
+def _requirement(report: dict, requirement_id: str) -> dict:
+    return next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == requirement_id
+    )
+
+
+def _allow_tmp_source_control_path(
+    monkeypatch,
+    validator: ModuleType,
+    path: Path,
+) -> None:
+    original_path_is_within = validator.path_is_within
+    allowed_path = path.resolve()
+
+    def path_is_within(candidate: Path, parent: Path) -> bool:
+        if candidate.resolve() == allowed_path:
+            return True
+        return original_path_is_within(candidate, parent)
+
+    monkeypatch.setattr(validator, "path_is_within", path_is_within)
+
+
 def _record(*, role: str, source_type: str = "real_deidentified_pair") -> dict:
     return {
         "source_id": f"SRC-PAIR-REAL-1-{role}",
@@ -155,6 +188,7 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert runbook_requirement["status"] == "ready"
     assert runbook_requirement["evidence"]["source_control_review_runbook_documented"] is True
     assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is True
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     collection_license_requirement = next(
@@ -172,6 +206,12 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert (
         collection_license_requirement["evidence"][
             "collection_license_checklist_exists"
+        ]
+        is True
+    )
+    assert (
+        collection_license_requirement["evidence"][
+            "collection_license_checklist_inside_source_control"
         ]
         is True
     )
@@ -193,6 +233,12 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert checklist_requirement["evidence"]["pair_source_checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"][
+            "pair_source_checklist_inside_source_control"
+        ]
+        is True
+    )
     assert checklist_requirement["evidence"]["missing_marker_count"] == 0
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
     corpus_review_requirement = next(
@@ -231,6 +277,12 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert private_renderer_requirement["evidence"]["private_evidence_renderer_exists"] is True
+    assert (
+        private_renderer_requirement["evidence"][
+            "private_evidence_renderer_inside_source_control"
+        ]
+        is True
+    )
     assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     private_summary_requirement = next(
@@ -474,7 +526,10 @@ def test_production_corpus_evidence_blocks_raw_approval_values_without_emitting_
     assert raw_reference not in serialized
 
 
-def test_production_corpus_evidence_blocks_incomplete_runbook_without_emitting_text(tmp_path):
+def test_production_corpus_evidence_blocks_incomplete_runbook_without_emitting_text(
+    monkeypatch,
+    tmp_path,
+):
     validator = _load_validator()
     manifest_path = tmp_path / "manifest.json"
     evidence_path = tmp_path / "corpus_evidence.json"
@@ -488,6 +543,7 @@ def test_production_corpus_evidence_blocks_incomplete_runbook_without_emitting_t
     evidence = _ready_evidence(manifest_path)
     evidence["corpus_review"]["source_control_review_runbook_path"] = str(incomplete_runbook)
     _write_json(evidence_path, evidence)
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_runbook)
 
     report = validator.build_report(evidence_path)
     serialized = json.dumps(report, sort_keys=True)
@@ -505,6 +561,7 @@ def test_production_corpus_evidence_blocks_incomplete_runbook_without_emitting_t
 
 
 def test_production_corpus_evidence_blocks_incomplete_collection_license_checklist_without_emitting_text(
+    monkeypatch,
     tmp_path,
 ):
     validator = _load_validator()
@@ -522,6 +579,7 @@ def test_production_corpus_evidence_blocks_incomplete_collection_license_checkli
         "source_control_collection_license_checklist_path"
     ] = str(incomplete_checklist)
     _write_json(evidence_path, evidence)
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_checklist)
 
     report = validator.build_report(evidence_path)
     serialized = json.dumps(report, sort_keys=True)
@@ -542,6 +600,7 @@ def test_production_corpus_evidence_blocks_incomplete_collection_license_checkli
 
 
 def test_production_corpus_evidence_blocks_incomplete_pair_source_checklist_without_emitting_text(
+    monkeypatch,
     tmp_path,
 ):
     validator = _load_validator()
@@ -559,6 +618,7 @@ def test_production_corpus_evidence_blocks_incomplete_pair_source_checklist_with
         incomplete_checklist
     )
     _write_json(evidence_path, evidence)
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_checklist)
 
     report = validator.build_report(evidence_path)
     serialized = json.dumps(report, sort_keys=True)
@@ -579,6 +639,7 @@ def test_production_corpus_evidence_blocks_incomplete_pair_source_checklist_with
 
 
 def test_production_corpus_evidence_blocks_incomplete_private_renderer_without_emitting_text(
+    monkeypatch,
     tmp_path,
 ):
     validator = _load_validator()
@@ -596,6 +657,7 @@ def test_production_corpus_evidence_blocks_incomplete_private_renderer_without_e
         incomplete_renderer
     )
     _write_json(evidence_path, evidence)
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_renderer)
 
     report = validator.build_report(evidence_path)
     serialized = json.dumps(report, sort_keys=True)
@@ -613,3 +675,203 @@ def test_production_corpus_evidence_blocks_incomplete_private_renderer_without_e
     )
     assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert raw_renderer_text not in serialized
+
+
+def test_production_corpus_runbook_must_stay_inside_source_control(
+    monkeypatch,
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_outside_runbook.json"
+    runbook_path = tmp_path / "production-corpus-review-runbook.md"
+    unique_text = "outside production corpus runbook marker should not leak"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    _write_marker_file(runbook_path, validator.RUNBOOK_REQUIRED_MARKERS, unique_text)
+    evidence = _ready_evidence(None)
+    evidence["corpus_review"]["source_control_review_runbook_path"] = str(runbook_path)
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(evidence["private_manifest_path_env"], str(manifest_path))
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    runbook_requirement = _requirement(report, "production_corpus_operator_runbook")
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_review_runbook_must_be_inside_repo"
+        in runbook_requirement["blockers"]
+    )
+    assert (
+        "source_control_review_runbook_required_markers_missing"
+        not in runbook_requirement["blockers"]
+    )
+    assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is False
+    assert runbook_requirement["evidence"]["present_marker_count"] == 0
+    assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_production_corpus_collection_license_checklist_must_stay_inside_source_control(
+    monkeypatch,
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_outside_collection_license.json"
+    checklist_path = tmp_path / "production-corpus-collection-license-checklist.md"
+    unique_text = "outside production corpus collection checklist marker should not leak"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    _write_marker_file(
+        checklist_path,
+        validator.COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence(None)
+    evidence["corpus_review"][
+        "source_control_collection_license_checklist_path"
+    ] = str(checklist_path)
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(evidence["private_manifest_path_env"], str(manifest_path))
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = _requirement(
+        report,
+        "production_corpus_collection_license_checklist",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_collection_license_checklist_must_be_inside_repo"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        "source_control_collection_license_checklist_required_markers_missing"
+        not in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["collection_license_checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"][
+            "collection_license_checklist_inside_source_control"
+        ]
+        is False
+    )
+    assert checklist_requirement["evidence"]["present_marker_count"] == 0
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_production_corpus_pair_source_checklist_must_stay_inside_source_control(
+    monkeypatch,
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_outside_pair_source.json"
+    checklist_path = tmp_path / "production-corpus-pair-source-checklist.md"
+    unique_text = "outside production corpus pair checklist marker should not leak"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    _write_marker_file(
+        checklist_path,
+        validator.PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence(None)
+    evidence["pairing_requirements"][
+        "source_control_pair_source_checklist_path"
+    ] = str(checklist_path)
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(evidence["private_manifest_path_env"], str(manifest_path))
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = _requirement(
+        report,
+        "production_corpus_pair_source_checklist",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_pair_source_checklist_must_be_inside_repo"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        "source_control_pair_source_checklist_required_markers_missing"
+        not in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["pair_source_checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"][
+            "pair_source_checklist_inside_source_control"
+        ]
+        is False
+    )
+    assert checklist_requirement["evidence"]["present_marker_count"] == 0
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_production_corpus_private_renderer_must_stay_inside_source_control(
+    monkeypatch,
+    tmp_path,
+):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_outside_private_renderer.json"
+    renderer_path = tmp_path / "render_production_corpus_private_evidence.py"
+    unique_text = "outside production corpus private renderer marker should not leak"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    _write_marker_file(
+        renderer_path,
+        validator.PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence(None)
+    evidence["corpus_review"]["private_evidence_renderer_path"] = str(renderer_path)
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(evidence["private_manifest_path_env"], str(manifest_path))
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = _requirement(
+        report,
+        "production_corpus_private_evidence_renderer",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "source_control_private_evidence_renderer_must_be_inside_repo"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        "source_control_private_evidence_renderer_markers_missing"
+        not in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["private_evidence_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"][
+            "private_evidence_renderer_inside_source_control"
+        ]
+        is False
+    )
+    assert renderer_requirement["evidence"]["present_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert unique_text not in serialized

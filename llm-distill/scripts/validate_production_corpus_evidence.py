@@ -396,10 +396,15 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(RUNBOOK_REQUIRED_MARKERS)
+    runbook_inside_source_control = bool(
+        runbook_path and path_is_within(runbook_path, REPO_ROOT)
+    )
     if not runbook_configured:
         blockers.append("source_control_review_runbook_not_documented")
     if runbook_path is None:
         blockers.append("source_control_review_runbook_path_missing")
+    elif not runbook_inside_source_control:
+        blockers.append("source_control_review_runbook_must_be_inside_repo")
     elif not runbook_path.exists():
         blockers.append("source_control_review_runbook_missing")
     else:
@@ -424,6 +429,7 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
             "source_control_review_runbook_documented": runbook_configured,
             "runbook_path": str(runbook_path) if runbook_path else None,
             "runbook_exists": bool(runbook_path and runbook_path.exists()),
+            "runbook_inside_source_control": runbook_inside_source_control,
             "required_marker_count": len(RUNBOOK_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -447,10 +453,15 @@ def collection_license_checklist_requirement(evidence_path: Path, evidence: dict
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_collection_license_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_collection_license_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_collection_license_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_collection_license_checklist_missing")
     else:
@@ -479,6 +490,9 @@ def collection_license_checklist_requirement(evidence_path: Path, evidence: dict
             "source_control_collection_license_checklist_documented": checklist_configured,
             "collection_license_checklist_path": str(checklist_path) if checklist_path else None,
             "collection_license_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "collection_license_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "required_marker_count": len(COLLECTION_LICENSE_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -499,10 +513,15 @@ def pair_source_checklist_requirement(evidence_path: Path, evidence: dict[str, A
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_pair_source_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_pair_source_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_pair_source_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_pair_source_checklist_missing")
     else:
@@ -531,6 +550,9 @@ def pair_source_checklist_requirement(evidence_path: Path, evidence: dict[str, A
             "source_control_pair_source_checklist_documented": checklist_configured,
             "pair_source_checklist_path": str(checklist_path) if checklist_path else None,
             "pair_source_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "pair_source_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "required_marker_count": len(PAIR_SOURCE_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -555,9 +577,12 @@ def private_evidence_renderer_requirement(evidence_path: Path, evidence: dict[st
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     if not renderer_configured:
         blockers.append("source_control_private_evidence_renderer_not_documented")
-    if not renderer_path.exists():
+    if not renderer_inside_source_control:
+        blockers.append("source_control_private_evidence_renderer_must_be_inside_repo")
+    elif not renderer_path.exists():
         blockers.append("source_control_private_evidence_renderer_missing")
     else:
         try:
@@ -585,6 +610,9 @@ def private_evidence_renderer_requirement(evidence_path: Path, evidence: dict[st
             "source_control_private_evidence_renderer_documented": renderer_configured,
             "private_evidence_renderer_path": str(renderer_path),
             "private_evidence_renderer_exists": renderer_path.exists(),
+            "private_evidence_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "required_marker_count": len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,

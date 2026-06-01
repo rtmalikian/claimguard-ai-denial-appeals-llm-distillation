@@ -109,7 +109,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json",
-  "generated_at": "2026-06-01T18:36:12.498816+00:00",
+  "generated_at": "2026-06-01T19:42:13.887082+00:00",
   "notes": [
     "This validator reads local JSON and manifest metadata only; it does not open raw source documents.",
     "Approval references, source paths, checksums, raw denial letters, raw appeal letters, PHI, and production document details must remain outside the evidence packet.",
@@ -175,6 +175,7 @@
         "raw_runbook_text_included": false,
         "required_marker_count": 10,
         "runbook_exists": true,
+        "runbook_inside_source_control": true,
         "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-review-runbook.md",
         "source_control_review_runbook_documented": true,
         "values_redacted": true
@@ -188,6 +189,7 @@
       "blockers": [],
       "evidence": {
         "collection_license_checklist_exists": true,
+        "collection_license_checklist_inside_source_control": true,
         "collection_license_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-collection-license-checklist.md",
         "missing_marker_count": 0,
         "present_marker_count": 25,
@@ -206,6 +208,7 @@
       "evidence": {
         "missing_marker_count": 0,
         "pair_source_checklist_exists": true,
+        "pair_source_checklist_inside_source_control": true,
         "pair_source_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/production-corpus-pair-source-checklist.md",
         "present_marker_count": 23,
         "raw_checklist_text_included": false,
@@ -224,6 +227,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 24,
         "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_inside_source_control": true,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_production_corpus_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,

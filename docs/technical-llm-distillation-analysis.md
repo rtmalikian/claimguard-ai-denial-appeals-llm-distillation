@@ -306,7 +306,10 @@ manifest and production-corpus summary metadata before
 summary checks, zero private manifest/reference/review counts, count
 mismatches, or marked private path/reference/raw-document/source/checksum/
 credential/PHI/production-content inclusion keep the checked-in evidence
-blocked.
+blocked. The source-controlled corpus review runbook, collection/license
+checklist, pair/source checklist, and private evidence renderer must resolve
+inside this repository; outside temporary or private paths block before marker
+text is read into the validator.
 
 ### Prediction-Fairness Private Evidence Controls
 
