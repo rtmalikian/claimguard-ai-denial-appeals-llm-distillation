@@ -1,5 +1,5 @@
 {
-  "blocked_item_count": 3,
+  "blocked_item_count": 4,
   "blocked_items": [
     {
       "blockers": [
@@ -42,6 +42,34 @@
     },
     {
       "blockers": [
+        "private_monitoring_summary_path_not_configured",
+        "private_monitoring_summary_not_checked",
+        "private_monitoring_summary_private_reference_count_missing",
+        "private_monitoring_summary_evaluated_outcome_count_missing",
+        "private_monitoring_summary_monitored_group_count_missing",
+        "private_monitoring_summary_disparity_metric_count_missing",
+        "private_monitoring_summary_alert_rule_count_missing"
+      ],
+      "evidence": {
+        "private_monitoring_summary_alert_rule_count": 0,
+        "private_monitoring_summary_checked": false,
+        "private_monitoring_summary_disparity_metric_count": 0,
+        "private_monitoring_summary_evaluated_outcome_count": 0,
+        "private_monitoring_summary_monitored_group_count": 0,
+        "private_monitoring_summary_path_configured": false,
+        "private_monitoring_summary_path_env": null,
+        "private_monitoring_summary_path_value_included": false,
+        "private_monitoring_summary_private_reference_count": 0,
+        "private_monitoring_summary_raw_values_included": false,
+        "values_redacted": true
+      },
+      "name": "Private monitoring summary metadata is checked without exposing values",
+      "requirement_id": "prediction_fairness_private_monitoring_summary",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
         "legal_privacy_review_not_completed"
       ],
       "evidence": {
@@ -65,7 +93,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
-  "generated_at": "2026-06-01T09:12:02.314078+00:00",
+  "generated_at": "2026-06-01T18:23:56.407045+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external outcome, legal, privacy, alerting, or model-card systems.",
     "Raw demographic values, production outcome rows, PHI, secrets, approval references, and individual identifiers must remain outside source control.",
@@ -224,6 +252,34 @@
       "name": "Source-controlled prediction fairness private evidence renderer is documented",
       "requirement_id": "prediction_fairness_private_evidence_renderer",
       "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_monitoring_summary_path_not_configured",
+        "private_monitoring_summary_not_checked",
+        "private_monitoring_summary_private_reference_count_missing",
+        "private_monitoring_summary_evaluated_outcome_count_missing",
+        "private_monitoring_summary_monitored_group_count_missing",
+        "private_monitoring_summary_disparity_metric_count_missing",
+        "private_monitoring_summary_alert_rule_count_missing"
+      ],
+      "evidence": {
+        "private_monitoring_summary_alert_rule_count": 0,
+        "private_monitoring_summary_checked": false,
+        "private_monitoring_summary_disparity_metric_count": 0,
+        "private_monitoring_summary_evaluated_outcome_count": 0,
+        "private_monitoring_summary_monitored_group_count": 0,
+        "private_monitoring_summary_path_configured": false,
+        "private_monitoring_summary_path_env": null,
+        "private_monitoring_summary_path_value_included": false,
+        "private_monitoring_summary_private_reference_count": 0,
+        "private_monitoring_summary_raw_values_included": false,
+        "values_redacted": true
+      },
+      "name": "Private monitoring summary metadata is checked without exposing values",
+      "requirement_id": "prediction_fairness_private_monitoring_summary",
+      "status": "blocked",
       "warnings": []
     },
     {

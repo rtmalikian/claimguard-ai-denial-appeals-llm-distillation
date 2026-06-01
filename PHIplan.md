@@ -510,6 +510,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production-readiness audit blocks
   on that report until approved outcome data, monitoring ownership, latest run
   evidence, and legal/privacy governance are complete outside source control.
+  The prediction-fairness evidence validator now also requires the private
+  monitoring-summary metadata emitted by the approved renderer before
+  `prediction_fairness_monitoring_ready=true`; missing summary checks, zero
+  private reference/outcome/group/metric/alert counts, or any marked private
+  summary path/raw-value inclusion keep fairness monitoring readiness blocked.
   FastAPI startup
   now also runs a metadata-only prediction fairness guard that fails fast in production while
   `PREDICTION_FAIRNESS_EVIDENCE_REPORT` is missing, unsafe, blocked, or not

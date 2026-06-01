@@ -194,6 +194,15 @@ def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
 
 
+def false_value(section: dict[str, Any], key: str) -> bool:
+    return section.get(key) is False
+
+
+def positive_int_value(section: dict[str, Any], key: str) -> bool:
+    value = section.get(key)
+    return not isinstance(value, bool) and isinstance(value, int) and value > 0
+
+
 def str_value(section: dict[str, Any], key: str) -> str:
     value = section.get(key)
     return value if isinstance(value, str) else ""
@@ -562,6 +571,64 @@ def private_evidence_renderer_requirement(evidence: dict[str, Any]) -> dict[str,
     )
 
 
+def private_monitoring_summary_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
+    required_true_flags = {
+        "private_monitoring_summary_path_configured": "private_monitoring_summary_path_not_configured",
+        "private_monitoring_summary_checked": "private_monitoring_summary_not_checked",
+    }
+    required_false_flags = {
+        "private_monitoring_summary_path_value_included": "private_monitoring_summary_path_value_included",
+        "private_monitoring_summary_raw_values_included": "private_monitoring_summary_raw_values_included",
+    }
+    required_positive_counts = {
+        "private_monitoring_summary_private_reference_count": "private_monitoring_summary_private_reference_count_missing",
+        "private_monitoring_summary_evaluated_outcome_count": "private_monitoring_summary_evaluated_outcome_count_missing",
+        "private_monitoring_summary_monitored_group_count": "private_monitoring_summary_monitored_group_count_missing",
+        "private_monitoring_summary_disparity_metric_count": "private_monitoring_summary_disparity_metric_count_missing",
+        "private_monitoring_summary_alert_rule_count": "private_monitoring_summary_alert_rule_count_missing",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_true_flags.items()
+        if not bool_value(evidence, key)
+    ]
+    blockers.extend(
+        blocker
+        for key, blocker in required_false_flags.items()
+        if not false_value(evidence, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_positive_counts.items()
+        if not positive_int_value(evidence, key)
+    )
+    return requirement(
+        requirement_id="prediction_fairness_private_monitoring_summary",
+        name="Private monitoring summary metadata is checked without exposing values",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            **{key: bool_value(evidence, key) for key in required_true_flags},
+            **{key: bool_value(evidence, key) for key in required_false_flags},
+            **{key: evidence.get(key, 0) for key in required_positive_counts},
+            "private_monitoring_summary_path_env": (
+                str_value(evidence, "private_monitoring_summary_path_env")
+                if bool_value(evidence, "private_monitoring_summary_path_configured")
+                else None
+            ),
+            "private_monitoring_summary_path_value_included": bool_value(
+                evidence,
+                "private_monitoring_summary_path_value_included",
+            ),
+            "private_monitoring_summary_raw_values_included": bool_value(
+                evidence,
+                "private_monitoring_summary_raw_values_included",
+            ),
+            "values_redacted": True,
+        },
+    )
+
+
 def legal_privacy_checklist_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     section = evidence.get("governance_controls", {})
     documented = bool_value(
@@ -687,6 +754,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         monitoring_runbook_requirement(evidence),
         legal_privacy_checklist_requirement(evidence),
         private_evidence_renderer_requirement(evidence),
+        private_monitoring_summary_requirement(evidence),
         governance_controls_requirement(evidence),
     ]
     if errors:

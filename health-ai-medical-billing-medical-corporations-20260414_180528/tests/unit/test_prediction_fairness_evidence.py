@@ -38,6 +38,18 @@ def _ready_evidence() -> dict:
         "no_phi_or_secret_values_attested": True,
         "no_raw_demographic_values_attested": True,
         "no_production_outcome_rows_attested": True,
+        "private_monitoring_summary_path_env": (
+            "PREDICTION_FAIRNESS_PRIVATE_MONITORING_SUMMARY_PATH"
+        ),
+        "private_monitoring_summary_path_configured": True,
+        "private_monitoring_summary_path_value_included": False,
+        "private_monitoring_summary_checked": True,
+        "private_monitoring_summary_private_reference_count": 7,
+        "private_monitoring_summary_evaluated_outcome_count": 240,
+        "private_monitoring_summary_monitored_group_count": 4,
+        "private_monitoring_summary_disparity_metric_count": 3,
+        "private_monitoring_summary_alert_rule_count": 2,
+        "private_monitoring_summary_raw_values_included": False,
         "calibrated_threshold": {
             "source_control_calibration_checklist_documented": True,
             "calibration_checklist_path": (
@@ -124,6 +136,7 @@ def test_template_is_safe_to_review_but_not_production_ready():
     assert "prediction_fairness_monitoring_validation_checklist" not in blocked_ids
     assert "prediction_fairness_legal_privacy_checklist" not in blocked_ids
     assert "prediction_fairness_private_evidence_renderer" not in blocked_ids
+    assert "prediction_fairness_private_monitoring_summary" in blocked_ids
     assert "prediction_fairness_governance_controls" in blocked_ids
     assert "source_control_legal_privacy_checklist_not_documented" not in governance_requirement["blockers"]
     assert (
@@ -242,6 +255,31 @@ def test_template_is_safe_to_review_but_not_production_ready():
     )
     assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert private_renderer_requirement["evidence"]["raw_private_values_included"] is False
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "prediction_fairness_private_monitoring_summary"
+    )
+    assert (
+        "private_monitoring_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_monitoring_summary_evaluated_outcome_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_monitoring_summary_path_value_included"
+        ]
+        is False
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_monitoring_summary_raw_values_included"
+        ]
+        is False
+    )
 
 
 def test_ready_evidence_passes_when_all_external_controls_are_attested(tmp_path):
@@ -254,6 +292,87 @@ def test_ready_evidence_passes_when_all_external_controls_are_attested(tmp_path)
     assert report["safe_to_review"] is True
     assert report["prediction_fairness_monitoring_ready"] is True
     assert report["blocked_item_count"] == 0
+
+
+def test_ready_evidence_requires_private_monitoring_summary_metadata(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "fairness_missing_private_summary.json"
+    evidence = _ready_evidence()
+    evidence["private_monitoring_summary_path_configured"] = False
+    evidence["private_monitoring_summary_checked"] = False
+    evidence["private_monitoring_summary_private_reference_count"] = 0
+    evidence["private_monitoring_summary_evaluated_outcome_count"] = 0
+    evidence["private_monitoring_summary_monitored_group_count"] = 0
+    evidence["private_monitoring_summary_disparity_metric_count"] = 0
+    evidence["private_monitoring_summary_alert_rule_count"] = 0
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "prediction_fairness_private_monitoring_summary"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["prediction_fairness_monitoring_ready"] is False
+    assert (
+        "private_monitoring_summary_path_not_configured"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_monitoring_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_monitoring_summary_private_reference_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_monitoring_summary_path_value_included"
+        ]
+        is False
+    )
+
+
+def test_private_monitoring_summary_value_flags_are_blocked(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "fairness_private_summary_values.json"
+    evidence = _ready_evidence()
+    evidence["private_monitoring_summary_path_value_included"] = True
+    evidence["private_monitoring_summary_raw_values_included"] = True
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "prediction_fairness_private_monitoring_summary"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["prediction_fairness_monitoring_ready"] is False
+    assert (
+        "private_monitoring_summary_path_value_included"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_monitoring_summary_raw_values_included"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_monitoring_summary_path_value_included"
+        ]
+        is True
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_monitoring_summary_raw_values_included"
+        ]
+        is True
+    )
 
 
 def test_raw_demographic_values_are_blocked_without_echoing_values(tmp_path):

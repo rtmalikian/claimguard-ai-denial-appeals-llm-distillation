@@ -2,6 +2,66 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 11:24:30 PDT - Prediction fairness private summary validator
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden prediction-fairness evidence readiness so
+  `prediction_fairness_monitoring_ready=true` requires the redacted private
+  monitoring-summary metadata emitted by the approved private evidence renderer,
+  not only high-level calibration, monitoring, and governance booleans.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/PHIplan.md` | Documented that fairness monitoring readiness now requires private monitoring-summary checks, positive aggregate counts, and no path/raw-value inclusion. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/docs/technical-llm-distillation-analysis.md` | Added the technical note that missing private monitoring-summary metadata keeps checked-in fairness evidence blocked. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_prediction_fairness_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/llm-distill/scripts/validate_prediction_fairness_evidence.py` | Added a private monitoring-summary requirement for configured/checked summary metadata, positive private reference/outcome/group/metric/alert counts, and no private summary path/raw-value inclusion. | Restore backup over the same path. |
+| `llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json` | Added false/zero private monitoring-summary template fields until an approved private renderer run produces them. | Restore backup over the same path. |
+| `llm-distill/evals/reports/prediction_fairness_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/llm-distill/evals/reports/prediction_fairness_evidence_report.json` | Refreshed prediction-fairness evidence; `prediction_fairness_monitoring_ready=false`, `safe_to_review=true`, and `blocked=4`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_prediction_fairness_evidence.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py` | Added coverage for ready evidence with private monitoring-summary metadata and blocks for missing summary metadata or marked private summary value leaks. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_prediction_fairness_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_private_evidence_renderer.py -q`: passed, 23 tests from the app directory.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_private_evidence_renderer.py tests/unit/test_prediction_fairness_startup_config.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 78 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_prediction_fairness_evidence.py --report llm-distill/evals/reports/prediction_fairness_evidence_report.json`: passed with `prediction_fairness_monitoring_ready=False`, `safe_to_review=True`, and `blocked=4`.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_prediction_fairness_evidence.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json`, `llm-distill/evals/reports/prediction_fairness_evidence_report.json`, `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`, and `llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report PHI scan returned no findings.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private references, private summary paths, PHI, source text, vector values, raw demographic values, production outcome rows, legal/privacy records, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided accepting all high-level calibration, monitoring, and governance
+  booleans as enough for `prediction_fairness_monitoring_ready=true`; private
+  monitoring-summary metadata is now required too.
+- Avoided storing private governance references, private monitoring-summary
+  paths, raw demographic values, production outcome rows, approval records, PHI,
+  secrets, credentials, or production document content in source control.
+- Avoided marking prediction-fairness monitoring, the manual production gate, or
+  PHIplan production readiness complete; approved outcome data, monitoring
+  ownership, latest-run evidence, and legal/privacy review remain external
+  blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-112218-prediction-fairness-private-summary-validator/`,
+  then rerun the prediction-fairness, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens prediction-fairness evidence validation; it does not
+  complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 02:23:50 PDT - Retrieval runtime reference validator
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

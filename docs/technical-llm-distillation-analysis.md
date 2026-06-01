@@ -311,6 +311,12 @@ because that report is produced by validating the rendered evidence packet;
 startup and manual-gate controls continue to block production while that report
 is missing, unsafe, blocked, or not ready.
 
+The prediction fairness validator also requires that renderer-shaped private
+monitoring-summary metadata before `prediction_fairness_monitoring_ready=true`.
+Missing summary checks, zero private reference/outcome/group/metric/alert
+counts, or marked private summary path/raw-value inclusion keep the checked-in
+evidence blocked.
+
 ### Retrieval Vector Private Env Controls
 
 Production semantic retrieval remains blocked until the semantic embedding
