@@ -2,6 +2,69 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 12:58:28 PDT - Student acceptance source-control path hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden student acceptance evidence so release-ready adapter promotion
+  cannot be satisfied by arbitrary report files outside
+  `../llm-distill/evals/reports/` or by adapter output paths outside
+  `../llm-distill/models/adapters/`.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/run_student_acceptance.py` | `backups/20260601-125457-student-acceptance-source-control-paths/llm-distill/scripts/run_student_acceptance.py.bak` | Added a testable `build_report` path, repo-local input report checks, and adapter-root containment checks before `release_ready=true`. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/student_acceptance_report.json` | `backups/20260601-125457-student-acceptance-source-control-paths/llm-distill/evals/reports/student_acceptance_report.json.bak` | Refreshed student acceptance evidence; `release_ready=true`, all input reports are inside `../llm-distill/evals/reports/`, and the adapter path is inside `../llm-distill/models/adapters/`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_student_acceptance.py`. |
+| `../llm-distill/evals/reports/distillation_readiness_audit_report.json` | `backups/20260601-125457-student-acceptance-source-control-paths/llm-distill/evals/reports/distillation_readiness_audit_report.json.bak` | Refreshed distillation readiness; `distillation_ready=true`, `release_ready=true`, `blocked=0`, and warnings remain for synthetic-900 Metal access and teacher-request preflight context. | Restore backup over the same path or rerun `../llm-distill/scripts/run_distillation_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-125457-student-acceptance-source-control-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/README.md` | `backups/20260601-125457-student-acceptance-source-control-paths/llm-distill/README.md.bak` | Updated the student acceptance command to use repo-local report paths and documented the report/adapters containment rule. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-125457-student-acceptance-source-control-paths/PHIplan.md.bak` | Documented that student acceptance release evidence requires repo-local reports and adapter-root containment. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-125457-student-acceptance-source-control-paths/docs/technical-llm-distillation-analysis.md.bak` | Added a technical note for report and adapter path containment before student acceptance can be release-ready. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-125457-student-acceptance-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-125457-student-acceptance-source-control-paths/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `tests/unit/test_student_acceptance_gate.py`
+
+### Validation
+- `find backups/20260601-125457-student-acceptance-source-control-paths -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_student_acceptance.py tests/unit/test_student_acceptance_gate.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_student_acceptance_gate.py -q`: passed, 3 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_student_acceptance_gate.py tests/unit/test_distillation_readiness_audit.py tests/unit/test_student_default_startup_config.py -q`: passed, 29 tests.
+- `python3 ../llm-distill/scripts/run_student_acceptance.py --output ../llm-distill/evals/reports/student_acceptance_report.json --fail-on-blocked`: passed with exit status 0 and `release_ready=true`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output ../llm-distill/evals/reports/distillation_readiness_audit_report.json`: passed with `distillation_ready=true`, `release_ready=true`, `blocked=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 ../llm-distill/scripts/run_student_acceptance.py --output /private/tmp/claimguard-student-acceptance-ready-check.json --fail-on-blocked`: passed with exit status 0.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-distillation-readiness-ready-check.json --fail-on-blocked`: passed with exit status 0.
+- Expected blocked PHIplan check with `--fail-on-blocked` returned exit status 2 for `run_phi_plan_production_readiness_audit.py`, preserving current production blockers.
+- JSON parsing checks for `../llm-distill/evals/reports/student_acceptance_report.json`, `../llm-distill/evals/reports/distillation_readiness_audit_report.json`, and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, secrets, approval values, raw report values, private paths, credentials, or adapter weight contents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw report values, adapter weight contents, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating arbitrary temporary report paths as release-ready acceptance
+  evidence; input report paths now block unless they resolve under
+  `../llm-distill/evals/reports/`.
+- Avoided accepting adapter directories outside `../llm-distill/models/adapters/`
+  even when they exist.
+- Avoided changing the real PHIplan production blockers for Raphael approval,
+  supervised runtime ownership, private manual gate evidence, production corpus,
+  retrieval backend, or fairness monitoring.
+
+### Notes
+- Rollback: delete `tests/unit/test_student_acceptance_gate.py`, restore every
+  modified file from
+  `backups/20260601-125457-student-acceptance-source-control-paths/`, then
+  rerun the acceptance, distillation readiness, and PHIplan readiness validators
+  if refreshed reports are needed after rollback.
+- This slice strengthens checked-in student acceptance evidence; it does not
+  complete the full PHIplan objective or approve production default routing.
+
 ## 2026-06-01 12:50:08 PDT - Manual gate source-control path hardening
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

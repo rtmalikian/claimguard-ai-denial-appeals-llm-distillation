@@ -426,9 +426,9 @@ gate before treating an adapter as the ClaimGuard student model:
 ```bash
 python3 llm-distill/scripts/run_student_acceptance.py \
   --workflow-report llm-distill/evals/reports/workflow_baseline_report.json \
-  --fine-tune-report /path/to/finetune_run_report.json \
-  --base-benchmark /path/to/base_mlx_benchmark_report.json \
-  --student-benchmark /path/to/student_mlx_benchmark_report.json \
+  --fine-tune-report llm-distill/evals/reports/mlx_finetune_preflight_report.json \
+  --base-benchmark llm-distill/evals/reports/local_mlx_benchmark_report.json \
+  --student-benchmark llm-distill/evals/reports/student_mlx_benchmark_report.json \
   --output llm-distill/evals/reports/student_acceptance_report.json \
   --fail-on-blocked
 ```
@@ -436,9 +436,11 @@ python3 llm-distill/scripts/run_student_acceptance.py \
 The gate checks deterministic workflow regression, successful LoRA run evidence,
 full live base/student benchmark reports, JSON/output-contract gates,
 human-review and draft markers, score regression, and PHI scan results. The
-current checked-in report should be treated as the source of truth for whether
-the reviewed adapter is promotable; do not promote an adapter while
-`release_ready=false`.
+input reports must stay under `llm-distill/evals/reports/`, and the adapter
+path must stay under `llm-distill/models/adapters/` before the acceptance report
+can be release-ready. The current checked-in report should be treated as the
+source of truth for whether the reviewed adapter is promotable; do not promote
+an adapter while `release_ready=false`.
 
 ## Data Rule
 

@@ -2,7 +2,7 @@
   "blocked_item_count": 0,
   "blocked_items": [],
   "distillation_ready": true,
-  "generated_at": "2026-05-31T05:04:49.878728+00:00",
+  "generated_at": "2026-06-01T19:57:05.842718+00:00",
   "next_required_actions": [
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves production runtime/default cutover, CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=true, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE is configured, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=true, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=false.",
     "Complete remaining PHIplan production controls before using real-world corpus examples: admin review/import UI, role-scoped document access, retention/deletion workflows, audit dashboards, and legal/BAA/consent review.",
@@ -1390,9 +1390,9 @@
       "evidence": {
         "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
         "summary": {
-          "discovered_count": 2,
-          "expected_count": 2,
-          "registered_count": 2,
+          "discovered_count": 3,
+          "expected_count": 3,
+          "registered_count": 3,
           "unregistered_count": 0
         }
       },

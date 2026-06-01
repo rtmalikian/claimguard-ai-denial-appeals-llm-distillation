@@ -78,6 +78,9 @@ secrets:
      draft-for-review markers.
    - Student acceptance is gated before quantization, promotion, or application
      default-model changes.
+   - Student acceptance now requires every input report to resolve under
+     `llm-distill/evals/reports/` and the adapter path to resolve under
+     `llm-distill/models/adapters/` before `release_ready=true`.
 
 5. Production-readiness separation
    - Distillation evidence can be ready while production deployment remains

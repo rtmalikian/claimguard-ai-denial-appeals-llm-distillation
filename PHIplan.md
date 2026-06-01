@@ -379,7 +379,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   corpus SFT export gates are now ready. The audit now reports
   `release_ready=true` for the current evidence while preserving next actions
   that keep `CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false` until Raphael approves
-  production runtime/default cutover.
+  production runtime/default cutover. The student acceptance gate now also
+  requires workflow, fine-tune, base benchmark, and student benchmark reports to
+  stay under `llm-distill/evals/reports/` and the accepted adapter path to stay
+  under `llm-distill/models/adapters/`, preventing arbitrary temporary reports
+  or outside adapter directories from satisfying release evidence.
 - Add Denial Workflow UI controls for encrypted retrieval-source creation,
   explicit privacy-review attestation, model-improvement opt-in gating through
   the existing backend validation, stored source visibility, document-surface

@@ -19,6 +19,24 @@ DEFAULT_BASE_BENCHMARK = REPORT_DIR / "local_mlx_benchmark_report.json"
 DEFAULT_STUDENT_BENCHMARK = REPORT_DIR / "student_mlx_benchmark_report.json"
 DEFAULT_FINE_TUNE_REPORT = REPORT_DIR / "mlx_finetune_preflight_report.json"
 DEFAULT_OUTPUT = REPORT_DIR / "student_acceptance_report.json"
+DEFAULT_ADAPTER_ROOT = REPO_ROOT / "llm-distill" / "models" / "adapters"
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def resolve_cli_path(path: Path) -> Path:
+    if path.is_absolute():
+        return path.resolve()
+    repo_candidate = (REPO_ROOT / path).resolve()
+    if repo_candidate.exists() or str(path).startswith("llm-distill/"):
+        return repo_candidate
+    return path.resolve()
 
 
 def load_report(path: Path) -> tuple[dict[str, Any] | None, list[str]]:
@@ -55,6 +73,20 @@ def add_blockers(target: list[str], reasons: list[str]) -> None:
     for reason in reasons:
         if reason not in target:
             target.append(reason)
+
+
+def input_report_path_check(label: str, path: Path) -> tuple[dict[str, Any], list[str]]:
+    inside_report_dir = path_is_within(path, REPORT_DIR)
+    blockers: list[str] = []
+    if not inside_report_dir:
+        blockers.append(f"{label} report path must stay inside llm-distill/evals/reports")
+    return {
+        "path": str(path),
+        "exists": path.exists(),
+        "inside_report_dir": inside_report_dir,
+        "expected_report_dir": str(REPORT_DIR),
+        "raw_report_values_included": False,
+    }, blockers
 
 
 def score_ratio(summary: dict[str, Any] | None) -> float | None:
@@ -129,7 +161,14 @@ def check_fine_tune_report(
     data_check = checks.get("data", {}) if isinstance(checks, dict) else {}
     adapter_check = checks.get("adapter_output", {}) if isinstance(checks, dict) else {}
     adapter_path = adapter_check.get("path") if isinstance(adapter_check, dict) else None
-    adapter_exists = Path(adapter_path).exists() if isinstance(adapter_path, str) else False
+    resolved_adapter_path = (
+        resolve_cli_path(Path(adapter_path)) if isinstance(adapter_path, str) else None
+    )
+    adapter_inside_expected_root = bool(
+        resolved_adapter_path
+        and path_is_within(resolved_adapter_path, DEFAULT_ADAPTER_ROOT)
+    )
+    adapter_exists = bool(resolved_adapter_path and resolved_adapter_path.exists())
 
     if mode != "run":
         blockers.append("fine-tune report must be from --run mode")
@@ -147,6 +186,8 @@ def check_fine_tune_report(
         blockers.append("fine-tune manifest must have training_allowed=true")
     if isinstance(data_check, dict) and data_check.get("total_phi_findings", 0) != 0:
         blockers.append("fine-tune data check must have zero PHI findings")
+    if not adapter_inside_expected_root:
+        blockers.append("trained adapter output path must stay inside llm-distill/models/adapters")
     if not adapter_exists:
         blockers.append("trained adapter output path must exist")
 
@@ -162,8 +203,10 @@ def check_fine_tune_report(
         "data_total_phi_findings": data_check.get("total_phi_findings")
         if isinstance(data_check, dict)
         else None,
-        "adapter_path": adapter_path,
+        "adapter_path": str(resolved_adapter_path) if resolved_adapter_path else adapter_path,
         "adapter_path_exists": adapter_exists,
+        "adapter_path_inside_expected_root": adapter_inside_expected_root,
+        "expected_adapter_root": str(DEFAULT_ADAPTER_ROOT),
         "blocked_reasons": blocked_reasons,
         "preflight_errors": preflight_errors,
         "errors": load_errors,
@@ -277,6 +320,120 @@ def compare_student_to_base(
     }, blockers
 
 
+def build_report(
+    *,
+    workflow_report_path: Path,
+    fine_tune_report_path: Path,
+    base_benchmark_path: Path,
+    student_benchmark_path: Path,
+    workflow_min_score: float = 0.95,
+    student_min_score: float = 0.95,
+    min_benchmark_records: int = 10,
+    max_score_regression: float = 0.02,
+) -> dict[str, Any]:
+    workflow_report_path = resolve_cli_path(workflow_report_path)
+    fine_tune_report_path = resolve_cli_path(fine_tune_report_path)
+    base_benchmark_path = resolve_cli_path(base_benchmark_path)
+    student_benchmark_path = resolve_cli_path(student_benchmark_path)
+
+    input_path_checks: dict[str, dict[str, Any]] = {}
+    input_path_blockers: list[str] = []
+    for label, path in {
+        "workflow": workflow_report_path,
+        "fine_tune": fine_tune_report_path,
+        "base_benchmark": base_benchmark_path,
+        "student_benchmark": student_benchmark_path,
+    }.items():
+        check, blockers = input_report_path_check(label, path)
+        input_path_checks[label] = check
+        add_blockers(input_path_blockers, blockers)
+
+    workflow_report, workflow_load_errors = load_report(workflow_report_path)
+    fine_tune_report, fine_tune_load_errors = load_report(fine_tune_report_path)
+    base_report, base_load_errors = load_report(base_benchmark_path)
+    student_report, student_load_errors = load_report(student_benchmark_path)
+
+    blocked_reasons: list[str] = []
+    add_blockers(blocked_reasons, input_path_blockers)
+    workflow_check, workflow_blockers = check_workflow_report(
+        workflow_report,
+        workflow_load_errors,
+        workflow_min_score,
+    )
+    fine_tune_check, fine_tune_blockers = check_fine_tune_report(
+        fine_tune_report,
+        fine_tune_load_errors,
+    )
+    base_check, base_blockers = check_benchmark_report(
+        "base",
+        base_report,
+        base_load_errors,
+        min_records=min_benchmark_records,
+        min_score_ratio=None,
+    )
+    student_check, student_blockers = check_benchmark_report(
+        "student",
+        student_report,
+        student_load_errors,
+        min_records=min_benchmark_records,
+        min_score_ratio=student_min_score,
+    )
+    comparison_check, comparison_blockers = compare_student_to_base(
+        base_check,
+        student_check,
+        max_score_regression,
+    )
+
+    add_blockers(blocked_reasons, workflow_blockers)
+    add_blockers(blocked_reasons, fine_tune_blockers)
+    add_blockers(blocked_reasons, base_blockers)
+    add_blockers(blocked_reasons, student_blockers)
+    add_blockers(blocked_reasons, comparison_blockers)
+
+    phi_scans = {
+        "workflow_report": phi_scan_report(workflow_report_path),
+        "fine_tune_report": phi_scan_report(fine_tune_report_path),
+        "base_benchmark": phi_scan_report(base_benchmark_path),
+        "student_benchmark": phi_scan_report(student_benchmark_path),
+    }
+    for scan_name, scan in phi_scans.items():
+        if scan["finding_count"]:
+            blocked_reasons.append(f"{scan_name} contains PHI/PII scan findings")
+
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "release_ready": not blocked_reasons,
+        "blocked_reasons": blocked_reasons,
+        "thresholds": {
+            "workflow_min_score": workflow_min_score,
+            "student_min_score": student_min_score,
+            "min_benchmark_records": min_benchmark_records,
+            "max_score_regression": max_score_regression,
+        },
+        "inputs": {
+            "workflow_report": str(workflow_report_path),
+            "fine_tune_report": str(fine_tune_report_path),
+            "base_benchmark": str(base_benchmark_path),
+            "student_benchmark": str(student_benchmark_path),
+        },
+        "checks": {
+            "input_paths": input_path_checks,
+            "workflow_baseline": workflow_check,
+            "fine_tune_run": fine_tune_check,
+            "base_benchmark": base_check,
+            "student_benchmark": student_check,
+            "student_vs_base": comparison_check,
+            "phi_scans": phi_scans,
+        },
+        "notes": [
+            "This gate does not train, quantize, download models, call endpoints, or inspect adapter weights.",
+            "A release-ready student requires reviewed-label training evidence and live base/student MLX benchmark reports.",
+            "Report inputs must stay under llm-distill/evals/reports and the adapter path must stay under llm-distill/models/adapters before promotion.",
+            "Use this gate before any adapter promotion, quantization, or application default-model change.",
+        ],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--workflow-report", type=Path, default=DEFAULT_WORKFLOW_REPORT)
@@ -295,91 +452,20 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    workflow_report, workflow_load_errors = load_report(args.workflow_report)
-    fine_tune_report, fine_tune_load_errors = load_report(args.fine_tune_report)
-    base_report, base_load_errors = load_report(args.base_benchmark)
-    student_report, student_load_errors = load_report(args.student_benchmark)
-
-    blocked_reasons: list[str] = []
-    workflow_check, workflow_blockers = check_workflow_report(
-        workflow_report,
-        workflow_load_errors,
-        args.workflow_min_score,
+    payload = build_report(
+        workflow_report_path=args.workflow_report,
+        fine_tune_report_path=args.fine_tune_report,
+        base_benchmark_path=args.base_benchmark,
+        student_benchmark_path=args.student_benchmark,
+        workflow_min_score=args.workflow_min_score,
+        student_min_score=args.student_min_score,
+        min_benchmark_records=args.min_benchmark_records,
+        max_score_regression=args.max_score_regression,
     )
-    fine_tune_check, fine_tune_blockers = check_fine_tune_report(
-        fine_tune_report,
-        fine_tune_load_errors,
-    )
-    base_check, base_blockers = check_benchmark_report(
-        "base",
-        base_report,
-        base_load_errors,
-        min_records=args.min_benchmark_records,
-        min_score_ratio=None,
-    )
-    student_check, student_blockers = check_benchmark_report(
-        "student",
-        student_report,
-        student_load_errors,
-        min_records=args.min_benchmark_records,
-        min_score_ratio=args.student_min_score,
-    )
-    comparison_check, comparison_blockers = compare_student_to_base(
-        base_check,
-        student_check,
-        args.max_score_regression,
-    )
-
-    add_blockers(blocked_reasons, workflow_blockers)
-    add_blockers(blocked_reasons, fine_tune_blockers)
-    add_blockers(blocked_reasons, base_blockers)
-    add_blockers(blocked_reasons, student_blockers)
-    add_blockers(blocked_reasons, comparison_blockers)
-
-    phi_scans = {
-        "workflow_report": phi_scan_report(args.workflow_report),
-        "fine_tune_report": phi_scan_report(args.fine_tune_report),
-        "base_benchmark": phi_scan_report(args.base_benchmark),
-        "student_benchmark": phi_scan_report(args.student_benchmark),
-    }
-    for scan_name, scan in phi_scans.items():
-        if scan["finding_count"]:
-            blocked_reasons.append(f"{scan_name} contains PHI/PII scan findings")
-
-    payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "release_ready": not blocked_reasons,
-        "blocked_reasons": blocked_reasons,
-        "thresholds": {
-            "workflow_min_score": args.workflow_min_score,
-            "student_min_score": args.student_min_score,
-            "min_benchmark_records": args.min_benchmark_records,
-            "max_score_regression": args.max_score_regression,
-        },
-        "inputs": {
-            "workflow_report": str(args.workflow_report),
-            "fine_tune_report": str(args.fine_tune_report),
-            "base_benchmark": str(args.base_benchmark),
-            "student_benchmark": str(args.student_benchmark),
-        },
-        "checks": {
-            "workflow_baseline": workflow_check,
-            "fine_tune_run": fine_tune_check,
-            "base_benchmark": base_check,
-            "student_benchmark": student_check,
-            "student_vs_base": comparison_check,
-            "phi_scans": phi_scans,
-        },
-        "notes": [
-            "This gate does not train, quantize, download models, call endpoints, or inspect adapter weights.",
-            "A release-ready student requires reviewed-label training evidence and live base/student MLX benchmark reports.",
-            "Use this gate before any adapter promotion, quantization, or application default-model change.",
-        ],
-    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     print(f"wrote student acceptance report to {args.output}")
-    if blocked_reasons and args.fail_on_blocked:
+    if payload["blocked_reasons"] and args.fail_on_blocked:
         return 2
     return 0
 
