@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,10 @@ DEFAULT_BASE_BENCHMARK = REPORT_DIR / "local_mlx_benchmark_report.json"
 DEFAULT_STUDENT_BENCHMARK = REPORT_DIR / "student_mlx_benchmark_report.json"
 DEFAULT_ACCEPTANCE_REPORT = REPORT_DIR / "student_acceptance_report.json"
 DEFAULT_PIPELINE_REPORT = REPORT_DIR / "reviewed_distillation_pipeline_report.json"
+EXTERNAL_PATH_REDACTION = "external_path_redacted"
+LOCAL_ABSOLUTE_PATH_RE = re.compile(
+    r"(?<![A-Za-z0-9_])/(?:Users|private|tmp|var|Volumes)/[^\s\"']+"
+)
 REQUIRED_MICRO_SKILLS = [f"MS{index:02d}" for index in range(1, 13)]
 REVIEWED_STATUS_KEYS = {"large_teacher_reviewed", "human_reviewed"}
 TRAINING_ALLOWED_PHI_STATUSES = {"no_phi", "deidentified"}
@@ -111,6 +116,27 @@ def default_sft_manifest() -> Path:
     if DEFAULT_REVIEWED_SFT_MANIFEST.exists():
         return DEFAULT_REVIEWED_SFT_MANIFEST
     return DEFAULT_SEED_SFT_MANIFEST
+
+
+def sanitize_report_string(value: str) -> str:
+    repo_root = str(REPO_ROOT.resolve())
+    sanitized = value.replace(repo_root + "/", "")
+    if sanitized == repo_root:
+        return "."
+    return LOCAL_ABSOLUTE_PATH_RE.sub(EXTERNAL_PATH_REDACTION, sanitized)
+
+
+def sanitize_report_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return sanitize_report_string(value)
+    if isinstance(value, list):
+        return [sanitize_report_value(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: sanitize_report_value(item)
+            for key, item in value.items()
+        }
+    return value
 
 
 def load_json(path: Path) -> tuple[Any | None, list[str]]:
@@ -1718,7 +1744,8 @@ def main() -> int:
         ],
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    safe_payload = sanitize_report_value(payload)
+    args.output.write_text(json.dumps(safe_payload, indent=2, sort_keys=True), encoding="utf-8")
     print(f"wrote distillation readiness audit report to {args.output}")
     if blocked and args.fail_on_blocked:
         return 2

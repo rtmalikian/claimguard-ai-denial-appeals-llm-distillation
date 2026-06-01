@@ -2,6 +2,60 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 13:24:17 PDT - Distillation readiness repo-relative path reporting
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: keep the checked-in top-level distillation readiness audit useful for
+  reviewers while preventing local absolute workstation paths or outside local
+  paths from being written into `distillation_readiness_audit_report.json`.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/run_distillation_readiness_audit.py` | `backups/20260601-132051-distillation-readiness-relative-paths/llm-distill/scripts/run_distillation_readiness_audit.py.bak` | Added recursive report-output sanitization that converts repo-root paths to repository-relative paths and redacts outside local paths before writing JSON. | Restore backup over the same path. |
+| `tests/unit/test_distillation_readiness_audit.py` | `backups/20260601-132051-distillation-readiness-relative-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py.bak` | Added regression coverage for repo-relative path output and outside-path redaction in nested report payloads. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/distillation_readiness_audit_report.json` | `backups/20260601-132051-distillation-readiness-relative-paths/llm-distill/evals/reports/distillation_readiness_audit_report.json.bak` | Regenerated the top-level distillation readiness report; `release_ready=true`, `blocked=0`, `warnings=2`, and checked-in paths are sanitized. | Restore backup over the same path or rerun `../llm-distill/scripts/run_distillation_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-132051-distillation-readiness-relative-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed PHIplan production readiness after aggregate evidence refresh; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warnings=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/README.md` | `backups/20260601-132051-distillation-readiness-relative-paths/llm-distill/README.md.bak` | Documented repo-relative path serialization and outside-path redaction for the distillation readiness audit. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-132051-distillation-readiness-relative-paths/PHIplan.md.bak` | Documented recursive distillation readiness report-output sanitization. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-132051-distillation-readiness-relative-paths/docs/technical-llm-distillation-analysis.md.bak` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-132051-distillation-readiness-relative-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-132051-distillation-readiness-relative-paths/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-132051-distillation-readiness-relative-paths -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_distillation_readiness_audit.py tests/unit/test_distillation_readiness_audit.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_distillation_readiness_audit.py -q`: passed, 18 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_distillation_readiness_audit.py tests/unit/test_student_acceptance_gate.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 34 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output ../llm-distill/evals/reports/distillation_readiness_audit_report.json --fail-on-blocked`: passed with `release_ready=true`, `blocked=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 -m json.tool` on `../llm-distill/evals/reports/distillation_readiness_audit_report.json` and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/|external_path_redacted" ../llm-distill/evals/reports/distillation_readiness_audit_report.json`: passed with no matches.
+- Ready-check command for distillation readiness using `/private/tmp` output passed; expected blocked PHIplan check with `--fail-on-blocked` returned exit status 2, preserving current production blockers.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries in `../PHIplan.md`, `../docs/technical-llm-distillation-analysis.md`, and `../llm-distill/README.md`; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, approval values, raw report values, local workstation paths, credentials, or adapter weight contents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw report values, adapter weight contents, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing distillation readiness semantics; this is an output hygiene
+  change, not a model-training or production-readiness change.
+- Avoided redacting source-controlled paths entirely; repo-owned paths remain
+  useful as repository-relative values.
+- Avoided changing the six current PHIplan production blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-132051-distillation-readiness-relative-paths/`, then rerun
+  the distillation readiness and PHIplan readiness scripts if refreshed reports
+  are needed after rollback.
+- This slice removes local path exposure from checked-in distillation readiness
+  evidence; it does not complete the full PHIplan objective or approve student
+  default routing.
+
 ## 2026-06-01 13:16:33 PDT - Student acceptance repo-relative path reporting
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

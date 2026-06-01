@@ -2,7 +2,7 @@
   "blocked_item_count": 0,
   "blocked_items": [],
   "distillation_ready": true,
-  "generated_at": "2026-06-01T20:15:08.699099+00:00",
+  "generated_at": "2026-06-01T20:22:34.379787+00:00",
   "next_required_actions": [
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves production runtime/default cutover, CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=true, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE is configured, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=true, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=false.",
     "Complete remaining PHIplan production controls before using real-world corpus examples: admin review/import UI, role-scoped document access, retention/deletion workflows, audit dashboards, and legal/BAA/consent review.",
@@ -23,12 +23,12 @@
       "blockers": [],
       "evidence": {
         "no_phi_count": 7,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/source_registry.json",
+        "path": "llm-distill/data/source_registry.json",
         "phi_scan": {
           "exists": true,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/source_registry.json"
+          "path": "llm-distill/data/source_registry.json"
         },
         "source_count": 7,
         "tier1_count": 7
@@ -43,14 +43,14 @@
       "blockers": [],
       "evidence": {
         "required_files": [
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/safety-and-hipaa.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/data-sources.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/eval-rubric.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-setup.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/prompts/teacher_labeling_prompt.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/prompts/denial_workflow_prompts.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/denial_skill/SKILL.md",
-          "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/denial_skill/eval/distillation_dataset_design.md"
+          "llm-distill/docs/safety-and-hipaa.md",
+          "llm-distill/docs/data-sources.md",
+          "llm-distill/docs/eval-rubric.md",
+          "llm-distill/docs/mlx-setup.md",
+          "llm-distill/models/prompts/teacher_labeling_prompt.md",
+          "llm-distill/models/prompts/denial_workflow_prompts.md",
+          "denial_skill/SKILL.md",
+          "denial_skill/eval/distillation_dataset_design.md"
         ]
       },
       "name": "Safety, prompt, and denial-skill specifications exist",
@@ -84,12 +84,12 @@
           "public_government_source": 7,
           "synthetic_deidentified_pair": 6
         },
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json",
+        "path": "llm-distill/data/corpus/manifest.json",
         "phi_scan": {
           "exists": true,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json"
+          "path": "llm-distill/data/corpus/manifest.json"
         },
         "public_government_source_count": 7,
         "record_count": 13,
@@ -164,7 +164,7 @@
         "micro_skill_coverage_complete": true,
         "missing_required_micro_skill_ids": [],
         "pair_count": 3,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/manifest.json",
+        "path": "llm-distill/data/distillation/mlx_sft_corpus/manifest.json",
         "record_count": 3,
         "source_manifest": "llm-distill/data/corpus/manifest.json",
         "split_counts": {
@@ -182,19 +182,19 @@
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/test.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_corpus/test.jsonl"
           },
           "train": {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/train.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_corpus/train.jsonl"
           },
           "valid": {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/valid.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_corpus/valid.jsonl"
           }
         },
         "training_allowed": true
@@ -296,7 +296,7 @@
           "train": 1440,
           "valid": 180
         },
-        "generation_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
+        "generation_report": "llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
         "generation_report_phi_scan": {
           "finding_count": 0,
           "findings": [],
@@ -308,10 +308,10 @@
           "file_count": 1800,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/letters",
+          "path": "llm-distill/data/corpus/generated_synthetic_pairs/letters",
           "read_errors": []
         },
-        "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+        "manifest": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
         "manifest_record_count": 1800,
         "missing_file_count": 0,
         "pair_count": 900,
@@ -359,7 +359,7 @@
           "profile_missing_count": 0,
           "split_path_mismatch_count": 0
         },
-        "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+        "corpus_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
         "counts": {
           "appeal_format": {
             "clinical_reconsideration_packet": 112,
@@ -425,14 +425,14 @@
         },
         "documentation": {
           "exists": true,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/README.md",
+          "path": "llm-distill/data/corpus/generated_synthetic_pairs/README.md",
           "phi_scan_finding_count": 0,
           "ready": true,
           "required_marker_count": 10
         },
         "duplicate_pair_group_count": 0,
         "duplicate_text_group_count": 0,
-        "generation_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
+        "generation_report": "llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json",
         "generation_report_counts": {
           "appeal_format": {
             "clinical_reconsideration_packet": 112,
@@ -512,11 +512,11 @@
           }
         },
         "letter_count": 1800,
-        "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+        "manifest": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
         "manifest_record_count": 1800,
         "manifest_version": "synthetic-large-900",
         "pair_count": 900,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json",
+        "path": "llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json",
         "phi_scan": {
           "finding_count": 0,
           "finding_types": {},
@@ -803,7 +803,7 @@
           "exists": true,
           "font_family_count": 8,
           "layout_profile_count": 12,
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json",
+          "path": "llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json",
           "phi_scan_finding_count": 0,
           "ready": true,
           "rendered_html_count": 1800,
@@ -866,15 +866,15 @@
       "blockers": [],
       "evidence": {
         "checked_denial_count": 900,
-        "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
-        "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+        "corpus_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
+        "manifest_path": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
         "minimum_required_denial_count": 800,
         "missing_claim_amount_count": 0,
         "missing_denial_reason_count": 0,
         "missing_file_count": 0,
         "missing_payer_name_count": 0,
         "missing_procedure_code_count": 0,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/synthetic_document_analysis_extraction_report.json",
+        "path": "llm-distill/evals/reports/synthetic_document_analysis_extraction_report.json",
         "phi_finding_count": 0,
         "read_error_count": 0,
         "report_blocker_count": 0,
@@ -965,7 +965,7 @@
         "micro_skill_coverage_complete": true,
         "missing_required_micro_skill_ids": [],
         "pair_count": 900,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json",
+        "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json",
         "record_count": 900,
         "source_manifest": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
         "split_counts": {
@@ -983,19 +983,19 @@
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/test.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/test.jsonl"
           },
           "train": {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/train.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/train.jsonl"
           },
           "valid": {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/valid.jsonl"
+            "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/valid.jsonl"
           }
         },
         "training_allowed": true
@@ -1010,13 +1010,13 @@
       "blockers": [],
       "evidence": {
         "adapter_exists_currently": false,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
+        "path": "llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json",
         "runtime_error": "mlx_lm.lora cannot access a Metal device in this session",
         "runtime_ready": false,
         "summary": {
           "adapter_exists_after_run": null,
           "adapter_exists_before_run": false,
-          "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900",
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900",
           "blocked_reasons": [
             "mlx_lm.lora cannot access a Metal device in this session"
           ],
@@ -1044,18 +1044,18 @@
           "exists": true,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl"
+          "path": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl"
         },
         "seed_record_count": 10,
-        "seed_records": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+        "seed_records": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
         "teacher_request_count": 10,
         "teacher_request_phi_scan": {
           "exists": true,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_requests.jsonl"
+          "path": "llm-distill/data/distillation/teacher_label_requests.jsonl"
         },
-        "teacher_requests": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_requests.jsonl"
+        "teacher_requests": "llm-distill/data/distillation/teacher_label_requests.jsonl"
       },
       "name": "Synthetic seed dataset and teacher requests cover the current scenario set",
       "phase": "synthetic_data",
@@ -1089,7 +1089,7 @@
         },
         "micro_skill_coverage_complete": true,
         "missing_required_micro_skill_ids": [],
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+        "path": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
         "record_count": 10,
         "required_micro_skill_ids": [
           "MS01",
@@ -1115,7 +1115,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json",
+        "path": "llm-distill/evals/reports/workflow_baseline_report.json",
         "summary": {
           "max_score": 104.0,
           "passed_count": 10,
@@ -1133,7 +1133,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/teacher_label_batch_preflight_report.json",
+        "path": "llm-distill/evals/reports/teacher_label_batch_preflight_report.json",
         "summary": {
           "base_url_configured": false,
           "mode": "preflight",
@@ -1161,14 +1161,14 @@
     {
       "blockers": [],
       "evidence": {
-        "packet": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_review_packet.jsonl",
+        "packet": "llm-distill/data/distillation/teacher_review_packet.jsonl",
         "packet_phi_scan": {
           "exists": true,
           "finding_count": 0,
           "findings": [],
-          "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_review_packet.jsonl"
+          "path": "llm-distill/data/distillation/teacher_review_packet.jsonl"
         },
-        "report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/teacher_review_packet_report.json",
+        "report": "llm-distill/evals/reports/teacher_review_packet_report.json",
         "summary": {
           "approved_count": 10,
           "export_error_count": 0,
@@ -1195,12 +1195,12 @@
     {
       "blockers": [],
       "evidence": {
-        "pipeline_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/reviewed_distillation_pipeline_report.json",
+        "pipeline_report": "llm-distill/evals/reports/reviewed_distillation_pipeline_report.json",
         "pipeline_stages": {
           "ingest_reviewed_labels": {
             "blockers": [],
             "evidence": {
-              "ingestion_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_ingestion_report.json",
+              "ingestion_report": "llm-distill/data/distillation/teacher_label_ingestion_report.json",
               "ingestion_report_summary": {
                 "error_count": 0,
                 "errors": [],
@@ -1208,7 +1208,7 @@
                 "review_status": "large_teacher_reviewed",
                 "reviewed_output": "llm-distill/data/distillation/reviewed_supervised.jsonl",
                 "reviewed_record_count": 10,
-                "seed_input": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+                "seed_input": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
                 "seed_record_count": 10,
                 "teacher_model": "codex_gpt5_synthetic_review",
                 "teacher_response_count": 10,
@@ -1223,7 +1223,7 @@
                 "finding_count": 0,
                 "findings": []
               },
-              "reviewed_output": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/reviewed_supervised.jsonl",
+              "reviewed_output": "llm-distill/data/distillation/reviewed_supervised.jsonl",
               "reviewed_record_count": 10,
               "run_requested": false
             },
@@ -1233,7 +1233,7 @@
           "teacher_responses": {
             "blockers": [],
             "evidence": {
-              "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_responses_from_review.jsonl",
+              "path": "llm-distill/data/distillation/teacher_responses_from_review.jsonl",
               "phi_scan": {
                 "exists": true,
                 "finding_count": 0,
@@ -1246,7 +1246,7 @@
           }
         },
         "reviewed_count": 10,
-        "sft_manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+        "sft_manifest": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
         "teacher_review_status_counts": {
           "large_teacher_reviewed": 10
         }
@@ -1260,14 +1260,14 @@
     {
       "blockers": [],
       "evidence": {
-        "pipeline_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/reviewed_distillation_pipeline_report.json",
+        "pipeline_report": "llm-distill/evals/reports/reviewed_distillation_pipeline_report.json",
         "pipeline_stage": {
           "blockers": [],
           "evidence": {
-            "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
-            "manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
+            "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+            "manifest": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
             "manifest_summary": {
-              "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+              "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
               "artifact": "claimguard_mlx_sft_seed",
               "blocked_reasons": [],
               "data_safety": {
@@ -1316,7 +1316,7 @@
                 "MS11",
                 "MS12"
               ],
-              "source_data": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/reviewed_supervised.jsonl",
+              "source_data": "llm-distill/data/distillation/reviewed_supervised.jsonl",
               "split_counts": {
                 "test": 1,
                 "train": 8,
@@ -1331,7 +1331,7 @@
                 "Qwen/Qwen3-4B-MLX-4bit",
                 "--train",
                 "--data",
-                "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+                "llm-distill/data/distillation/mlx_sft_reviewed",
                 "--iters",
                 "60",
                 "--batch-size",
@@ -1346,7 +1346,7 @@
                 "--steps-per-eval",
                 "30",
                 "--adapter-path",
-                "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+                "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
               ],
               "training_allowed": true
             },
@@ -1367,7 +1367,7 @@
                 "findings": []
               }
             },
-            "reviewed_sft_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed",
+            "reviewed_sft_dir": "llm-distill/data/distillation/mlx_sft_reviewed",
             "run_requested": false,
             "split_counts": {
               "test": 1,
@@ -1388,7 +1388,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
+        "path": "llm-distill/evals/reports/file_ingestion_surface_audit_report.json",
         "summary": {
           "discovered_count": 3,
           "expected_count": 3,
@@ -1405,7 +1405,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json",
+        "path": "llm-distill/evals/reports/mlx_runtime_preflight_report.json",
         "summary": {
           "base_url": "http://localhost:8080/v1",
           "blocked_reasons": [],
@@ -1430,11 +1430,11 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+        "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "summary": {
           "adapter_exists_after_run": true,
           "adapter_exists_before_run": false,
-          "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
           "blocked_reasons": [],
           "data_ready": true,
           "manifest_training_allowed": true,
@@ -1454,11 +1454,11 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+        "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "summary": {
           "adapter_exists_after_run": true,
           "adapter_exists_before_run": false,
-          "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
           "blocked_reasons": [],
           "data_ready": true,
           "manifest_training_allowed": true,
@@ -1478,7 +1478,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json",
+        "path": "llm-distill/evals/reports/local_mlx_benchmark_report.json",
         "summary": {
           "dry_run": false,
           "endpoint_available": true,
@@ -1500,7 +1500,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json",
+        "path": "llm-distill/evals/reports/student_mlx_benchmark_report.json",
         "summary": {
           "dry_run": false,
           "endpoint_available": true,
@@ -1522,7 +1522,7 @@
     {
       "blockers": [],
       "evidence": {
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_acceptance_report.json",
+        "path": "llm-distill/evals/reports/student_acceptance_report.json",
         "summary": {
           "blocked_reasons": [],
           "release_ready": true,
@@ -1544,12 +1544,12 @@
       "blockers": [],
       "evidence": {
         "acceptance_release_ready": true,
-        "acceptance_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_acceptance_report.json",
-        "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+        "acceptance_report": "llm-distill/evals/reports/student_acceptance_report.json",
+        "fine_tune_report": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "fine_tune_summary": {
           "adapter_exists_after_run": true,
           "adapter_exists_before_run": false,
-          "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
           "blocked_reasons": [],
           "data_ready": true,
           "manifest_training_allowed": true,
@@ -1574,139 +1574,139 @@
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/source_registry.json"
+            "path": "llm-distill/data/source_registry.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/manifest.json"
+            "path": "llm-distill/data/corpus/manifest.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_corpus/manifest.json"
+            "path": "llm-distill/data/distillation/mlx_sft_corpus/manifest.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json"
+            "path": "llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json"
+            "path": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json"
+            "path": "llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/synthetic_document_analysis_extraction_report.json"
+            "path": "llm-distill/evals/reports/synthetic_document_analysis_extraction_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json"
+            "path": "llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json"
+            "path": "llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl"
+            "path": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_label_requests.jsonl"
+            "path": "llm-distill/data/distillation/teacher_label_requests.jsonl"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json"
+            "path": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+            "path": "llm-distill/evals/reports/workflow_baseline_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/teacher_label_batch_preflight_report.json"
+            "path": "llm-distill/evals/reports/teacher_label_batch_preflight_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/teacher_review_packet.jsonl"
+            "path": "llm-distill/data/distillation/teacher_review_packet.jsonl"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/teacher_review_packet_report.json"
+            "path": "llm-distill/evals/reports/teacher_review_packet_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/file_ingestion_surface_audit_report.json"
+            "path": "llm-distill/evals/reports/file_ingestion_surface_audit_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_runtime_preflight_report.json"
+            "path": "llm-distill/evals/reports/mlx_runtime_preflight_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+            "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json"
+            "path": "llm-distill/evals/reports/local_mlx_benchmark_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json"
+            "path": "llm-distill/evals/reports/student_mlx_benchmark_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_acceptance_report.json"
+            "path": "llm-distill/evals/reports/student_acceptance_report.json"
           },
           {
             "exists": true,
             "finding_count": 0,
             "findings": [],
-            "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/reviewed_distillation_pipeline_report.json"
+            "path": "llm-distill/evals/reports/reviewed_distillation_pipeline_report.json"
           }
         ]
       },

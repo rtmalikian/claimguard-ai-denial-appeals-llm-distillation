@@ -321,12 +321,13 @@ benchmark reports, student acceptance report, and PHI scan evidence. It does
 not call endpoints, train, benchmark, download weights, quantize, or write
 adapter files.
 
-The checked-in report is expected to show `distillation_ready=false` and
-`release_ready=false` until the approved safe corpus has at least three
-training-eligible denial/appeal pairs, corpus SFT export is trainable, reviewed
-labels exist, reviewed MLX SFT export is ready, MLX-LM training has completed,
-live base/student benchmarks cover the full 10-record scenario set, and student
-acceptance passes. Use
+The checked-in report emits repository-relative paths for source-controlled
+evidence and redacts outside local paths before writing JSON. Missing evidence
+keeps `distillation_ready=false` and `release_ready=false` until the approved
+safe corpus has at least three training-eligible denial/appeal pairs, corpus
+SFT export is trainable, reviewed labels exist, reviewed MLX SFT export is
+ready, MLX-LM training has completed, live base/student benchmarks cover the
+full 10-record scenario set, and student acceptance passes. Use
 `--fail-on-blocked` in automation when any missing evidence should return exit
 code 2.
 

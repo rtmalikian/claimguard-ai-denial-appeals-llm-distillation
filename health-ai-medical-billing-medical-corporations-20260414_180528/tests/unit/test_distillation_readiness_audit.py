@@ -26,6 +26,39 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def test_report_sanitizer_emits_repo_relative_paths_and_redacts_external_paths(
+    monkeypatch,
+    tmp_path,
+):
+    audit = _load_audit()
+    repo_root = tmp_path / "repo"
+    monkeypatch.setattr(audit, "REPO_ROOT", repo_root)
+    payload = {
+        "direct_path": str(repo_root / "llm-distill" / "evals" / "reports" / "report.json"),
+        "embedded_path": (
+            "wrote "
+            + str(repo_root / "llm-distill" / "models" / "adapters" / "adapter.safetensors")
+        ),
+        "outside_path": str(tmp_path / "private" / "approval-summary.json"),
+        "nested": [
+            {
+                "error": "missing file: "
+                + str(tmp_path / "outside" / "private-report.json")
+            }
+        ],
+    }
+
+    sanitized = audit.sanitize_report_value(payload)
+    serialized = json.dumps(sanitized, sort_keys=True)
+
+    assert sanitized["direct_path"] == "llm-distill/evals/reports/report.json"
+    assert "llm-distill/models/adapters/adapter.safetensors" in sanitized["embedded_path"]
+    assert sanitized["outside_path"] == "external_path_redacted"
+    assert sanitized["nested"][0]["error"] == "missing file: external_path_redacted"
+    assert str(repo_root) not in serialized
+    assert str(tmp_path) not in serialized
+
+
 def _approved_record(
     *,
     document_id: str,
