@@ -146,7 +146,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T08:12:45.773998+00:00",
+  "generated_at": "2026-06-01T08:19:47.055971+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -223,12 +223,12 @@
       "evidence": {
         "approval_reference_value_included": false,
         "missing_marker_count": 0,
-        "present_marker_count": 16,
+        "present_marker_count": 25,
         "private_env_renderer_exists": true,
         "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_student_cutover_private_env.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
-        "required_marker_count": 16,
+        "required_marker_count": 25,
         "source_control_private_env_renderer_documented": true
       },
       "name": "Source-controlled student cutover private env renderer is available",

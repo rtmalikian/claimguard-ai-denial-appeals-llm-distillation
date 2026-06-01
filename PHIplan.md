@@ -1081,14 +1081,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   the final private student-cutover environment file. It refuses output inside
   source control, requires explicit Raphael approval/runtime/distillation/
   rollback attestations before approved-cutover mode, reads the approval
-  reference from a private environment variable, verifies the configured MLX
-  runtime supervisor evidence report is safe, ready, and unblocked before
-  writing enabled settings, writes private output with `0600` permissions, and
+  reference and private aggregate cutover-summary path from private
+  environment variables, verifies the configured MLX runtime supervisor
+  evidence report is safe, ready, and unblocked, validates required private
+  cutover summary booleans, positive aggregate counts, and explicit
+  no-raw-value flags before writing enabled settings, rejects unsupported
+  private summary fields, writes private output with `0600` permissions, and
   prints only redacted booleans/counts. This closes a
   source-controlled operator-preparation gap, but it does not provide the
-  private approval reference, supervised runtime ownership, runtime health
-  evidence, or PHIplan production readiness needed to enable default student
-  routing.
+  private approval reference, private summary, supervised runtime ownership,
+  runtime health evidence, or PHIplan production readiness needed to enable
+  default student routing.
 - Add local healthcare code format validation utilities at
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/healthcare_codes.py`
   for NPI check-digit validation, ICD-10-CM, CPT/HCPCS, CARC group/reason, and

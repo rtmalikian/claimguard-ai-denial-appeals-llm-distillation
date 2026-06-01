@@ -1053,11 +1053,16 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Student default cutover now has a source-controlled private env renderer
   that refuses repository output, requires approval/runtime/distillation/
   rollback attestations for approved-cutover mode, reads the approval reference
-  from private environment only, writes `0600` output, and reports redacted
-  booleans/counts while preserving private approval/runtime blockers
+  and private aggregate cutover-summary path from private environment only,
+  writes `0600` output, and reports redacted booleans/counts while preserving
+  private approval/runtime blockers
 - [x] Student default cutover private env renderer approved mode now refuses
   enabled student-default or auto-launch settings unless the configured MLX
   runtime supervisor evidence report is safe, ready, and unblocked
+- [x] Student default cutover private env renderer approved mode validates a
+  private aggregate cutover summary for required readiness booleans, positive
+  counts, no-raw-value flags, and unsupported-field rejection before writing
+  enabled settings
 - [x] Retrieval source ingestion has an injectable semantic embedding provider
   boundary while keeping the default hash fallback and production vector
   blockers in place until private backend/reindex evidence is ready
@@ -1148,8 +1153,8 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [ ] Configure Raphael-approved production student cutover reference and
   supervised runtime ownership outside source control, verify the configured
   MLX runtime supervisor evidence report is safe, ready, and unblocked, then
-  render the private student-cutover env file outside source control before
-  enabling effective default student use
+  render the private student-cutover env file with a private aggregate cutover
+  summary outside source control before enabling effective default student use
 - [ ] Keep document-surface inspection and the file-ingestion surface audit
   ready for any additional future automated file-ingestion workflow beyond
   claim-document upload, EDI 837 batch upload, and EDI 835 remittance upload

@@ -15,6 +15,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT = Path("/private/tmp/claimguard-student-cutover.private.env")
 DEFAULT_APPROVAL_REFERENCE_ENV = "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE"
+DEFAULT_PRIVATE_SUMMARY_PATH_ENV = "CLAIMGUARD_STUDENT_CUTOVER_PRIVATE_SUMMARY_PATH"
 DEFAULT_SUPERVISOR_REPORT = "llm-distill/evals/reports/mlx_runtime_supervisor_report.json"
 RUNTIME_PROFILE_KEY = "CLAIMGUARD_RUNTIME_PROFILE"
 RUNTIME_PROFILE_VALUE = "student_denial_workflow_local_only"
@@ -31,6 +32,7 @@ ALLOWED_ENV_KEYS = {
     "CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE",
     "CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED",
     "CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA",
+    DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
     RUNTIME_PROFILE_KEY,
 }
 FORBIDDEN_ENV_KEY_FRAGMENTS = {
@@ -43,6 +45,46 @@ FORBIDDEN_ENV_KEY_FRAGMENTS = {
 }
 APPROVAL_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS = {
+    "raphael_approval_attested",
+    "runtime_supervised_attested",
+    "distillation_release_attested",
+    "rollback_reviewed",
+    "student_default_enabled_reviewed",
+    "approval_reference_configured",
+    "supervisor_report_ready",
+    "runtime_supervised",
+    "runtime_owner_assigned",
+    "distillation_release_ready",
+    "rollback_to_nvidia_disabled_reviewed",
+    "auto_launch_setting_reviewed",
+    "scope_limited_to_denial_workflow_and_appeals",
+    "no_phi_or_secret_values_attested",
+    "values_redacted",
+}
+REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS = {
+    "approval_reference_value_included",
+    "raw_env_values_included",
+    "raw_report_evidence_included",
+    "raw_runtime_output_included",
+    "phi_or_secret_values_included",
+    "endpoint_values_included",
+    "credential_values_included",
+    "prompt_or_response_values_included",
+    "production_document_content_included",
+}
+REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS = {
+    "environment_variable_count",
+    "private_reference_count",
+    "supervisor_report_count",
+    "runtime_validation_check_count",
+    "rollback_review_count",
+}
+ALLOWED_PRIVATE_SUMMARY_KEYS = (
+    REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS
+)
 
 
 class RenderError(ValueError):
@@ -55,6 +97,7 @@ class RenderConfig:
     approved_cutover: bool = False
     enable_auto_launch: bool = False
     approval_reference_env: str = DEFAULT_APPROVAL_REFERENCE_ENV
+    private_summary_path_env: str = DEFAULT_PRIVATE_SUMMARY_PATH_ENV
     supervisor_report: str = DEFAULT_SUPERVISOR_REPORT
     raphael_approval_attested: bool = False
     runtime_supervised_attested: bool = False
@@ -98,6 +141,35 @@ def _load_approval_reference(config: RenderConfig) -> str:
     value = os.environ.get(config.approval_reference_env, "").strip()
     _validate_approval_reference(value)
     return value
+
+
+def _load_private_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private cutover summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError("private cutover summary path contains unsupported characters")
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError("private cutover summary path must be outside source control")
+    if not summary_path.exists():
+        raise RenderError("private cutover summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private cutover summary path must be a file")
+    return summary_path
+
+
+def _load_private_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private cutover summary must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private cutover summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private cutover summary must be a JSON object")
+    return payload
 
 
 def _validate_supervisor_report(value: str) -> str:
@@ -153,6 +225,37 @@ def _validate_approved_cutover_attestations(config: RenderConfig) -> None:
         raise RenderError("approved cutover requires explicit attestations")
 
 
+def _validate_private_cutover_summary(
+    summary_path: Path,
+    environment_variable_count: int,
+) -> dict[str, int]:
+    payload = _load_private_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_PRIVATE_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private cutover summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private cutover summary requires {key}=true")
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private cutover summary requires {key}=false")
+    counts: dict[str, int] = {}
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(f"private cutover summary requires positive {key}")
+        counts[key] = int(value)
+
+    if counts["environment_variable_count"] != environment_variable_count:
+        raise RenderError("private cutover summary environment variable count mismatch")
+    if counts["private_reference_count"] != 1:
+        raise RenderError("private cutover summary private reference count mismatch")
+    if counts["supervisor_report_count"] != 1:
+        raise RenderError("private cutover summary supervisor report count mismatch")
+    return counts
+
+
 def _build_environment(config: RenderConfig) -> dict[str, str]:
     if config.enable_auto_launch and not config.approved_cutover:
         raise RenderError("student auto-launch can only be rendered for approved cutover")
@@ -206,6 +309,18 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         raise RenderError("refusing_to_write_inside_source_control")
 
     env = _build_environment(config)
+    private_summary_counts = {
+        "environment_variable_count": 0,
+        "private_reference_count": 0,
+        "supervisor_report_count": 0,
+        "runtime_validation_check_count": 0,
+        "rollback_review_count": 0,
+    }
+    if config.approved_cutover:
+        private_summary_counts = _validate_private_cutover_summary(
+            _load_private_summary_path(config.private_summary_path_env),
+            len(env),
+        )
     summary = {
         "dry_run": config.dry_run,
         "rendered": not config.dry_run,
@@ -229,6 +344,29 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         "supervisor_report_checked": config.approved_cutover,
         "supervisor_report_ready": config.approved_cutover,
         "environment_variable_count": len(env),
+        "private_cutover_summary_checked": config.approved_cutover,
+        "private_cutover_summary_path_env_configured": (
+            bool(config.private_summary_path_env)
+            if config.approved_cutover
+            else False
+        ),
+        "private_cutover_summary_path_value_included": False,
+        "private_cutover_summary_environment_variable_count": (
+            private_summary_counts["environment_variable_count"]
+        ),
+        "private_cutover_summary_private_reference_count": (
+            private_summary_counts["private_reference_count"]
+        ),
+        "private_cutover_summary_supervisor_report_count": (
+            private_summary_counts["supervisor_report_count"]
+        ),
+        "private_cutover_summary_runtime_validation_check_count": (
+            private_summary_counts["runtime_validation_check_count"]
+        ),
+        "private_cutover_summary_rollback_review_count": (
+            private_summary_counts["rollback_review_count"]
+        ),
+        "private_cutover_summary_raw_values_included": False,
         "output_path_in_source_control": False,
         "raw_env_values_included": False,
         "approval_reference_value_included": False,
@@ -252,6 +390,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         approved_cutover=args.approved_cutover,
         enable_auto_launch=args.enable_auto_launch,
         approval_reference_env=args.approval_reference_env,
+        private_summary_path_env=args.private_summary_path_env,
         supervisor_report=args.supervisor_report,
         raphael_approval_attested=args.raphael_approval_attested,
         runtime_supervised_attested=args.runtime_supervised_attested,
@@ -270,6 +409,11 @@ def main(argv: list[str] | None = None) -> int:
         "--approval-reference-env",
         default=DEFAULT_APPROVAL_REFERENCE_ENV,
         help="Environment variable containing the private approval reference value.",
+    )
+    parser.add_argument(
+        "--private-summary-path-env",
+        default=DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
+        help="Environment variable containing the private cutover summary path.",
     )
     parser.add_argument("--supervisor-report", default=DEFAULT_SUPERVISOR_REPORT)
     parser.add_argument("--raphael-approval-attested", action="store_true")
