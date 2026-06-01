@@ -219,10 +219,13 @@ The renderer refuses output inside source control, requires explicit runtime
 owner, launchd copy, restart-policy, health, manual-start, rollback, preflight,
 status, runtime health, load, restart-test, environment-exclusion, and
 no-raw-value attestations before approved mode, reads private launchd plist and
-validation references from environment variables, writes the private evidence
-file with `0600` permissions, and prints only redacted booleans/counts. It does
-not install launchd, start MLX, validate endpoint output, or store private
-runtime values in checked-in reports.
+validation references from environment variables, parses the private plist, and
+rejects non-loopback hosts, missing MLX server/adapter/port arguments, unsafe
+runtime profiles, missing launchd operational settings, and unapproved or
+secret-like environment keys before it can write approved evidence. The private
+evidence file is written with `0600` permissions and the command summary prints
+only redacted booleans/counts. It does not install launchd, start MLX, validate
+endpoint output, or store private runtime values in checked-in reports.
 
 ### Model-Improvement Private Env Controls
 
@@ -360,7 +363,9 @@ Safety and validation:
 - `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` for
   private boolean-only MLX runtime supervisor evidence rendering after runtime
   owner, private launchd, preflight, health, load, restart, rollback, and
-  no-raw-output gates are complete.
+  no-raw-output gates are complete; approved mode parses the private launchd
+  plist and rejects non-loopback, unsafe runtime-profile, missing-argument, or
+  secret-like environment-key configurations.
 - `llm-distill/scripts/render_model_improvement_private_env.py` for private
   model-improvement env rendering after external legal, BAA, consent, and
   approval gates are complete and the configured evidence report is safe,

@@ -2,6 +2,58 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 00:38:42 PDT - MLX private plist validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the MLX runtime supervisor private evidence renderer so
+  approved-mode rendering parses and validates the private launchd plist before
+  writing ready private supervisor evidence.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/PHIplan.md` | Documented approved-mode private plist validation for supervisor evidence rendering. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/docs/technical-llm-distillation-analysis.md` | Added technical breakdown notes for private plist parsing and rejection conditions. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and checklist for private plist validation before ready supervisor evidence. | Restore backup over the same path. |
+| `llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py` | Added plist parsing and approved-mode validation for loopback host, MLX server, adapter, port, launchd operational settings, runtime profile, and allowed environment keys. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added private plist validation markers to the source-controlled private evidence renderer check. | Restore backup over the same path. |
+| `llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed supervisor evidence; `safe_to_review=true`, `supervisor_ready=false`, `blocked=2`, and private renderer markers all present. | Restore backup over the same path or rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py` | Added coverage for non-loopback plist refusal, secret-like env-key refusal, unsafe runtime-profile refusal, and redacted private plist validation summaries. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py llm-distill/scripts/validate_mlx_runtime_supervisor.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 69 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --report llm-distill/evals/reports/mlx_runtime_supervisor_report.json`: passed with `supervisor_ready=False`, `safe_to_review=True`, `blocked=2`, and 24/24 private evidence renderer markers present.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --report /private/tmp/claimguard-mlx-supervisor-blocked-check.json --fail-on-blocked`: returned expected exit status 2 with `supervisor_ready=False`, `safe_to_review=True`, and `blocked=2`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-phi-plan-blocked-check.json --fail-on-blocked`: returned expected exit status 2 with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warnings=1`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, docs, changelogs, and refreshed JSON reports: returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing changelog/implementation label text; manual inspection found no raw PHI/PII values, secrets, approval references, production claim data, raw runtime output, or private plist values introduced.
+- Secret-pattern scan over `git diff -- .`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating private plist path existence as sufficient approved supervisor evidence.
+- Avoided installing launchd, starting MLX, calling runtime endpoints, storing raw private plist values in checked-in reports, or emitting runtime owner/approval references.
+- Avoided adding environment-variable exceptions for provider URLs, tokens, proxies, or credentials in the private launchd plist.
+- Avoided marking `supervisor_ready`, student default cutover, or PHIplan production readiness complete; external private owner and runtime validation evidence remains required.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-003448-mlx-private-plist-validation/`,
+  then rerun the supervisor, manual gate, and PHIplan readiness validators if
+  refreshed reports are needed after rollback.
+- This slice strengthens the private runtime-supervision handoff; it does not
+  complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 00:26:49 PDT - Production corpus private manifest validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import plistlib
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -27,6 +28,13 @@ DEFAULT_ROLLBACK_REFERENCE_ENV = "MLX_RUNTIME_SUPERVISOR_ROLLBACK_REFERENCE"
 DEFAULT_PRIVATE_EVIDENCE_RENDERER_PATH = (
     "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py"
 )
+RUNTIME_PROFILE_KEY = "CLAIMGUARD_RUNTIME_PROFILE"
+RUNTIME_PROFILE_VALUE = "student_denial_workflow_local_only"
+REQUIRED_PLIST_ENVIRONMENT = {
+    RUNTIME_PROFILE_KEY: RUNTIME_PROFILE_VALUE,
+}
+ALLOWED_PLIST_ENVIRONMENT_KEYS = set(REQUIRED_PLIST_ENVIRONMENT)
+LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 REQUIRED_ATTESTATIONS = {
     "runtime_owner_attested": "runtime owner attestation is required",
     "private_launchd_copy_attested": "private launchd copy attestation is required",
@@ -63,6 +71,7 @@ FORBIDDEN_ENV_KEY_FRAGMENTS = {
     "authorization",
     "credential",
     "password",
+    "proxy",
     "raw",
     "secret",
     "token",
@@ -151,6 +160,104 @@ def _load_private_plist_path(env_name: str) -> Path:
     return plist_path
 
 
+def _argument_value(arguments: list[str], flag: str) -> str | None:
+    prefix = f"{flag}="
+    for index, item in enumerate(arguments):
+        if item == flag:
+            value_index = index + 1
+            return arguments[value_index] if value_index < len(arguments) else None
+        if item.startswith(prefix):
+            return item[len(prefix) :]
+    return None
+
+
+def _contains_argument(arguments: list[str], flag: str) -> bool:
+    prefix = f"{flag}="
+    return flag in arguments or any(item.startswith(prefix) for item in arguments)
+
+
+def _validate_private_plist(plist_path: Path) -> dict[str, Any]:
+    try:
+        plist = plistlib.loads(plist_path.read_bytes())
+    except Exception as exc:  # plistlib raises several parse errors.
+        raise RenderError("private plist is not a valid plist") from exc
+    if not isinstance(plist, dict):
+        raise RenderError("private plist must be a plist dictionary")
+
+    program_arguments = plist.get("ProgramArguments")
+    if not isinstance(program_arguments, list):
+        raise RenderError("private plist ProgramArguments must be a list")
+    arguments = [str(item) for item in program_arguments]
+    uses_shell = any(item.endswith(("/sh", "/bash", "zsh")) for item in arguments)
+    runs_mlx_lm_server = any(item.endswith("mlx_lm.server") for item in arguments)
+    uses_adapter_path = _contains_argument(arguments, "--adapter-path")
+    host = _argument_value(arguments, "--host")
+    port = _argument_value(arguments, "--port")
+    if uses_shell:
+        raise RenderError("private plist must not launch through a shell")
+    if not runs_mlx_lm_server:
+        raise RenderError("private plist must run mlx_lm.server")
+    if not uses_adapter_path:
+        raise RenderError("private plist must include --adapter-path")
+    if host not in LOOPBACK_HOSTS:
+        raise RenderError("private plist must bind to loopback host")
+    if not port:
+        raise RenderError("private plist must include --port")
+    if not plist.get("WorkingDirectory"):
+        raise RenderError("private plist must configure WorkingDirectory")
+    if not plist.get("KeepAlive"):
+        raise RenderError("private plist must configure KeepAlive")
+    if not plist.get("StandardOutPath") or not plist.get("StandardErrorPath"):
+        raise RenderError("private plist must configure log paths")
+
+    environment = plist.get("EnvironmentVariables")
+    if not isinstance(environment, dict):
+        raise RenderError("private plist EnvironmentVariables must be a dictionary")
+    environment_keys = {str(key) for key in environment}
+    missing_environment_keys = sorted(
+        set(REQUIRED_PLIST_ENVIRONMENT) - environment_keys
+    )
+    wrong_environment_keys = sorted(
+        key
+        for key, expected_value in REQUIRED_PLIST_ENVIRONMENT.items()
+        if key in environment and environment.get(key) != expected_value
+    )
+    unexpected_environment_keys = sorted(
+        environment_keys - ALLOWED_PLIST_ENVIRONMENT_KEYS
+    )
+    forbidden_environment_keys = sorted(
+        key
+        for key in environment_keys
+        if any(fragment in key.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS)
+    )
+    if missing_environment_keys:
+        raise RenderError("private plist missing required environment keys")
+    if wrong_environment_keys:
+        raise RenderError("private plist has unsafe runtime profile")
+    if forbidden_environment_keys:
+        raise RenderError("private plist has secret-like environment keys")
+    if unexpected_environment_keys:
+        raise RenderError("private plist has unapproved environment keys")
+
+    return {
+        "program_argument_count": len(arguments),
+        "environment_variable_count": len(environment_keys),
+        "required_environment_variable_count": len(REQUIRED_PLIST_ENVIRONMENT),
+        "runs_mlx_lm_server": runs_mlx_lm_server,
+        "uses_adapter_path": uses_adapter_path,
+        "uses_loopback_host": True,
+        "port_configured": True,
+        "working_directory_configured": True,
+        "keepalive_configured": True,
+        "log_paths_configured": True,
+        "runtime_profile_ok": True,
+        "unexpected_environment_key_count": len(unexpected_environment_keys),
+        "forbidden_environment_key_count": len(forbidden_environment_keys),
+        "raw_private_plist_values_included": False,
+        "values_redacted": True,
+    }
+
+
 def _validate_approved_attestations(config: RenderConfig) -> None:
     missing = [
         message
@@ -177,12 +284,65 @@ def _load_private_references(config: RenderConfig) -> list[str]:
 
 def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
     private_reference_count = 0
+    private_plist_validation = {
+        "private_plist_metadata_checked": False,
+        "private_plist_program_arguments_checked": False,
+        "private_plist_environment_checked": False,
+        "private_plist_uses_loopback": False,
+        "private_plist_runtime_profile_ok": False,
+        "private_plist_secret_like_env_keys_present": False,
+        "private_plist_unapproved_env_keys_present": False,
+        "private_plist_raw_values_included": False,
+        "values_redacted": True,
+    }
     if config.approved_supervisor:
         _validate_approved_attestations(config)
-        plist_path = str(_load_private_plist_path(config.private_plist_path_env))
+        private_plist_path = _load_private_plist_path(config.private_plist_path_env)
+        private_plist_checks = _validate_private_plist(private_plist_path)
+        plist_path = str(private_plist_path)
         private_reference_count = len(_load_private_references(config))
         status = "supervisor_ready_private_runtime_validation_complete"
         runtime_ready = True
+        private_plist_validation = {
+            "private_plist_metadata_checked": True,
+            "private_plist_program_arguments_checked": True,
+            "private_plist_environment_checked": True,
+            "private_plist_program_argument_count": private_plist_checks[
+                "program_argument_count"
+            ],
+            "private_plist_environment_key_count": private_plist_checks[
+                "environment_variable_count"
+            ],
+            "private_plist_required_environment_key_count": private_plist_checks[
+                "required_environment_variable_count"
+            ],
+            "private_plist_runs_mlx_lm_server": private_plist_checks[
+                "runs_mlx_lm_server"
+            ],
+            "private_plist_uses_adapter_path": private_plist_checks[
+                "uses_adapter_path"
+            ],
+            "private_plist_uses_loopback": private_plist_checks[
+                "uses_loopback_host"
+            ],
+            "private_plist_port_configured": private_plist_checks["port_configured"],
+            "private_plist_working_directory_configured": private_plist_checks[
+                "working_directory_configured"
+            ],
+            "private_plist_keepalive_configured": private_plist_checks[
+                "keepalive_configured"
+            ],
+            "private_plist_log_paths_configured": private_plist_checks[
+                "log_paths_configured"
+            ],
+            "private_plist_runtime_profile_ok": private_plist_checks[
+                "runtime_profile_ok"
+            ],
+            "private_plist_secret_like_env_keys_present": False,
+            "private_plist_unapproved_env_keys_present": False,
+            "private_plist_raw_values_included": False,
+            "values_redacted": True,
+        }
     else:
         plist_path = DEFAULT_PLIST_PATH
         status = "private_renderer_default_supervisor_ready_false"
@@ -239,6 +399,7 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
             "supervisor_loaded_in_user_session": runtime_ready,
             "supervisor_restart_test_passed": runtime_ready,
         },
+        "private_plist_validation": private_plist_validation,
         "operator_notes": [
             "supervisor_ready=false until private owner, preflight, health, "
             "load, restart, and rollback evidence is complete.",
@@ -291,7 +452,29 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
         ],
         "private_reference_count": private_reference_count,
         "plist_path_configured": bool(evidence["launchd_template"]["plist_path"]),
+        "private_plist_metadata_checked": evidence["private_plist_validation"][
+            "private_plist_metadata_checked"
+        ],
+        "private_plist_program_arguments_checked": evidence[
+            "private_plist_validation"
+        ]["private_plist_program_arguments_checked"],
+        "private_plist_environment_checked": evidence["private_plist_validation"][
+            "private_plist_environment_checked"
+        ],
+        "private_plist_uses_loopback": evidence["private_plist_validation"][
+            "private_plist_uses_loopback"
+        ],
+        "private_plist_runtime_profile_ok": evidence["private_plist_validation"][
+            "private_plist_runtime_profile_ok"
+        ],
+        "private_plist_secret_like_env_keys_present": evidence[
+            "private_plist_validation"
+        ]["private_plist_secret_like_env_keys_present"],
+        "private_plist_unapproved_env_keys_present": evidence[
+            "private_plist_validation"
+        ]["private_plist_unapproved_env_keys_present"],
         "private_plist_path_value_included": False,
+        "private_plist_raw_values_included": False,
         "raw_private_values_included": False,
         "raw_runtime_output_included": False,
         "approval_reference_value_included": False,

@@ -49,7 +49,12 @@ def _approved_config(renderer: ModuleType, output_path: Path):
     )
 
 
-def _write_private_plist(path: Path) -> None:
+def _write_private_plist(
+    path: Path,
+    *,
+    host: str = "127.0.0.1",
+    environment: dict[str, str] | None = None,
+) -> None:
     payload = {
         "Label": "com.claimguard.mlx-student",
         "ProgramArguments": [
@@ -59,7 +64,7 @@ def _write_private_plist(path: Path) -> None:
             "--adapter-path",
             "/private/claimguard/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
             "--host",
-            "127.0.0.1",
+            host,
             "--port",
             "8080",
             "--max-tokens",
@@ -70,7 +75,9 @@ def _write_private_plist(path: Path) -> None:
         "KeepAlive": {"SuccessfulExit": False},
         "StandardOutPath": "/tmp/claimguard-mlx-student.out.log",
         "StandardErrorPath": "/tmp/claimguard-mlx-student.err.log",
-        "EnvironmentVariables": {
+        "EnvironmentVariables": environment
+        if environment is not None
+        else {
             "CLAIMGUARD_RUNTIME_PROFILE": "student_denial_workflow_local_only",
         },
     }
@@ -158,6 +165,56 @@ def test_approved_mode_rejects_source_control_private_plist(monkeypatch, tmp_pat
         )
 
 
+def test_approved_mode_rejects_non_loopback_private_plist(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    _write_private_plist(plist_path, host="0.0.0.0")
+    _set_private_references(monkeypatch, renderer, plist_path)
+
+    with pytest.raises(renderer.RenderError, match="loopback host"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_secret_like_private_plist_env_key(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    _write_private_plist(
+        plist_path,
+        environment={
+            "CLAIMGUARD_RUNTIME_PROFILE": "student_denial_workflow_local_only",
+            "PAYER_API_TOKEN": "redacted-test-value",
+        },
+    )
+    _set_private_references(monkeypatch, renderer, plist_path)
+
+    with pytest.raises(renderer.RenderError, match="secret-like environment keys"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
+def test_approved_mode_rejects_unsafe_runtime_profile(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    plist_path = tmp_path / "private-launchd.plist"
+    _write_private_plist(
+        plist_path,
+        environment={
+            "CLAIMGUARD_RUNTIME_PROFILE": "production_or_remote_runtime",
+        },
+    )
+    _set_private_references(monkeypatch, renderer, plist_path)
+
+    with pytest.raises(renderer.RenderError, match="unsafe runtime profile"):
+        renderer.render_private_evidence(
+            _approved_config(renderer, tmp_path / "mlx-supervisor.private.json")
+        )
+
+
 def test_approved_mode_writes_private_evidence_and_redacts_values(
     monkeypatch,
     tmp_path,
@@ -185,6 +242,14 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert summary["supervisor_loaded_in_user_session"] is True
     assert summary["supervisor_restart_test_passed"] is True
     assert summary["private_reference_count"] == len(private_values) - 1
+    assert summary["private_plist_metadata_checked"] is True
+    assert summary["private_plist_program_arguments_checked"] is True
+    assert summary["private_plist_environment_checked"] is True
+    assert summary["private_plist_uses_loopback"] is True
+    assert summary["private_plist_runtime_profile_ok"] is True
+    assert summary["private_plist_secret_like_env_keys_present"] is False
+    assert summary["private_plist_unapproved_env_keys_present"] is False
+    assert summary["private_plist_raw_values_included"] is False
     assert summary["private_plist_path_value_included"] is False
     assert summary["values_redacted"] is True
     assert str(plist_path) not in serialized_summary
@@ -192,6 +257,15 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
         "supervisor_ready_private_runtime_validation_complete"
     )
     assert payload["launchd_template"]["plist_path"] == str(plist_path)
+    assert payload["private_plist_validation"]["private_plist_uses_loopback"] is True
+    assert (
+        payload["private_plist_validation"]["private_plist_runtime_profile_ok"]
+        is True
+    )
+    assert (
+        payload["private_plist_validation"]["private_plist_raw_values_included"]
+        is False
+    )
     assert payload["operator_controls"]["runtime_owner_configured"] is True
     assert payload["runtime_validation"]["student_runtime_health_ok"] is True
     for key, private_value in private_values.items():

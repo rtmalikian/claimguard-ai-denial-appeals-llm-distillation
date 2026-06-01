@@ -174,7 +174,11 @@ the non-installing private launchd renderer at
 `llm-distill/scripts/render_mlx_launchd_private_copy.py`; the renderer refuses
 source-control output paths, writes only a private plist copy, keeps the
 runtime profile allowlisted, and emits a redacted summary without local paths
-or environment values. The supervisor evidence now also verifies
+or environment values. The private supervisor evidence renderer now parses the
+private launchd plist in approved mode and rejects non-loopback hosts, missing
+MLX server/adapter/port arguments, unsafe runtime profiles, missing launchd
+operational settings, and unapproved or secret-like environment keys before
+writing ready private evidence. The supervisor evidence now also verifies
 the source-controlled runbook at
 `llm-distill/docs/mlx-runtime-supervisor-runbook.md` has required private-copy,
 local-only runtime, rollback, and no-raw-value markers without emitting the
@@ -1018,6 +1022,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] MLX runtime supervisor validator requires the source-controlled private
   evidence renderer before private runtime owner and validation evidence can
   clear the supervisor-ready gate
+- [x] MLX runtime supervisor private evidence renderer approved mode now parses
+  the private launchd plist and rejects non-loopback hosts, missing
+  MLX server/adapter/port arguments, unsafe runtime profiles, missing launchd
+  operational settings, and unapproved or secret-like environment keys before
+  writing ready private evidence
 - [x] Student default cutover now has a source-controlled private env renderer
   that refuses repository output, requires approval/runtime/distillation/
   rollback attestations for approved-cutover mode, reads the approval reference
@@ -1623,9 +1632,10 @@ query indexes.
   handoff checklist at
   `llm-distill/docs/mlx-runtime-owner-handoff-checklist.md` while keeping
   `supervisor_ready=false`; a private launchd plist renderer is now available
-  for non-installing operator preparation, but private owner assignment,
-  runtime preflight, health/status checks, launchd load evidence, and restart
-  testing remain required.
+  for non-installing operator preparation, and the private supervisor evidence
+  renderer now validates the private plist structure before ready evidence can
+  be written. Private owner assignment, runtime preflight, health/status
+  checks, launchd load evidence, and restart testing remain required.
 
 ### 6.2 Documentation
 - [x] Create API documentation with authentication requirements

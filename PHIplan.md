@@ -1044,11 +1044,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   environment-file exclusion, preflight, status endpoint, runtime health,
   launchd load, restart-test, and no-raw-value attestations before approved
   mode, reads private launchd plist and validation references from environment
-  variables, writes private output with `0600` permissions, and prints only
-  redacted booleans/counts. This prepares the private runtime-supervision
-  evidence handoff without storing private plist paths, runtime owner values,
-  approval references, logs, endpoint responses, model output, PHI, or secrets
-  in source control.
+  variables, parses the private plist before writing approved evidence, and
+  rejects non-loopback hosts, missing `mlx_lm.server`/`--adapter-path`/`--port`
+  arguments, unsafe runtime profiles, missing KeepAlive/log/working-directory
+  settings, and unapproved or secret-like environment keys. It writes private
+  output with `0600` permissions and prints only redacted booleans/counts. This
+  prepares the private runtime-supervision evidence handoff without storing
+  private plist values, runtime owner values, approval references, logs,
+  endpoint responses, model output, PHI, or secrets in source control.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,
