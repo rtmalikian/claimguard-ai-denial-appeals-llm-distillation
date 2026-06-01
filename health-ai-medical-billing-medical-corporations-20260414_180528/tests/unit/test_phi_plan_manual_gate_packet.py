@@ -29,6 +29,35 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _write_marker_file(path: Path, markers: list[str], unique_text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join([*markers, unique_text]), encoding="utf-8")
+
+
+def _requirement(report: dict, requirement_id: str) -> dict:
+    return next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == requirement_id
+    )
+
+
+def _allow_tmp_source_control_path(
+    monkeypatch,
+    validator: ModuleType,
+    path: Path,
+) -> None:
+    original_path_is_within = validator.path_is_within
+    allowed_path = path.resolve()
+
+    def path_is_within(candidate: Path, parent: Path) -> bool:
+        if candidate.resolve() == allowed_path:
+            return True
+        return original_path_is_within(candidate, parent)
+
+    monkeypatch.setattr(validator, "path_is_within", path_is_within)
+
+
 def _manual_gate_checklist_text(validator: ModuleType) -> str:
     return "\n".join(validator.MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS) + "\n"
 
@@ -187,6 +216,12 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert checklist_requirement["evidence"]["manual_gate_checklist_exists"] is True
     assert (
+        checklist_requirement["evidence"][
+            "manual_gate_checklist_inside_source_control"
+        ]
+        is True
+    )
+    assert (
         checklist_requirement["evidence"]["manual_gate_checklist_missing_marker_count"]
         == 0
     )
@@ -260,6 +295,12 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert (
         private_packet_renderer_requirement["evidence"][
+            "private_packet_renderer_inside_source_control"
+        ]
+        is True
+    )
+    assert (
+        private_packet_renderer_requirement["evidence"][
             "private_packet_renderer_exists"
         ]
         is True
@@ -300,6 +341,12 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     )
     assert private_renderer_requirement["status"] == "ready"
     assert private_renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        private_renderer_requirement["evidence"][
+            "private_env_renderer_inside_source_control"
+        ]
+        is True
+    )
     assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert (
@@ -571,7 +618,10 @@ def test_manual_gate_checklist_documentation_is_required(tmp_path):
     ]
 
 
-def test_manual_gate_checklist_markers_are_required_without_raw_marker_output(tmp_path):
+def test_manual_gate_checklist_markers_are_required_without_raw_marker_output(
+    monkeypatch,
+    tmp_path,
+):
     validator = _load_validator()
     packet_path = tmp_path / "packet.json"
     checklist_path = tmp_path / "manual-checklist.md"
@@ -581,6 +631,7 @@ def test_manual_gate_checklist_markers_are_required_without_raw_marker_output(tm
     packet = _ready_packet()
     packet["manual_gate_checklist_path"] = str(checklist_path)
     _write_json(packet_path, packet)
+    _allow_tmp_source_control_path(monkeypatch, validator, checklist_path)
 
     report = validator.build_report(packet_path)
     checklist_requirement = next(
@@ -620,6 +671,7 @@ def test_manual_gate_private_packet_renderer_documentation_is_required(tmp_path)
 
 
 def test_manual_gate_private_packet_renderer_markers_are_required_without_raw_output(
+    monkeypatch,
     tmp_path,
 ):
     validator = _load_validator()
@@ -630,6 +682,7 @@ def test_manual_gate_private_packet_renderer_markers_are_required_without_raw_ou
     packet = _ready_packet()
     packet["private_packet_renderer_path"] = str(incomplete_renderer)
     _write_json(packet_path, packet)
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_renderer)
 
     report = validator.build_report(packet_path)
     serialized_report = json.dumps(report, sort_keys=True)
@@ -645,6 +698,142 @@ def test_manual_gate_private_packet_renderer_markers_are_required_without_raw_ou
     ]
     assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert raw_renderer_text not in serialized_report
+
+
+def test_manual_gate_checklist_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    checklist_path = tmp_path / "phi-plan-manual-production-gate-checklist.md"
+    unique_text = "outside manual gate checklist marker should not leak"
+    _write_marker_file(
+        checklist_path,
+        validator.MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS,
+        unique_text,
+    )
+    packet = _ready_packet()
+    packet["manual_gate_checklist_path"] = str(checklist_path)
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = _requirement(
+        report,
+        "manual_gate_packet_completion_checklist",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_gate_ready"] is False
+    assert (
+        "source_control_manual_gate_checklist_must_be_inside_repo"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        "manual_gate_checklist_required_markers_missing"
+        not in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["manual_gate_checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"][
+            "manual_gate_checklist_inside_source_control"
+        ]
+        is False
+    )
+    assert (
+        checklist_requirement["evidence"]["manual_gate_checklist_present_marker_count"]
+        == 0
+    )
+    assert checklist_requirement["evidence"]["manual_gate_checklist_values_included"] is False
+    assert unique_text not in serialized
+
+
+def test_manual_gate_private_packet_renderer_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    renderer_path = tmp_path / "render_phi_plan_manual_gate_private_packet.py"
+    unique_text = "outside manual gate private packet renderer marker should not leak"
+    _write_marker_file(
+        renderer_path,
+        validator.MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    packet = _ready_packet()
+    packet["private_packet_renderer_path"] = str(renderer_path)
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = _requirement(
+        report,
+        "manual_gate_private_packet_renderer",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_gate_ready"] is False
+    assert (
+        "source_control_private_packet_renderer_must_be_inside_repo"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        "manual_gate_private_packet_renderer_markers_missing"
+        not in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["private_packet_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"][
+            "private_packet_renderer_inside_source_control"
+        ]
+        is False
+    )
+    assert renderer_requirement["evidence"]["present_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_student_cutover_private_env_renderer_must_stay_inside_source_control(
+    tmp_path,
+):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    renderer_path = tmp_path / "render_student_cutover_private_env.py"
+    unique_text = "outside student cutover private env renderer marker should not leak"
+    _write_marker_file(
+        renderer_path,
+        validator.STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    packet = _ready_packet()
+    packet["student_default_cutover"]["private_env_renderer_path"] = str(
+        renderer_path
+    )
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = _requirement(
+        report,
+        "manual_student_cutover_private_env_renderer",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_gate_ready"] is False
+    assert (
+        "student_cutover_private_env_renderer_must_be_inside_repo"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        "student_cutover_private_env_renderer_markers_missing"
+        not in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"][
+            "private_env_renderer_inside_source_control"
+        ]
+        is False
+    )
+    assert renderer_requirement["evidence"]["present_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert unique_text not in serialized
 
 
 def test_model_improvement_report_flag_is_required(tmp_path):

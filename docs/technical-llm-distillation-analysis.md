@@ -423,7 +423,10 @@ The manual gate validator now requires the renderer-shaped private summary
 metadata before `production_gate_ready=true`. Missing private summary checks,
 zero private pair/source/manifest/dependent-report/reference counts, count
 mismatches, or marked private summary path/reference/raw-value inclusion keep
-the checked-in manual gate packet blocked.
+the checked-in manual gate packet blocked. It also requires the source-controlled
+manual checklist, manual private packet renderer, and student cutover
+private-env renderer to resolve inside this repository before marker text is
+read.
 
 ## Tools Used
 

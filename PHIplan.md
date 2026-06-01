@@ -910,7 +910,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   missing private manual-gate summary checks, zero private
   pair/source/manifest/dependent-report/reference counts, count mismatches, or
   marked private summary path/reference/raw-value inclusion keep the checked-in
-  packet blocked. This
+  packet blocked. It now also rejects the source-controlled manual checklist,
+  manual private packet renderer, and student cutover private-env renderer paths
+  when they resolve outside this repository, so temporary or private files with
+  matching marker text cannot satisfy checked-in manual gate evidence. This
   prepares the final manual gate packet handoff without storing approval
   values, private summary paths, manifest record ids, PHI, source text,
   vectors, raw demographic values, production outcome rows, or production

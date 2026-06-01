@@ -2,6 +2,62 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 12:50:08 PDT - Manual gate source-control path hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden PHIplan manual production-gate evidence so source-controlled
+  manual gate artifacts cannot be satisfied by arbitrary private or temporary
+  files outside the repository, even when those files contain matching marker
+  text.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-124729-manual-gate-source-control-paths/PHIplan.md.bak` | Documented that manual gate source-control evidence paths must resolve inside the repository. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-124729-manual-gate-source-control-paths/docs/technical-llm-distillation-analysis.md.bak` | Added a technical note that outside manual gate artifact files block readiness before marker text is read. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260601-124729-manual-gate-source-control-paths/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py.bak` | Added repository-containment checks for the manual gate checklist, manual private packet renderer, and student cutover private-env renderer. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-124729-manual-gate-source-control-paths/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json.bak` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, `blocked=6`, and the three source-controlled artifact checks now record inside-source-control evidence. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-124729-manual-gate-source-control-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260601-124729-manual-gate-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py.bak` | Added coverage for inside-source-control evidence and blockers for outside manual gate artifact paths with matching marker text, without emitting outside file contents. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-124729-manual-gate-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-124729-manual-gate-source-control-paths/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-124729-manual-gate-source-control-paths -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_packet.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py -q`: passed, 42 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_student_cutover_private_env_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 81 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=6`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_phi_plan_manual_gate_packet.py` and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, secrets, approval values, private manifest paths, private summary paths, manifest record ids, source text, vectors, raw demographic values, production outcome rows, credentials, or production gate content were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, manifest record ids, source text, vectors, raw demographic values, production outcome rows, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating outside temporary files with matching marker text as
+  source-controlled manual gate evidence; such paths now block readiness before
+  file text is read.
+- Avoided changing the real manual production-gate blockers for private summary
+  metadata, student cutover approval, model-improvement approvals, production
+  corpus, retrieval, or fairness monitoring.
+- Existing missing-marker tests now monkeypatch path containment only for those
+  tests so marker validation remains covered without weakening runtime
+  behavior.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-124729-manual-gate-source-control-paths/`, then rerun the
+  manual gate and PHIplan readiness validators if refreshed reports are needed
+  after rollback.
+- This slice strengthens checked-in manual production-gate evidence; it does
+  not complete the full PHIplan objective or approve production cutover.
+
 ## 2026-06-01 12:43:05 PDT - Production corpus source-control path hardening
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

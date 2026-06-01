@@ -185,7 +185,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T18:56:31.233932+00:00",
+  "generated_at": "2026-06-01T19:49:12.926603+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -227,6 +227,7 @@
       "blockers": [],
       "evidence": {
         "manual_gate_checklist_exists": true,
+        "manual_gate_checklist_inside_source_control": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
         "manual_gate_checklist_present_marker_count": 19,
@@ -247,6 +248,7 @@
         "present_marker_count": 25,
         "private_output_required": true,
         "private_packet_renderer_exists": true,
+        "private_packet_renderer_inside_source_control": true,
         "private_packet_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
         "raw_renderer_text_included": false,
         "required_marker_count": 25,
@@ -303,6 +305,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 25,
         "private_env_renderer_exists": true,
+        "private_env_renderer_inside_source_control": true,
         "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_student_cutover_private_env.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,

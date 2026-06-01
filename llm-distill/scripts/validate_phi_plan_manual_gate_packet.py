@@ -194,6 +194,14 @@ def resolve_repo_path(raw_path: Any, default_path: Path) -> Path:
     return (REPO_ROOT / path).resolve()
 
 
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def validate_env_key(env_name: str) -> list[str]:
     blockers: list[str] = []
     if not ENV_KEY_RE.match(env_name):
@@ -310,13 +318,16 @@ def manual_gate_checklist_requirement(packet: dict[str, Any]) -> dict[str, Any]:
         DEFAULT_MANUAL_GATE_CHECKLIST,
     )
     checklist_exists = checklist_path.exists()
+    checklist_inside_source_control = path_is_within(checklist_path, REPO_ROOT)
     checklist_marker_count = 0
     missing_checklist_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_manual_gate_checklist_not_documented")
     if documented:
-        if not checklist_exists:
+        if not checklist_inside_source_control:
+            blockers.append("source_control_manual_gate_checklist_must_be_inside_repo")
+        elif not checklist_exists:
             blockers.append("manual_gate_checklist_document_missing")
         else:
             checklist_text = checklist_path.read_text(encoding="utf-8")
@@ -340,6 +351,7 @@ def manual_gate_checklist_requirement(packet: dict[str, Any]) -> dict[str, Any]:
             "source_control_manual_gate_checklist_documented": documented,
             "manual_gate_checklist_path": str(checklist_path),
             "manual_gate_checklist_exists": checklist_exists,
+            "manual_gate_checklist_inside_source_control": checklist_inside_source_control,
             "manual_gate_checklist_required_marker_count": len(
                 MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS
             ),
@@ -359,13 +371,16 @@ def manual_gate_private_packet_renderer_requirement(packet: dict[str, Any]) -> d
         DEFAULT_MANUAL_GATE_PRIVATE_PACKET_RENDERER,
     )
     renderer_exists = renderer_path.exists()
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     marker_count = 0
     missing_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("manual_gate_private_packet_renderer_not_documented")
     if documented:
-        if not renderer_exists:
+        if not renderer_inside_source_control:
+            blockers.append("source_control_private_packet_renderer_must_be_inside_repo")
+        elif not renderer_exists:
             blockers.append("manual_gate_private_packet_renderer_missing")
         else:
             renderer_text = renderer_path.read_text(encoding="utf-8")
@@ -390,6 +405,9 @@ def manual_gate_private_packet_renderer_requirement(packet: dict[str, Any]) -> d
             "source_control_private_packet_renderer_documented": documented,
             "private_packet_renderer_path": str(renderer_path),
             "private_packet_renderer_exists": renderer_exists,
+            "private_packet_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "required_marker_count": len(
                 MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS
             ),
@@ -537,13 +555,16 @@ def student_cutover_private_env_renderer_requirement(packet: dict[str, Any]) -> 
         DEFAULT_STUDENT_CUTOVER_PRIVATE_ENV_RENDERER,
     )
     renderer_exists = renderer_path.exists()
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     marker_count = 0
     missing_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("student_cutover_private_env_renderer_not_documented")
     if documented:
-        if not renderer_exists:
+        if not renderer_inside_source_control:
+            blockers.append("student_cutover_private_env_renderer_must_be_inside_repo")
+        elif not renderer_exists:
             blockers.append("student_cutover_private_env_renderer_missing")
         else:
             renderer_text = renderer_path.read_text(encoding="utf-8")
@@ -568,6 +589,9 @@ def student_cutover_private_env_renderer_requirement(packet: dict[str, Any]) -> 
             "source_control_private_env_renderer_documented": documented,
             "private_env_renderer_path": str(renderer_path),
             "private_env_renderer_exists": renderer_exists,
+            "private_env_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "required_marker_count": len(
                 STUDENT_CUTOVER_PRIVATE_ENV_RENDERER_REQUIRED_MARKERS
             ),
