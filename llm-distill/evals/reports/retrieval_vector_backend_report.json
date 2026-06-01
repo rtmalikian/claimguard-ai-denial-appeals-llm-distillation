@@ -61,7 +61,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-05-31T23:33:51.645365+00:00",
+  "generated_at": "2026-06-01T07:56:12.614098+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
@@ -248,11 +248,11 @@
       "blockers": [],
       "evidence": {
         "missing_marker_count": 0,
-        "present_marker_count": 12,
+        "present_marker_count": 22,
         "raw_private_reference_values_included": false,
         "raw_renderer_text_included": false,
         "raw_source_text_or_vector_values_included": false,
-        "required_marker_count": 12,
+        "required_marker_count": 22,
         "runtime_private_evidence_renderer_exists": true,
         "runtime_private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py",
         "source_control_runtime_private_evidence_renderer_documented": true,

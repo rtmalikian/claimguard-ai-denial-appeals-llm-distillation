@@ -18,7 +18,60 @@ DEFAULT_OUTPUT = Path("/private/tmp/claimguard-retrieval-vector-runtime.private.
 DEFAULT_HEALTH_REF_ENV = "RETRIEVAL_VECTOR_HEALTH_EVIDENCE_REF"
 DEFAULT_QUALITY_REF_ENV = "RETRIEVAL_QUALITY_SMOKE_EVIDENCE_REF"
 DEFAULT_REINDEX_REF_ENV = "RETRIEVAL_VECTOR_REINDEX_AUDIT_EVIDENCE_REF"
+DEFAULT_RUNTIME_SUMMARY_PATH_ENV = "RETRIEVAL_VECTOR_PRIVATE_RUNTIME_SUMMARY_PATH"
 REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
+ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+ALLOWED_ENV_KEYS = {
+    DEFAULT_HEALTH_REF_ENV,
+    DEFAULT_QUALITY_REF_ENV,
+    DEFAULT_REINDEX_REF_ENV,
+    DEFAULT_RUNTIME_SUMMARY_PATH_ENV,
+}
+FORBIDDEN_ENV_KEY_FRAGMENTS = {
+    "api_key",
+    "authorization",
+    "credential",
+    "password",
+    "proxy",
+    "raw",
+    "secret",
+    "token",
+}
+REQUIRED_RUNTIME_SUMMARY_TRUE_FLAGS = {
+    "semantic_backend_configured",
+    "embedding_model_approved",
+    "production_vector_backend_configured",
+    "hash_fallback_disabled_for_production",
+    "active_retrieval_chunks_indexed",
+    "stored_hash_embeddings_absent",
+    "reindex_job_completed",
+    "reindex_audit_checked",
+    "vector_backend_health_checked",
+    "retrieval_quality_smoke_passed",
+    "backup_restore_reviewed",
+    "disable_or_rollback_path_reviewed",
+    "no_phi_or_secret_values_attested",
+    "no_source_text_or_vector_values_attested",
+    "values_redacted",
+}
+REQUIRED_RUNTIME_SUMMARY_FALSE_FLAGS = {
+    "raw_source_text_included",
+    "raw_vector_values_included",
+    "endpoint_values_included",
+    "credential_values_included",
+    "service_urls_included",
+}
+REQUIRED_RUNTIME_SUMMARY_POSITIVE_COUNTS = {
+    "reindexed_chunk_count",
+    "vector_health_check_count",
+    "retrieval_quality_query_count",
+    "backup_restore_check_count",
+}
+ALLOWED_RUNTIME_SUMMARY_KEYS = (
+    REQUIRED_RUNTIME_SUMMARY_TRUE_FLAGS
+    | REQUIRED_RUNTIME_SUMMARY_FALSE_FLAGS
+    | REQUIRED_RUNTIME_SUMMARY_POSITIVE_COUNTS
+)
 REQUIRED_ATTESTATIONS = {
     "semantic_backend_attested": "semantic backend attestation is required",
     "embedding_model_approved_attested": "embedding model approval attestation is required",
@@ -57,6 +110,7 @@ class RenderConfig:
     health_reference_env: str = DEFAULT_HEALTH_REF_ENV
     quality_reference_env: str = DEFAULT_QUALITY_REF_ENV
     reindex_reference_env: str = DEFAULT_REINDEX_REF_ENV
+    runtime_summary_path_env: str = DEFAULT_RUNTIME_SUMMARY_PATH_ENV
     dry_run: bool = False
 
 
@@ -66,6 +120,13 @@ def path_is_within(path: Path, parent: Path) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _validate_env_key(name: str) -> None:
+    if name not in ALLOWED_ENV_KEYS and not ENV_KEY_RE.match(name):
+        raise RenderError("unexpected environment key requested")
+    if any(fragment in name.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS):
+        raise RenderError("secret-like environment key requested")
 
 
 def _validate_reference(value: str) -> None:
@@ -86,10 +147,65 @@ def _load_private_references(config: RenderConfig) -> dict[str, bool]:
         "quality_evidence_reference_configured": config.quality_reference_env,
         "reindex_evidence_reference_configured": config.reindex_reference_env,
     }.items():
+        _validate_env_key(env_name)
         value = os.environ.get(env_name, "").strip()
         _validate_reference(value)
         configured[label] = True
     return configured
+
+
+def _load_private_runtime_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private runtime summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError("private runtime summary path contains unsupported characters")
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError("private runtime summary path must be outside source control")
+    if not summary_path.exists():
+        raise RenderError("private runtime summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private runtime summary path must be a file")
+    return summary_path
+
+
+def _load_private_runtime_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private runtime summary must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private runtime summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private runtime summary must be a JSON object")
+    return payload
+
+
+def _validate_private_runtime_summary(summary_path: Path) -> dict[str, int]:
+    payload = _load_private_runtime_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_RUNTIME_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private runtime summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_RUNTIME_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private runtime summary requires {key}=true")
+    for key in sorted(REQUIRED_RUNTIME_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private runtime summary requires {key}=false")
+    for key in sorted(REQUIRED_RUNTIME_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(f"private runtime summary requires positive {key}")
+
+    return {
+        "reindexed_chunk_count": int(payload["reindexed_chunk_count"]),
+        "vector_health_check_count": int(payload["vector_health_check_count"]),
+        "retrieval_quality_query_count": int(payload["retrieval_quality_query_count"]),
+        "backup_restore_check_count": int(payload["backup_restore_check_count"]),
+    }
 
 
 def _validate_approved_attestations(config: RenderConfig) -> None:
@@ -108,8 +224,20 @@ def _private_evidence_payload(config: RenderConfig) -> dict[str, Any]:
         "quality_evidence_reference_configured": False,
         "reindex_evidence_reference_configured": False,
     }
+    runtime_summary_metadata = {
+        "reindexed_chunk_count": 0,
+        "vector_health_check_count": 0,
+        "retrieval_quality_query_count": 0,
+        "backup_restore_check_count": 0,
+    }
     if config.approved_runtime_validation:
         _validate_approved_attestations(config)
+        runtime_summary_path = _load_private_runtime_summary_path(
+            config.runtime_summary_path_env
+        )
+        runtime_summary_metadata = _validate_private_runtime_summary(
+            runtime_summary_path
+        )
         references_configured = _load_private_references(config)
 
     runtime_ready = (
@@ -125,6 +253,7 @@ def _private_evidence_payload(config: RenderConfig) -> dict[str, Any]:
         and config.disable_or_rollback_reviewed
         and config.no_raw_values_attested
         and all(references_configured.values())
+        and all(value > 0 for value in runtime_summary_metadata.values())
     )
     return {
         "artifact": "claimguard_retrieval_vector_backend_evidence",
@@ -137,6 +266,29 @@ def _private_evidence_payload(config: RenderConfig) -> dict[str, Any]:
         "prepared_at": datetime.now(timezone.utc).isoformat(),
         "no_phi_or_secret_values_attested": True,
         "no_source_text_or_vector_values_attested": True,
+        "private_runtime_summary_path_env": (
+            config.runtime_summary_path_env
+            if config.approved_runtime_validation
+            else None
+        ),
+        "private_runtime_summary_path_configured": bool(
+            config.approved_runtime_validation
+        ),
+        "private_runtime_summary_path_value_included": False,
+        "private_runtime_summary_checked": bool(config.approved_runtime_validation),
+        "private_runtime_summary_reindexed_chunk_count": (
+            runtime_summary_metadata["reindexed_chunk_count"]
+        ),
+        "private_runtime_summary_vector_health_check_count": (
+            runtime_summary_metadata["vector_health_check_count"]
+        ),
+        "private_runtime_summary_retrieval_quality_query_count": (
+            runtime_summary_metadata["retrieval_quality_query_count"]
+        ),
+        "private_runtime_summary_backup_restore_check_count": (
+            runtime_summary_metadata["backup_restore_check_count"]
+        ),
+        "private_runtime_summary_raw_values_included": False,
         "backend_configuration": {
             "source_control_private_env_renderer_documented": True,
             "source_control_private_env_renderer_path": (
@@ -228,6 +380,24 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
         "reindex_evidence_reference_configured": payload["runtime_validation"][
             "reindex_evidence_reference_configured"
         ],
+        "private_runtime_summary_path_env_configured": bool(
+            payload["private_runtime_summary_path_env"]
+        ),
+        "private_runtime_summary_path_value_included": False,
+        "private_runtime_summary_checked": payload["private_runtime_summary_checked"],
+        "private_runtime_summary_reindexed_chunk_count": payload[
+            "private_runtime_summary_reindexed_chunk_count"
+        ],
+        "private_runtime_summary_vector_health_check_count": payload[
+            "private_runtime_summary_vector_health_check_count"
+        ],
+        "private_runtime_summary_retrieval_quality_query_count": payload[
+            "private_runtime_summary_retrieval_quality_query_count"
+        ],
+        "private_runtime_summary_backup_restore_check_count": payload[
+            "private_runtime_summary_backup_restore_check_count"
+        ],
+        "private_runtime_summary_raw_values_included": False,
         "vector_backend_ready_if_validated": all(
             [
                 payload["backend_configuration"]["semantic_backend_configured"],
@@ -237,6 +407,12 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
                 payload["index_state"]["active_retrieval_chunks_indexed"],
                 payload["runtime_validation"]["vector_backend_health_checked"],
                 payload["runtime_validation"]["retrieval_quality_smoke_passed"],
+                payload["runtime_validation"]["backup_restore_reviewed"],
+                payload["runtime_validation"]["disable_or_rollback_path_reviewed"],
+                payload["runtime_validation"]["health_evidence_reference_configured"],
+                payload["runtime_validation"]["quality_evidence_reference_configured"],
+                payload["runtime_validation"]["reindex_evidence_reference_configured"],
+                payload["private_runtime_summary_checked"],
             ]
         ),
         "output_path_in_source_control": False,
@@ -275,6 +451,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         health_reference_env=args.health_reference_env,
         quality_reference_env=args.quality_reference_env,
         reindex_reference_env=args.reindex_reference_env,
+        runtime_summary_path_env=args.runtime_summary_path_env,
         dry_run=args.dry_run,
     )
 
@@ -296,6 +473,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--health-reference-env", default=DEFAULT_HEALTH_REF_ENV)
     parser.add_argument("--quality-reference-env", default=DEFAULT_QUALITY_REF_ENV)
     parser.add_argument("--reindex-reference-env", default=DEFAULT_REINDEX_REF_ENV)
+    parser.add_argument(
+        "--runtime-summary-path-env",
+        default=DEFAULT_RUNTIME_SUMMARY_PATH_ENV,
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 

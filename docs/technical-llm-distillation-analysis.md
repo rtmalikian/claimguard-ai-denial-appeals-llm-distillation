@@ -328,6 +328,13 @@ labels, warning tokens, and safe-context flags. It does not return source text,
 raw vectors, provider endpoints, credentials, PHI, secrets, or production
 document content.
 
+The retrieval runtime private evidence renderer now also requires a private
+aggregate runtime summary before it can write ready evidence. Approved mode
+validates required semantic/reindex/health/quality/backup/rollback booleans,
+positive aggregate counts, and explicit no-raw-source/vector/endpoint/
+credential flags, then writes only redacted booleans/counts with `0600`
+permissions.
+
 This means the technical implementation path exists, but production readiness
 still requires private semantic backend configuration, a production vector
 backend, a completed write reindex, a metadata-only reindex audit, backend
@@ -389,7 +396,8 @@ Safety and validation:
 - `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`
   for private boolean-only retrieval runtime evidence rendering after reindex,
   vector health, retrieval quality smoke, backup, rollback, and no-raw-value
-  gates are complete.
+  gates are complete, with approved mode validating a private aggregate runtime
+  summary before ready evidence can be written.
 - `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py`
   for source-controlled private semantic provider loading with redacted
   configuration status, HTTPS or loopback endpoint safety, dimension checks,

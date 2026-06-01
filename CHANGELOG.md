@@ -2,6 +2,58 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 00:58:36 PDT - Retrieval runtime private summary validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the retrieval vector runtime private evidence renderer so
+  approved-mode rendering refuses to write ready vector-backend evidence unless
+  a private aggregate runtime summary has been validated.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/PHIplan.md` | Documented private aggregate runtime-summary validation before ready retrieval vector evidence rendering. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/docs/technical-llm-distillation-analysis.md` | Added technical breakdown notes for private retrieval runtime summary validation and redacted output behavior. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and checklist for private runtime-summary validation before ready retrieval evidence. | Restore backup over the same path. |
+| `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py` | Added approved-mode private aggregate runtime-summary path loading, JSON validation, required readiness booleans, positive aggregate counts, no-raw-source/vector/endpoint/credential flags, unsupported-field rejection, and redacted summary counts. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_retrieval_vector_backend.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/llm-distill/scripts/validate_retrieval_vector_backend.py` | Added private runtime-summary validation markers to the source-controlled runtime private evidence renderer check. | Restore backup over the same path. |
+| `llm-distill/evals/reports/retrieval_vector_backend_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed retrieval vector evidence; `safe_to_review=true`, `vector_backend_ready=false`, `blocked=3`, and runtime private renderer markers all present. | Restore backup over the same path or rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py` | Added coverage for required private summary paths, source-control path refusal, incomplete summary refusal, raw-value flag refusal, unsupported field refusal, and redacted aggregate counts in approved output. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py llm-distill/scripts/validate_retrieval_vector_backend.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 68 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_retrieval_vector_backend.py --report llm-distill/evals/reports/retrieval_vector_backend_report.json`: passed with `vector_backend_ready=False`, `safe_to_review=True`, `blocked=3`, and 22/22 runtime private evidence renderer markers present.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 llm-distill/scripts/validate_retrieval_vector_backend.py --report /private/tmp/claimguard-retrieval-vector-blocked-check.json --fail-on-blocked`: returned expected exit status 2 with `vector_backend_ready=False`, `safe_to_review=True`, and `blocked=3`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-phi-plan-retrieval-summary-blocked-check.json --fail-on-blocked`: returned expected exit status 2 with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warnings=1`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, docs, changelogs, and refreshed JSON reports: returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing changelog/implementation label text; manual inspection found no raw PHI/PII values, secrets, approval references, production claim data, raw source text, raw vector values, endpoint values, credentials, or private runtime summary paths introduced.
+- Secret-pattern scan over `git diff -- .`: the broad label scan flagged only expected literal denylist markers such as `api_key`; a value-shaped secret scan found no secret values.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating attestations plus private reference tokens as sufficient retrieval vector runtime production evidence.
+- Avoided storing private summary paths, private references, endpoint values, credentials, raw source text, raw vector values, PHI, secrets, or production document content in checked-in reports.
+- Avoided accepting arbitrary private runtime summary fields that could smuggle identifiers, raw values, service URLs, or unsupported evidence into the private-ready artifact.
+- Avoided marking retrieval vector backend readiness, the manual production gate, or PHIplan production readiness complete; private semantic backend configuration, reindexing, health, and quality evidence remain external blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-005256-retrieval-runtime-private-summary-validation/`,
+  then rerun the retrieval vector, manual gate, and PHIplan readiness validators
+  if refreshed reports are needed after rollback.
+- This slice strengthens the private retrieval-vector handoff; it does not
+  complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 00:48:01 PDT - Prediction fairness private summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

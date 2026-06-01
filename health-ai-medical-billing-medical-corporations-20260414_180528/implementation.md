@@ -247,6 +247,12 @@ unblocked before writing enabled settings, writes `0600` private output, and
 reports redacted booleans/counts without storing provider labels, model names,
 vector-store labels, service URLs, credentials, source text, vector values,
 PHI, or production document content.
+Retrieval vector runtime private evidence now validates a private aggregate
+runtime summary before ready evidence can be written; approved mode requires
+semantic/reindex/health/quality/backup/rollback readiness booleans, positive
+aggregate counts, and explicit no-raw-source/vector/endpoint/credential flags
+without storing private summary paths, references, source text, vector values,
+endpoints, credentials, PHI, or production document content.
 Local governance checks, source-controlled retrieval-vector runbook
 documentation, source-controlled retrieval reindex-checklist documentation,
 backup/restore review, and rollback/disable-path review are now attested
@@ -867,6 +873,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   rollback, and no-raw-value attestations for approved mode, writes `0600`
   private JSON, and reports redacted booleans/counts while preserving external
   vector readiness blockers
+- [x] Retrieval vector runtime private evidence renderer approved mode validates
+  a private aggregate runtime summary for required readiness booleans, positive
+  counts, no-raw-source/vector/endpoint/credential flags, and unsupported-field
+  rejection before writing ready private evidence
 - [x] Metadata-only retrieval embedding reindex operation for approved private
   semantic providers, with dry-run default, aggregate-only response, safe audit
   details, and non-dry-run hash-provider refusal
@@ -1591,9 +1601,11 @@ query indexes.
   the injectable semantic embedding provider boundary and metadata-only reindex
   operation ready in code. The private env renderer now also verifies the
   configured evidence report is safe, ready, and unblocked before writing
-  enabled production vector settings, while private semantic backend
-  configuration, chunk reindexing, health, and quality checks remain blocked
-  until real production evidence exists.
+  enabled production vector settings, and the private runtime evidence renderer
+  now validates a private aggregate runtime summary before writing ready
+  evidence, while private semantic backend configuration, chunk reindexing,
+  health, and quality checks remain blocked until real production evidence
+  exists.
 - [ ] Approve at least one non-synthetic denial/appeal training pair through
   the production corpus review workflow. Local progress: production corpus
   evidence now requires the checked-in operator runbook at
