@@ -257,6 +257,14 @@ def resolve_repo_path(raw_path: str, base_path: Path) -> Path:
     return (base_path.parent / path).resolve()
 
 
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def evidence_format_requirement(evidence: Any) -> dict[str, Any]:
     blockers: list[str] = []
     if not isinstance(evidence, dict):
@@ -370,9 +378,12 @@ def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, An
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     if not renderer_configured:
         blockers.append("source_control_private_env_renderer_not_documented")
-    if not renderer_path.exists():
+    if not renderer_inside_source_control:
+        blockers.append("source_control_private_env_renderer_must_be_inside_repo")
+    elif not renderer_path.exists():
         blockers.append("source_control_private_env_renderer_missing")
     else:
         try:
@@ -398,6 +409,7 @@ def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, An
             "source_control_private_env_renderer_documented": renderer_configured,
             "private_env_renderer_path": str(renderer_path),
             "private_env_renderer_exists": renderer_path.exists(),
+            "private_env_renderer_inside_source_control": renderer_inside_source_control,
             "required_marker_count": len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -427,9 +439,14 @@ def private_provider_loader_requirement(evidence_path: Path, evidence: dict[str,
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS)
+    loader_inside_source_control = path_is_within(loader_path, REPO_ROOT)
     if not loader_configured:
         blockers.append("source_control_private_embedding_provider_loader_not_documented")
-    if not loader_path.exists():
+    if not loader_inside_source_control:
+        blockers.append(
+            "source_control_private_embedding_provider_loader_must_be_inside_repo"
+        )
+    elif not loader_path.exists():
         blockers.append("source_control_private_embedding_provider_loader_missing")
     else:
         try:
@@ -457,6 +474,9 @@ def private_provider_loader_requirement(evidence_path: Path, evidence: dict[str,
             "source_control_private_embedding_provider_loader_documented": loader_configured,
             "private_embedding_provider_loader_path": str(loader_path),
             "private_embedding_provider_loader_exists": loader_path.exists(),
+            "private_embedding_provider_loader_inside_source_control": (
+                loader_inside_source_control
+            ),
             "required_marker_count": len(PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -476,10 +496,15 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(RUNBOOK_REQUIRED_MARKERS)
+    runbook_inside_source_control = bool(
+        runbook_path and path_is_within(runbook_path, REPO_ROOT)
+    )
     if not runbook_configured:
         blockers.append("source_control_runbook_not_documented")
     if runbook_path is None:
         blockers.append("source_control_runbook_path_missing")
+    elif not runbook_inside_source_control:
+        blockers.append("source_control_runbook_must_be_inside_repo")
     elif not runbook_path.exists():
         blockers.append("source_control_runbook_missing")
     else:
@@ -504,6 +529,7 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
             "source_control_runbook_documented": runbook_configured,
             "runbook_path": str(runbook_path) if runbook_path else None,
             "runbook_exists": bool(runbook_path and runbook_path.exists()),
+            "runbook_inside_source_control": runbook_inside_source_control,
             "required_marker_count": len(RUNBOOK_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -521,10 +547,15 @@ def reindex_checklist_requirement(evidence_path: Path, evidence: dict[str, Any])
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(REINDEX_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_reindex_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_reindex_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_reindex_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_reindex_checklist_missing")
     else:
@@ -549,6 +580,7 @@ def reindex_checklist_requirement(evidence_path: Path, evidence: dict[str, Any])
             "source_control_reindex_checklist_documented": checklist_configured,
             "checklist_path": str(checklist_path) if checklist_path else None,
             "checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "reindex_checklist_inside_source_control": checklist_inside_source_control,
             "required_marker_count": len(REINDEX_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -569,10 +601,15 @@ def runtime_smoke_checklist_requirement(evidence_path: Path, evidence: dict[str,
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_runtime_smoke_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_runtime_smoke_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_runtime_smoke_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_runtime_smoke_checklist_missing")
     else:
@@ -599,6 +636,9 @@ def runtime_smoke_checklist_requirement(evidence_path: Path, evidence: dict[str,
             "source_control_runtime_smoke_checklist_documented": checklist_configured,
             "checklist_path": str(checklist_path) if checklist_path else None,
             "checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "runtime_smoke_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "required_marker_count": len(RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -623,9 +663,14 @@ def runtime_private_evidence_renderer_requirement(evidence_path: Path, evidence:
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     if not renderer_configured:
         blockers.append("source_control_runtime_private_evidence_renderer_not_documented")
-    if not renderer_path.exists():
+    if not renderer_inside_source_control:
+        blockers.append(
+            "source_control_runtime_private_evidence_renderer_must_be_inside_repo"
+        )
+    elif not renderer_path.exists():
         blockers.append("source_control_runtime_private_evidence_renderer_missing")
     else:
         try:
@@ -656,6 +701,9 @@ def runtime_private_evidence_renderer_requirement(evidence_path: Path, evidence:
             "source_control_runtime_private_evidence_renderer_documented": renderer_configured,
             "runtime_private_evidence_renderer_path": str(renderer_path),
             "runtime_private_evidence_renderer_exists": renderer_path.exists(),
+            "runtime_private_evidence_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "required_marker_count": len(RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,

@@ -29,6 +29,30 @@ def _write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _requirement(report: dict, requirement_id: str) -> dict:
+    return next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == requirement_id
+    )
+
+
+def _allow_tmp_source_control_path(monkeypatch, validator: ModuleType, path: Path) -> None:
+    original_path_is_within = validator.path_is_within
+    allowed_path = path.resolve()
+
+    def path_is_within(candidate: Path, parent: Path) -> bool:
+        if candidate.resolve() == allowed_path:
+            return True
+        return original_path_is_within(candidate, parent)
+
+    monkeypatch.setattr(validator, "path_is_within", path_is_within)
+
+
+def _write_marker_file(path: Path, markers: tuple[str, ...], unique_text: str) -> None:
+    path.write_text("\n".join([*markers, unique_text, ""]), encoding="utf-8")
+
+
 def _ready_evidence() -> dict:
     return {
         "artifact": "claimguard_retrieval_vector_backend_evidence",
@@ -133,10 +157,9 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         not in blocked_ids
     )
     assert "retrieval_vector_backend_runtime_validation" in blocked_ids
-    private_renderer_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"] == "retrieval_vector_backend_private_env_renderer"
+    private_renderer_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_private_env_renderer",
     )
     assert private_renderer_requirement["status"] == "ready"
     assert (
@@ -146,13 +169,18 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert private_renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        private_renderer_requirement["evidence"][
+            "private_env_renderer_inside_source_control"
+        ]
+        is True
+    )
     assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert private_renderer_requirement["evidence"]["raw_env_values_included"] is False
-    private_loader_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"] == "retrieval_vector_backend_private_provider_loader"
+    private_loader_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_private_provider_loader",
     )
     assert private_loader_requirement["status"] == "ready"
     assert (
@@ -164,6 +192,12 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert (
         private_loader_requirement["evidence"][
             "private_embedding_provider_loader_exists"
+        ]
+        is True
+    )
+    assert (
+        private_loader_requirement["evidence"][
+            "private_embedding_provider_loader_inside_source_control"
         ]
         is True
     )
@@ -181,20 +215,19 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         ]
         is False
     )
-    runbook_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"] == "retrieval_vector_backend_operator_runbook"
+    runbook_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_operator_runbook",
     )
     assert runbook_requirement["status"] == "ready"
     assert runbook_requirement["evidence"]["source_control_runbook_documented"] is True
     assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is True
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
-    checklist_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"] == "retrieval_vector_backend_reindex_checklist"
+    checklist_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_reindex_checklist",
     )
     assert checklist_requirement["status"] == "ready"
     assert (
@@ -202,12 +235,15 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert checklist_requirement["evidence"]["checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"]["reindex_checklist_inside_source_control"]
+        is True
+    )
     assert checklist_requirement["evidence"]["missing_marker_count"] == 0
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
-    runtime_smoke_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"] == "retrieval_vector_backend_runtime_smoke_checklist"
+    runtime_smoke_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_runtime_smoke_checklist",
     )
     assert runtime_smoke_requirement["status"] == "ready"
     assert (
@@ -217,18 +253,28 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert runtime_smoke_requirement["evidence"]["checklist_exists"] is True
+    assert (
+        runtime_smoke_requirement["evidence"][
+            "runtime_smoke_checklist_inside_source_control"
+        ]
+        is True
+    )
     assert runtime_smoke_requirement["evidence"]["missing_marker_count"] == 0
     assert runtime_smoke_requirement["evidence"]["raw_checklist_text_included"] is False
-    runtime_private_renderer_requirement = next(
-        item
-        for item in report["requirements"]
-        if item["requirement_id"]
-        == "retrieval_vector_backend_runtime_private_evidence_renderer"
+    runtime_private_renderer_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_runtime_private_evidence_renderer",
     )
     assert runtime_private_renderer_requirement["status"] == "ready"
     assert (
         runtime_private_renderer_requirement["evidence"][
             "source_control_runtime_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert (
+        runtime_private_renderer_requirement["evidence"][
+            "runtime_private_evidence_renderer_inside_source_control"
         ]
         is True
     )
@@ -287,6 +333,7 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
 
 def test_vector_backend_private_env_renderer_markers_are_required_when_documented(
     tmp_path,
+    monkeypatch,
 ):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
@@ -295,6 +342,7 @@ def test_vector_backend_private_env_renderer_markers_are_required_when_documente
         "#!/usr/bin/env python3\nprint('not a safe renderer')\n",
         encoding="utf-8",
     )
+    _allow_tmp_source_control_path(monkeypatch, validator, renderer_path)
     evidence = _ready_evidence()
     evidence["backend_configuration"]["source_control_private_env_renderer_path"] = str(
         renderer_path
@@ -323,12 +371,14 @@ def test_vector_backend_private_env_renderer_markers_are_required_when_documente
 
 def test_vector_backend_private_provider_loader_markers_are_required_when_documented(
     tmp_path,
+    monkeypatch,
 ):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
     loader_path = tmp_path / "retrieval_semantic_provider.py"
     loader_text = "class PrivateSemanticEmbeddingProvider: pass\n"
     loader_path.write_text(loader_text, encoding="utf-8")
+    _allow_tmp_source_control_path(monkeypatch, validator, loader_path)
     evidence = _ready_evidence()
     evidence["backend_configuration"][
         "source_control_private_embedding_provider_loader_path"
@@ -360,12 +410,14 @@ def test_vector_backend_private_provider_loader_markers_are_required_when_docume
 
 def test_vector_backend_runtime_private_renderer_markers_are_required_when_documented(
     tmp_path,
+    monkeypatch,
 ):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
     renderer_path = tmp_path / "render_retrieval_vector_runtime_private_evidence.py"
     renderer_text = "class RenderConfig: pass\n"
     renderer_path.write_text(renderer_text, encoding="utf-8")
+    _allow_tmp_source_control_path(monkeypatch, validator, renderer_path)
     evidence = _ready_evidence()
     evidence["runtime_validation"][
         "runtime_private_evidence_renderer_path"
@@ -396,6 +448,266 @@ def test_vector_backend_runtime_private_renderer_markers_are_required_when_docum
     assert renderer_requirement["evidence"]["missing_marker_count"] > 0
     assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert renderer_text.strip() not in serialized
+
+
+def test_retrieval_private_env_renderer_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    renderer_path = tmp_path / "render_retrieval_vector_private_env.py"
+    unique_text = "outside private env renderer marker should not leak"
+    _write_marker_file(
+        renderer_path,
+        validator.PRIVATE_ENV_RENDERER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence()
+    evidence["backend_configuration"]["source_control_private_env_renderer_path"] = str(
+        renderer_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_private_env_renderer",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_private_env_renderer_must_be_inside_repo"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        "source_control_private_env_renderer_required_markers_missing"
+        not in renderer_requirement["blockers"]
+    )
+    assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"]["private_env_renderer_inside_source_control"]
+        is False
+    )
+    assert renderer_requirement["evidence"]["present_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_retrieval_private_provider_loader_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    loader_path = tmp_path / "retrieval_semantic_provider.py"
+    unique_text = "outside private provider loader marker should not leak"
+    _write_marker_file(
+        loader_path,
+        validator.PRIVATE_PROVIDER_LOADER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence()
+    evidence["backend_configuration"][
+        "source_control_private_embedding_provider_loader_path"
+    ] = str(loader_path)
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    loader_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_private_provider_loader",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_private_embedding_provider_loader_must_be_inside_repo"
+        in loader_requirement["blockers"]
+    )
+    assert (
+        "source_control_private_embedding_provider_loader_required_markers_missing"
+        not in loader_requirement["blockers"]
+    )
+    assert (
+        loader_requirement["evidence"]["private_embedding_provider_loader_exists"]
+        is True
+    )
+    assert (
+        loader_requirement["evidence"][
+            "private_embedding_provider_loader_inside_source_control"
+        ]
+        is False
+    )
+    assert loader_requirement["evidence"]["present_marker_count"] == 0
+    assert loader_requirement["evidence"]["raw_loader_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_retrieval_operator_runbook_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    runbook_path = tmp_path / "retrieval-vector-backend-runbook.md"
+    unique_text = "outside retrieval runbook marker should not leak"
+    _write_marker_file(runbook_path, validator.RUNBOOK_REQUIRED_MARKERS, unique_text)
+    evidence = _ready_evidence()
+    evidence["governance_controls"]["source_control_runbook_path"] = str(runbook_path)
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    runbook_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_operator_runbook",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert "source_control_runbook_must_be_inside_repo" in runbook_requirement["blockers"]
+    assert (
+        "source_control_runbook_required_markers_missing"
+        not in runbook_requirement["blockers"]
+    )
+    assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is False
+    assert runbook_requirement["evidence"]["present_marker_count"] == 0
+    assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_retrieval_reindex_checklist_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    checklist_path = tmp_path / "retrieval-vector-reindex-checklist.md"
+    unique_text = "outside reindex checklist marker should not leak"
+    _write_marker_file(
+        checklist_path,
+        validator.REINDEX_CHECKLIST_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence()
+    evidence["index_state"]["source_control_reindex_checklist_path"] = str(
+        checklist_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_reindex_checklist",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_reindex_checklist_must_be_inside_repo"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        "source_control_reindex_checklist_required_markers_missing"
+        not in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"]["reindex_checklist_inside_source_control"]
+        is False
+    )
+    assert checklist_requirement["evidence"]["present_marker_count"] == 0
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_retrieval_runtime_smoke_checklist_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    checklist_path = tmp_path / "retrieval-vector-runtime-smoke-checklist.md"
+    unique_text = "outside runtime smoke checklist marker should not leak"
+    _write_marker_file(
+        checklist_path,
+        validator.RUNTIME_SMOKE_CHECKLIST_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence()
+    evidence["runtime_validation"]["source_control_runtime_smoke_checklist_path"] = str(
+        checklist_path
+    )
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    checklist_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_runtime_smoke_checklist",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_runtime_smoke_checklist_must_be_inside_repo"
+        in checklist_requirement["blockers"]
+    )
+    assert (
+        "source_control_runtime_smoke_checklist_required_markers_missing"
+        not in checklist_requirement["blockers"]
+    )
+    assert checklist_requirement["evidence"]["checklist_exists"] is True
+    assert (
+        checklist_requirement["evidence"][
+            "runtime_smoke_checklist_inside_source_control"
+        ]
+        is False
+    )
+    assert checklist_requirement["evidence"]["present_marker_count"] == 0
+    assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
+    assert unique_text not in serialized
+
+
+def test_retrieval_runtime_private_evidence_renderer_must_stay_inside_source_control(
+    tmp_path,
+):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    renderer_path = tmp_path / "render_retrieval_vector_runtime_private_evidence.py"
+    unique_text = "outside runtime private renderer marker should not leak"
+    _write_marker_file(
+        renderer_path,
+        validator.RUNTIME_PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS,
+        unique_text,
+    )
+    evidence = _ready_evidence()
+    evidence["runtime_validation"][
+        "runtime_private_evidence_renderer_path"
+    ] = str(renderer_path)
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = _requirement(
+        report,
+        "retrieval_vector_backend_runtime_private_evidence_renderer",
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert (
+        "source_control_runtime_private_evidence_renderer_must_be_inside_repo"
+        in renderer_requirement["blockers"]
+    )
+    assert (
+        "source_control_runtime_private_evidence_renderer_required_markers_missing"
+        not in renderer_requirement["blockers"]
+    )
+    assert (
+        renderer_requirement["evidence"]["runtime_private_evidence_renderer_exists"]
+        is True
+    )
+    assert (
+        renderer_requirement["evidence"][
+            "runtime_private_evidence_renderer_inside_source_control"
+        ]
+        is False
+    )
+    assert renderer_requirement["evidence"]["present_marker_count"] == 0
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert unique_text not in serialized
 
 
 def test_ready_vector_backend_evidence_passes_all_requirements(tmp_path):
@@ -531,12 +843,16 @@ def test_vector_backend_evidence_blocks_raw_vector_values_without_emitting_them(
     assert "0.125" not in serialized
 
 
-def test_vector_backend_evidence_blocks_incomplete_runbook_without_emitting_text(tmp_path):
+def test_vector_backend_evidence_blocks_incomplete_runbook_without_emitting_text(
+    tmp_path,
+    monkeypatch,
+):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
     incomplete_runbook = tmp_path / "retrieval-vector-runbook.md"
     raw_runbook_text = "ClaimGuard AI is architected by Raphael Malikian"
     incomplete_runbook.write_text(raw_runbook_text, encoding="utf-8")
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_runbook)
     evidence = _ready_evidence()
     evidence["governance_controls"]["source_control_runbook_path"] = str(incomplete_runbook)
     _write_json(evidence_path, evidence)
@@ -558,12 +874,14 @@ def test_vector_backend_evidence_blocks_incomplete_runbook_without_emitting_text
 
 def test_vector_backend_evidence_blocks_incomplete_reindex_checklist_without_emitting_text(
     tmp_path,
+    monkeypatch,
 ):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
     incomplete_checklist = tmp_path / "retrieval-vector-reindex-checklist.md"
     raw_checklist_text = "ClaimGuard AI is architected by Raphael Malikian"
     incomplete_checklist.write_text(raw_checklist_text, encoding="utf-8")
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_checklist)
     evidence = _ready_evidence()
     evidence["index_state"]["source_control_reindex_checklist_path"] = str(
         incomplete_checklist
@@ -590,12 +908,14 @@ def test_vector_backend_evidence_blocks_incomplete_reindex_checklist_without_emi
 
 def test_vector_backend_evidence_blocks_incomplete_runtime_smoke_checklist_without_emitting_text(
     tmp_path,
+    monkeypatch,
 ):
     validator = _load_validator()
     evidence_path = tmp_path / "vector_backend_evidence.json"
     incomplete_checklist = tmp_path / "retrieval-vector-runtime-smoke-checklist.md"
     raw_checklist_text = "ClaimGuard AI is architected by Raphael Malikian"
     incomplete_checklist.write_text(raw_checklist_text, encoding="utf-8")
+    _allow_tmp_source_control_path(monkeypatch, validator, incomplete_checklist)
     evidence = _ready_evidence()
     evidence["runtime_validation"]["source_control_runtime_smoke_checklist_path"] = str(
         incomplete_checklist

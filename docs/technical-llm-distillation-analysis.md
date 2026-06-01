@@ -388,7 +388,12 @@ reference booleans and aggregate runtime-summary counts as readiness inputs.
 It blocks `vector_backend_ready=true` if health, quality-smoke, or reindex
 references are absent, if the private summary was not checked, if aggregate
 counts are zero, or if a private summary path or raw runtime values are marked
-as included.
+as included. It also verifies that source-controlled retrieval artifacts
+resolve inside this repository before reading marker text, covering the private
+env renderer, private semantic provider loader, operator runbook, reindex
+checklist, runtime smoke checklist, and runtime private evidence renderer.
+Outside files with matching marker text block readiness and are not read into
+the report.
 
 This means the technical implementation path exists, but production readiness
 still requires private semantic backend configuration, a production vector

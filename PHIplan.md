@@ -309,7 +309,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   runtime summary metadata before `vector_backend_ready=true`; missing
   references, unchecked private summaries, zero aggregate runtime counts, or
   any marked path/raw-value inclusion keep production vector backend readiness
-  blocked.
+  blocked. It now also rejects source-controlled retrieval artifact paths that
+  resolve outside this repository, including the private env renderer, private
+  semantic provider loader, operator runbook, reindex checklist, runtime smoke
+  checklist, and runtime private evidence renderer, so temporary or private
+  files with matching marker text cannot satisfy checked-in evidence gates.
   The retrieval-vector path now also includes
   `llm-distill/scripts/render_retrieval_vector_private_env.py`, a renderer for
   the final private retrieval/vector runtime environment file. It refuses

@@ -83,7 +83,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-06-01T09:22:40.190346+00:00",
+  "generated_at": "2026-06-01T19:16:21.821688+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
@@ -149,6 +149,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 31,
         "private_env_renderer_exists": true,
+        "private_env_renderer_inside_source_control": true,
         "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_retrieval_vector_private_env.py",
         "private_output_required": true,
         "raw_env_values_included": false,
@@ -168,6 +169,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 13,
         "private_embedding_provider_loader_exists": true,
+        "private_embedding_provider_loader_inside_source_control": true,
         "private_embedding_provider_loader_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_semantic_provider.py",
         "raw_endpoint_or_token_values_included": false,
         "raw_loader_text_included": false,
@@ -189,6 +191,7 @@
         "raw_runbook_text_included": false,
         "required_marker_count": 10,
         "runbook_exists": true,
+        "runbook_inside_source_control": true,
         "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/retrieval-vector-backend-runbook.md",
         "source_control_runbook_documented": true,
         "values_redacted": true
@@ -206,6 +209,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 15,
         "raw_checklist_text_included": false,
+        "reindex_checklist_inside_source_control": true,
         "required_marker_count": 15,
         "source_control_reindex_checklist_documented": true,
         "values_redacted": true
@@ -258,6 +262,7 @@
         "present_marker_count": 17,
         "raw_checklist_text_included": false,
         "required_marker_count": 17,
+        "runtime_smoke_checklist_inside_source_control": true,
         "source_control_runtime_smoke_checklist_documented": true,
         "values_redacted": true
       },
@@ -276,6 +281,7 @@
         "raw_source_text_or_vector_values_included": false,
         "required_marker_count": 22,
         "runtime_private_evidence_renderer_exists": true,
+        "runtime_private_evidence_renderer_inside_source_control": true,
         "runtime_private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py",
         "source_control_runtime_private_evidence_renderer_documented": true,
         "values_redacted": true
