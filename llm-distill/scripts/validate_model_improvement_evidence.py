@@ -169,6 +169,14 @@ def resolve_repo_path(raw_path: str, base_path: Path) -> Path:
     return (base_path.parent / path).resolve()
 
 
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def evidence_format_requirement(evidence: Any) -> dict[str, Any]:
     blockers: list[str] = []
     if not isinstance(evidence, dict):
@@ -278,9 +286,14 @@ def approval_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
         blockers.append("source_control_approval_runbook_not_documented")
     if runbook_path is None:
         blockers.append("source_control_approval_runbook_path_missing")
-    elif not runbook_path.exists():
-        blockers.append("source_control_approval_runbook_missing")
+        runbook_inside_repo = False
     else:
+        runbook_inside_repo = path_is_within(runbook_path, REPO_ROOT)
+        if not runbook_inside_repo:
+            blockers.append("source_control_approval_runbook_must_be_inside_repo")
+        if not runbook_path.exists():
+            blockers.append("source_control_approval_runbook_missing")
+    if runbook_path is not None and runbook_inside_repo and runbook_path.exists():
         try:
             runbook_text = runbook_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -301,6 +314,7 @@ def approval_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
         evidence={
             "source_control_approval_runbook_documented": runbook_configured,
             "runbook_path": str(runbook_path) if runbook_path else None,
+            "runbook_inside_source_control": bool(runbook_path and runbook_inside_repo),
             "runbook_exists": bool(runbook_path and runbook_path.exists()),
             "required_marker_count": len(RUNBOOK_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
@@ -325,7 +339,10 @@ def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, An
     missing_marker_count = len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
     if not renderer_configured:
         blockers.append("source_control_private_env_renderer_not_documented")
-    if not renderer_path.exists():
+    renderer_inside_repo = path_is_within(renderer_path, REPO_ROOT)
+    if not renderer_inside_repo:
+        blockers.append("source_control_private_env_renderer_must_be_inside_repo")
+    elif not renderer_path.exists():
         blockers.append("source_control_private_env_renderer_missing")
     else:
         try:
@@ -350,6 +367,7 @@ def private_env_renderer_requirement(evidence_path: Path, evidence: dict[str, An
         evidence={
             "source_control_private_env_renderer_documented": renderer_configured,
             "private_env_renderer_path": str(renderer_path),
+            "private_env_renderer_inside_source_control": renderer_inside_repo,
             "private_env_renderer_exists": renderer_path.exists(),
             "required_marker_count": len(PRIVATE_ENV_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,

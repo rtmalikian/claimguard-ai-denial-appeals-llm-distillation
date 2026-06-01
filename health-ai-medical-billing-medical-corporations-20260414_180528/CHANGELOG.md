@@ -2,6 +2,60 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 12:07:15 PDT - Model-improvement source-control path hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden user-data model-improvement evidence so source-controlled
+  approval runbook and private env renderer requirements cannot be satisfied by
+  arbitrary private or temporary files outside the repository.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-120337-model-improvement-source-control-paths/PHIplan.md` | Documented that model-improvement approval runbook and private env renderer paths must resolve inside the repository. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-120337-model-improvement-source-control-paths/docs/technical-llm-distillation-analysis.md` | Added a technical note describing the new source-control path invariant for model-improvement evidence. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_model_improvement_evidence.py` | `backups/20260601-120337-model-improvement-source-control-paths/llm-distill/scripts/validate_model_improvement_evidence.py` | Added repository-containment checks for the model-improvement approval runbook and private env renderer paths. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/model_improvement_evidence_report.json` | `backups/20260601-120337-model-improvement-source-control-paths/llm-distill/evals/reports/model_improvement_evidence_report.json` | Refreshed model-improvement evidence; `model_improvement_ready=false`, `safe_to_review=true`, and `blocked=1`, with runbook/renderer inside-source-control evidence recorded. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_model_improvement_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-120337-model-improvement-source-control-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_model_improvement_evidence.py` | `backups/20260601-120337-model-improvement-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_evidence.py` | Added coverage for inside-source-control path evidence and blockers for outside runbook or private renderer files with matching marker text. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-120337-model-improvement-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-120337-model-improvement-source-control-paths/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-120337-model-improvement-source-control-paths -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_model_improvement_evidence.py tests/unit/test_model_improvement_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_model_improvement_evidence.py tests/unit/test_model_improvement_private_env_renderer.py -q`: passed, 23 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_model_improvement_evidence.py tests/unit/test_model_improvement_private_env_renderer.py tests/unit/test_model_improvement_startup_config.py tests/unit/test_model_improvement_compliance.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 85 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_model_improvement_evidence.py --report ../llm-distill/evals/reports/model_improvement_evidence_report.json`: passed with `model_improvement_ready=False`, `safe_to_review=True`, and `blocked=1`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_model_improvement_evidence.py` and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/evals/reports/model_improvement_evidence_report.json` and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, secrets, approval values, consent values, private summary paths, user data, legal documents, or BAA documents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, approval references, consent values, PHI, secrets, user data, legal documents, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating outside temporary files with matching marker text as
+  source-controlled model-improvement evidence; such paths now block readiness.
+- Avoided requiring downstream private env renderer output in the evidence
+  validator, because the renderer intentionally consumes the ready evidence
+  report before writing private runtime configuration.
+- Avoided changing the external legal/BAA/consent blocker state or enabling
+  user-data model improvement.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-120337-model-improvement-source-control-paths/`, then rerun
+  the model-improvement and PHIplan readiness validators if refreshed reports
+  are needed after rollback.
+- This slice strengthens source-controlled model-improvement evidence; it does
+  not complete the full PHIplan objective or approve user-data model
+  improvement.
+
 ## 2026-06-01 11:52:43 PDT - Manual gate private summary validator
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -961,6 +961,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   disabled-default, private approval-reference, no external PHI
   de-identification, no raw PHI training, approved-corpus opt-in blocking, and
   `model_improvement_ready=false` markers without emitting the runbook text.
+  It now also rejects approval runbook or private env renderer paths that
+  resolve outside the repository, so source-controlled evidence cannot be
+  satisfied by arbitrary private or temporary files with matching marker text.
   The model-improvement evidence path now also includes
   `llm-distill/scripts/render_model_improvement_private_env.py`, a renderer for
   the final private model-improvement environment file. It refuses output

@@ -106,6 +106,7 @@ def test_template_is_safe_to_review_but_not_ready():
     assert runbook_requirement["status"] == "ready"
     assert runbook_requirement["evidence"]["source_control_approval_runbook_documented"] is True
     assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is True
     assert runbook_requirement["evidence"]["missing_marker_count"] == 0
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     renderer_requirement = next(
@@ -121,6 +122,12 @@ def test_template_is_safe_to_review_but_not_ready():
         is True
     )
     assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"][
+            "private_env_renderer_inside_source_control"
+        ]
+        is True
+    )
     assert renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
     assert (
@@ -223,13 +230,51 @@ def test_raw_approval_or_user_data_values_block_without_emitting_values(tmp_path
     assert "forbidden_value_key_count" in serialized
 
 
-def test_incomplete_model_improvement_runbook_blocks_without_emitting_text(tmp_path):
+def test_incomplete_model_improvement_runbook_blocks_without_emitting_text(
+    tmp_path,
+    monkeypatch,
+):
     validator = _load_validator()
     evidence = deepcopy(_ready_evidence())
     incomplete_runbook = tmp_path / "model-improvement-approval-runbook.md"
     raw_runbook_text = "ClaimGuard AI is architected by Raphael Malikian"
     incomplete_runbook.write_text(raw_runbook_text, encoding="utf-8")
     evidence["legal_controls"]["source_control_approval_runbook_path"] = str(incomplete_runbook)
+    evidence_path = tmp_path / "model_improvement_evidence.json"
+    _write_json(evidence_path, evidence)
+    original_path_is_within = validator.path_is_within
+
+    def path_is_within_tmp_runbook(path: Path, parent: Path) -> bool:
+        if path.resolve() == incomplete_runbook.resolve():
+            return True
+        return original_path_is_within(path, parent)
+
+    monkeypatch.setattr(validator, "path_is_within", path_is_within_tmp_runbook)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    runbook_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "model_improvement_approval_runbook"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["model_improvement_ready"] is False
+    assert "source_control_approval_runbook_required_markers_missing" in runbook_requirement["blockers"]
+    assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
+    assert raw_runbook_text not in serialized
+
+
+def test_model_improvement_runbook_must_stay_inside_source_control(tmp_path):
+    validator = _load_validator()
+    evidence = deepcopy(_ready_evidence())
+    outside_runbook = tmp_path / "model-improvement-approval-runbook.md"
+    raw_runbook_text = "\n".join(validator.RUNBOOK_REQUIRED_MARKERS)
+    outside_runbook.write_text(raw_runbook_text, encoding="utf-8")
+    evidence["legal_controls"]["source_control_approval_runbook_path"] = str(
+        outside_runbook
+    )
     evidence_path = tmp_path / "model_improvement_evidence.json"
     _write_json(evidence_path, evidence)
 
@@ -243,7 +288,11 @@ def test_incomplete_model_improvement_runbook_blocks_without_emitting_text(tmp_p
 
     assert report["safe_to_review"] is True
     assert report["model_improvement_ready"] is False
-    assert "source_control_approval_runbook_required_markers_missing" in runbook_requirement["blockers"]
+    assert runbook_requirement["blockers"] == [
+        "source_control_approval_runbook_must_be_inside_repo"
+    ]
+    assert runbook_requirement["evidence"]["runbook_exists"] is True
+    assert runbook_requirement["evidence"]["runbook_inside_source_control"] is False
     assert runbook_requirement["evidence"]["raw_runbook_text_included"] is False
     assert raw_runbook_text not in serialized
 
@@ -275,3 +324,41 @@ def test_private_env_renderer_documentation_is_required(tmp_path):
     assert renderer_requirement["blockers"] == [
         "source_control_private_env_renderer_not_documented"
     ]
+
+
+def test_model_improvement_private_env_renderer_must_stay_inside_source_control(
+    tmp_path,
+):
+    validator = _load_validator()
+    evidence = deepcopy(_ready_evidence())
+    outside_renderer = tmp_path / "render_model_improvement_private_env.py"
+    raw_renderer_text = "\n".join(validator.PRIVATE_ENV_RENDERER_REQUIRED_MARKERS)
+    outside_renderer.write_text(raw_renderer_text, encoding="utf-8")
+    evidence["legal_controls"]["source_control_private_env_renderer_path"] = str(
+        outside_renderer
+    )
+    evidence_path = tmp_path / "model_improvement_evidence.json"
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    serialized = json.dumps(report, sort_keys=True)
+    renderer_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "model_improvement_private_env_renderer"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["model_improvement_ready"] is False
+    assert renderer_requirement["blockers"] == [
+        "source_control_private_env_renderer_must_be_inside_repo"
+    ]
+    assert renderer_requirement["evidence"]["private_env_renderer_exists"] is True
+    assert (
+        renderer_requirement["evidence"][
+            "private_env_renderer_inside_source_control"
+        ]
+        is False
+    )
+    assert renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    assert raw_renderer_text not in serialized

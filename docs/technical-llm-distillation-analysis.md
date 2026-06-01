@@ -262,6 +262,13 @@ does not approve
 user-data use, validate legal/BAA records, train a model, or store
 approval/consent values in checked-in reports.
 
+The model-improvement evidence validator also verifies that the documented
+approval runbook and private env renderer paths resolve inside this repository.
+This prevents a ready evidence packet from pointing at arbitrary private or
+temporary files with matching marker text while still keeping approval
+references, consent versions, user data, and legal records outside source
+control.
+
 ### Production Corpus Private Evidence Controls
 
 Production corpus readiness remains blocked until at least one approved
