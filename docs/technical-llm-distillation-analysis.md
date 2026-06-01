@@ -258,12 +258,14 @@ after those gates are complete.
 The renderer refuses output inside source control, requires explicit corpus,
 review, pair/source, metadata-only manifest, no-raw-document, and no-raw-value
 attestations before approved mode, reads the private manifest path and review
-references from environment variables, stores only the manifest-path env var
-name in private evidence, writes the private evidence file with `0600`
-permissions, and prints only redacted booleans/counts. The validator resolves
-that env var at operator runtime without emitting the raw private manifest path
-in reports. It does not add approved production pairs, validate raw source
-documents, or store review reference values in checked-in reports.
+references from environment variables, validates that the private manifest
+metadata contains at least one approved non-synthetic denial/appeal pair before
+writing ready private evidence, stores only the manifest-path env var name in
+private evidence, writes the private evidence file with `0600` permissions, and
+prints only redacted booleans/counts. The validator resolves that env var at
+operator runtime without emitting the raw private manifest path in reports. It
+does not add approved production pairs, open raw source documents, or store
+review reference values in checked-in reports.
 
 ### Prediction-Fairness Private Evidence Controls
 

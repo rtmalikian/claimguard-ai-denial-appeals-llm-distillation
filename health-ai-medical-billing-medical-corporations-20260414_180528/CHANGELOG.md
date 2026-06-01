@@ -2,6 +2,60 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 00:26:49 PDT - Production corpus private manifest validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the production corpus private evidence renderer so approved-mode
+  rendering refuses to write ready private evidence unless the private manifest
+  metadata contains at least one approved non-synthetic denial/appeal pair.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-002359-production-corpus-private-manifest-validation/root/PHIplan.md.bak` | Documented private manifest metadata validation before production corpus ready evidence rendering. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-002359-production-corpus-private-manifest-validation/docs/technical-llm-distillation-analysis.md.bak` | Clarified that the private corpus renderer validates approved non-synthetic pair metadata before writing ready evidence. | Restore backup over the same path. |
+| `implementation.md` | `backups/20260601-002359-production-corpus-private-manifest-validation/app/implementation.md.bak` | Updated implementation tracking for production corpus private manifest validation. | Restore backup over `implementation.md`. |
+| `../llm-distill/scripts/render_production_corpus_private_evidence.py` | `backups/20260601-002359-production-corpus-private-manifest-validation/llm-distill/scripts/render_production_corpus_private_evidence.py.bak` | Added private manifest JSON/records validation requiring one complete approved non-synthetic denial/appeal pair before approved ready evidence can be written. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_production_corpus_evidence.py` | `backups/20260601-002359-production-corpus-private-manifest-validation/llm-distill/scripts/validate_production_corpus_evidence.py.bak` | Added private manifest metadata validation markers to the renderer evidence check. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/production_corpus_evidence_report.json` | `backups/20260601-002359-production-corpus-private-manifest-validation/llm-distill/evals/reports/production_corpus_evidence_report.json.bak` | Refreshed production corpus evidence; `safe_to_review=true`, `production_corpus_ready=false`, and `blocked=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-002359-production-corpus-private-manifest-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json.bak` | Refreshed manual gate evidence after corpus renderer marker change; still `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-002359-production-corpus-private-manifest-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_production_corpus_private_evidence_renderer.py` | `backups/20260601-002359-production-corpus-private-manifest-validation/tests/unit/test_production_corpus_private_evidence_renderer.py.bak` | Added coverage for synthetic-only manifest refusal, incomplete-pair refusal, and redacted aggregate manifest metadata in approved output. | Restore backup over the same path. |
+| `tests/unit/test_production_corpus_evidence.py` | `backups/20260601-002359-production-corpus-private-manifest-validation/tests/unit/test_production_corpus_evidence.py.bak` | Backed up for validator parity review; no functional test changes required. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-002359-production-corpus-private-manifest-validation/app/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-002359-production-corpus-private-manifest-validation/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-002359-production-corpus-private-manifest-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `python3 -m py_compile ../llm-distill/scripts/render_production_corpus_private_evidence.py ../llm-distill/scripts/validate_production_corpus_evidence.py tests/unit/test_production_corpus_private_evidence_renderer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/claimguard-pycache python3 -m pytest tests/unit/test_production_corpus_private_evidence_renderer.py -q -p no:cacheprovider`: passed, 8 tests.
+- `PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/claimguard-pycache python3 -m pytest tests/unit/test_production_corpus_evidence.py tests/unit/test_production_corpus_private_evidence_renderer.py -q -p no:cacheprovider`: passed, 17 tests.
+- `python3 ../llm-distill/scripts/validate_production_corpus_evidence.py --report ../llm-distill/evals/reports/production_corpus_evidence_report.json`: passed with `production_corpus_ready=False`, `safe_to_review=True`, and `blocked=1`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `--fail-on-blocked` checks for production corpus evidence and PHIplan production readiness intentionally returned exit status 2 while preserving safe review/current-state status.
+- `python3 ../llm-distill/scripts/run_phi_scan.py --json` over changed code, tests, and refreshed JSON reports: passed with no findings.
+- Broader documentation/changelog PHI scan returned expected metadata-only findings for required Raphael Malikian attribution emails and pre-existing implementation/changelog label text; manual inspection found no raw PHI/PII values, secrets, approval references, production claim data, raw denial letters, raw appeal letters, source text, or production documents introduced.
+- Secret-pattern scan over `git diff -- .`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Initial expected-failure shell checks used `status=$?`, which is a read-only variable in zsh; reran the checks with `rc=$?` and confirmed exit status 2.
+- Avoided treating the mere existence of a private manifest JSON file as sufficient production corpus evidence.
+- Avoided reading raw private source documents, storing private manifest paths, emitting pair IDs, source paths, checksums, approval references, PHI, secrets, raw denial letters, raw appeal letters, production claim data, or production document content.
+- Avoided marking production corpus readiness or PHIplan production readiness complete; the current checked-in report remains blocked until real external corpus review evidence exists.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-002359-production-corpus-private-manifest-validation/`,
+  then rerun the production corpus, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens the production corpus handoff; it does not complete
+  the full PHIplan objective or approve production readiness.
+
 ## 2026-05-31 16:55:41 PDT - Public distillation docs validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

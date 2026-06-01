@@ -140,6 +140,8 @@ PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS = (
     "no_raw_document_content_attested",
     "private_manifest_path_env",
     "private_manifest_path_value_included",
+    "private_manifest_metadata_checked",
+    "private_manifest_complete_pair_count",
     "approval_reference_value_included",
     "raw_document_content_included",
     "0600",

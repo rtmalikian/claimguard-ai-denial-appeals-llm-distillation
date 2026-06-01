@@ -97,6 +97,34 @@ def _write_private_manifest(path: Path) -> None:
     )
 
 
+def _write_synthetic_only_manifest(path: Path) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "records": [
+                    {
+                        "source_type": "synthetic_deidentified_pair",
+                        "document_role": "denial_letter",
+                        "pair_id": "PAIR-SYNTHETIC-TEST",
+                        "training_eligible": True,
+                        "phi_status": "deidentified",
+                        "review_status": "training_approved",
+                    },
+                    {
+                        "source_type": "synthetic_deidentified_pair",
+                        "document_role": "appeal_letter",
+                        "pair_id": "PAIR-SYNTHETIC-TEST",
+                        "training_eligible": True,
+                        "phi_status": "deidentified",
+                        "review_status": "training_approved",
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_conservative_dry_run_redacts_values(tmp_path):
     renderer = _load_renderer()
     output_path = tmp_path / "production-corpus.private.json"
@@ -160,6 +188,55 @@ def test_approved_mode_rejects_source_control_manifest(monkeypatch, tmp_path):
         )
 
 
+def test_approved_mode_rejects_synthetic_only_private_manifest(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    manifest_path = tmp_path / "private-manifest.json"
+    _write_synthetic_only_manifest(manifest_path)
+    _set_private_references(monkeypatch, renderer, manifest_path)
+
+    with pytest.raises(renderer.RenderError, match="non-synthetic denial/appeal pair"):
+        renderer.render_private_evidence(
+            _approved_config(
+                renderer,
+                tmp_path / "production-corpus.private.json",
+            )
+        )
+
+
+def test_approved_mode_rejects_private_manifest_without_complete_pair(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    manifest_path = tmp_path / "private-manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "records": [
+                    {
+                        "source_type": "real_deidentified_pair",
+                        "document_role": "denial_letter",
+                        "pair_id": "PAIR-PRIVATE-TEST",
+                        "training_eligible": True,
+                        "phi_status": "deidentified",
+                        "review_status": "training_approved",
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    _set_private_references(monkeypatch, renderer, manifest_path)
+
+    with pytest.raises(renderer.RenderError, match="non-synthetic denial/appeal pair"):
+        renderer.render_private_evidence(
+            _approved_config(
+                renderer,
+                tmp_path / "production-corpus.private.json",
+            )
+        )
+
+
 def test_approved_mode_writes_private_evidence_and_redacts_values(
     monkeypatch,
     tmp_path,
@@ -189,6 +266,10 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert summary["source_documents_reviewed_outside_source_control"] is True
     assert summary["private_reference_count"] == len(private_values) - 1
     assert summary["private_manifest_path_env_configured"] is True
+    assert summary["private_manifest_metadata_checked"] is True
+    assert summary["private_manifest_record_count"] == 2
+    assert summary["private_manifest_candidate_role_count"] == 2
+    assert summary["private_manifest_complete_pair_count"] == 1
     assert summary["private_manifest_path_value_included"] is False
     assert summary["values_redacted"] is True
     assert str(manifest_path) not in serialized_summary
@@ -198,6 +279,10 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert payload["private_manifest_path_env"] == renderer.DEFAULT_PRIVATE_MANIFEST_PATH_ENV
     assert payload["private_manifest_path_configured"] is True
     assert payload["private_manifest_path_value_included"] is False
+    assert payload["private_manifest_metadata_checked"] is True
+    assert payload["private_manifest_record_count"] == 2
+    assert payload["private_manifest_candidate_role_count"] == 2
+    assert payload["private_manifest_complete_pair_count"] == 1
     assert payload["corpus_review"]["privacy_review_attested"] is True
     assert payload["pairing_requirements"][
         "pair_ids_reviewed_outside_source_control"

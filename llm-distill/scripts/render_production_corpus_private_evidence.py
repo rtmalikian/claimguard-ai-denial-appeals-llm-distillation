@@ -31,6 +31,20 @@ DEFAULT_PAIR_SOURCE_REVIEW_REFERENCE_ENV = (
 DEFAULT_PRIVATE_EVIDENCE_RENDERER_PATH = (
     "llm-distill/scripts/render_production_corpus_private_evidence.py"
 )
+REQUIRED_PAIR_ROLES = {"denial_letter", "appeal_letter"}
+PRODUCTION_PAIR_SOURCE_TYPES = {
+    "approved_public_denial_appeal_pair",
+    "public_government_deidentified_pair",
+    "public_government_denial_appeal_pair",
+    "real_deidentified_pair",
+    "real_world_deidentified_pair",
+}
+TRAINING_ALLOWED_PHI_STATUSES = {"deidentified", "no_phi"}
+TRAINING_ALLOWED_REVIEW_STATUSES = {
+    "training_approved",
+    "privacy_review_passed",
+    "expert_determination_passed",
+}
 REQUIRED_ATTESTATIONS = {
     "approved_non_synthetic_pair_attested": (
         "approved non-synthetic denial/appeal pair attestation is required"
@@ -161,6 +175,64 @@ def _load_private_manifest_path(env_name: str) -> Path:
     return manifest_path
 
 
+def _load_private_manifest_payload(manifest_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private manifest must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private manifest must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private manifest must be a JSON object")
+    return payload
+
+
+def _is_production_pair_candidate(record: dict[str, Any]) -> bool:
+    return (
+        str(record.get("source_type") or "") in PRODUCTION_PAIR_SOURCE_TYPES
+        and bool(record.get("training_eligible"))
+        and str(record.get("document_role") or "") in REQUIRED_PAIR_ROLES
+        and str(record.get("phi_status") or "") in TRAINING_ALLOWED_PHI_STATUSES
+        and str(record.get("review_status") or "") in TRAINING_ALLOWED_REVIEW_STATUSES
+        and bool(record.get("pair_id"))
+    )
+
+
+def _private_manifest_metadata(manifest_path: Path) -> dict[str, Any]:
+    payload = _load_private_manifest_payload(manifest_path)
+    raw_records = payload.get("records")
+    if not isinstance(raw_records, list):
+        raise RenderError("private manifest records must be a list")
+
+    record_count = 0
+    candidate_role_count = 0
+    complete_pair_roles: dict[str, set[str]] = {}
+    for record in raw_records:
+        if not isinstance(record, dict):
+            continue
+        record_count += 1
+        if not _is_production_pair_candidate(record):
+            continue
+        candidate_role_count += 1
+        complete_pair_roles.setdefault(str(record["pair_id"]), set()).add(
+            str(record["document_role"])
+        )
+
+    complete_pair_count = sum(
+        1 for roles in complete_pair_roles.values() if REQUIRED_PAIR_ROLES.issubset(roles)
+    )
+    if complete_pair_count < 1:
+        raise RenderError(
+            "private manifest lacks approved non-synthetic denial/appeal pair metadata"
+        )
+
+    return {
+        "record_count": record_count,
+        "candidate_role_count": candidate_role_count,
+        "complete_pair_count": complete_pair_count,
+    }
+
+
 def _validate_approved_attestations(config: RenderConfig) -> None:
     missing = [
         message
@@ -187,9 +259,17 @@ def _load_private_references(config: RenderConfig) -> list[str]:
 
 def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
     private_reference_count = 0
+    private_manifest_metadata = {
+        "record_count": 0,
+        "candidate_role_count": 0,
+        "complete_pair_count": 0,
+    }
     if config.approved_production_corpus:
         _validate_approved_attestations(config)
-        _load_private_manifest_path(config.private_manifest_path_env)
+        private_manifest_path = _load_private_manifest_path(
+            config.private_manifest_path_env
+        )
+        private_manifest_metadata = _private_manifest_metadata(private_manifest_path)
         private_reference_count = len(_load_private_references(config))
         status = "production_corpus_ready_private_review_complete"
         manifest_path = None
@@ -212,6 +292,14 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         "private_manifest_path_env": private_manifest_path_env,
         "private_manifest_path_configured": corpus_ready,
         "private_manifest_path_value_included": False,
+        "private_manifest_metadata_checked": corpus_ready,
+        "private_manifest_record_count": private_manifest_metadata["record_count"],
+        "private_manifest_candidate_role_count": private_manifest_metadata[
+            "candidate_role_count"
+        ],
+        "private_manifest_complete_pair_count": private_manifest_metadata[
+            "complete_pair_count"
+        ],
         "corpus_review": {
             "source_control_review_runbook_documented": True,
             "source_control_review_runbook_path": (
@@ -284,6 +372,16 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
         "private_manifest_path_env_configured": bool(
             evidence["private_manifest_path_env"]
         ),
+        "private_manifest_metadata_checked": evidence[
+            "private_manifest_metadata_checked"
+        ],
+        "private_manifest_record_count": evidence["private_manifest_record_count"],
+        "private_manifest_candidate_role_count": evidence[
+            "private_manifest_candidate_role_count"
+        ],
+        "private_manifest_complete_pair_count": evidence[
+            "private_manifest_complete_pair_count"
+        ],
         "private_manifest_path_value_included": False,
         "raw_private_values_included": False,
         "approval_reference_value_included": False,

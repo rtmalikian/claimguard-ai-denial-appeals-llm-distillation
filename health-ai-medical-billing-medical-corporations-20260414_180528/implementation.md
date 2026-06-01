@@ -974,6 +974,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   training-scope, no-PHI, source license scope, boolean-only, and no-raw-value
   markers while keeping approved non-synthetic paired denial/appeal source
   gates blocked
+- [x] Production corpus private evidence renderer approved mode now validates
+  private manifest metadata for at least one approved non-synthetic
+  denial/appeal pair before writing ready evidence, while keeping the private
+  manifest path and review references out of checked-in evidence and command
+  summaries
 - [x] Manual production-gate packet carries ready file-ingestion surface audit
   evidence with three registered upload surfaces, zero unregistered surfaces,
   and metadata-only PHI surface/safe-audit-marker attestations
@@ -1585,8 +1590,9 @@ query indexes.
   The source-controlled private renderer at
   `llm-distill/scripts/render_production_corpus_private_evidence.py` can render
   the final private evidence file only after external pair/source and review
-  attestations exist, while keeping raw private manifest paths out of evidence
-  and validator reports.
+  attestations exist and private manifest metadata contains at least one
+  approved non-synthetic denial/appeal pair, while keeping raw private manifest
+  paths out of evidence and validator reports.
 - [ ] Configure real legal approval reference, BAA confirmation, and consent
   notice version before enabling user-data model improvement. Local progress:
   model-improvement evidence now requires the checked-in operator runbook at
