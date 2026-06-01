@@ -138,6 +138,7 @@ def _runtime_supervisor_report(ready: bool) -> dict:
         if ready
         else [
             {"requirement_id": "mlx_runtime_supervisor_operator_controls"},
+            {"requirement_id": "mlx_runtime_supervisor_private_runtime_metadata"},
             {"requirement_id": "mlx_runtime_supervisor_runtime_validation"},
         ]
     )
@@ -304,6 +305,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     assert "student_runtime_supervisor_report_not_ready" in student_requirement["blockers"]
     assert student_requirement["evidence"]["runtime_supervisor_blocked_requirement_ids"] == [
         "mlx_runtime_supervisor_operator_controls",
+        "mlx_runtime_supervisor_private_runtime_metadata",
         "mlx_runtime_supervisor_runtime_validation",
     ]
     vector_requirement = next(

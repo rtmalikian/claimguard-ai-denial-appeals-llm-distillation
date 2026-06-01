@@ -140,6 +140,40 @@ def _ready_evidence(plist_path: Path, runbook_path: Path | None = None) -> dict:
             "supervisor_loaded_in_user_session": True,
             "supervisor_restart_test_passed": True,
         },
+        "private_plist_validation": {
+            "private_plist_metadata_checked": True,
+            "private_plist_program_arguments_checked": True,
+            "private_plist_environment_checked": True,
+            "private_plist_program_argument_count": 13,
+            "private_plist_environment_key_count": 1,
+            "private_plist_required_environment_key_count": 1,
+            "private_plist_runs_mlx_lm_server": True,
+            "private_plist_uses_adapter_path": True,
+            "private_plist_uses_loopback": True,
+            "private_plist_port_configured": True,
+            "private_plist_working_directory_configured": True,
+            "private_plist_keepalive_configured": True,
+            "private_plist_log_paths_configured": True,
+            "private_plist_runtime_profile_ok": True,
+            "private_plist_secret_like_env_keys_present": False,
+            "private_plist_unapproved_env_keys_present": False,
+            "private_plist_path_value_included": False,
+            "private_plist_raw_values_included": False,
+            "values_redacted": True,
+        },
+        "private_summary_validation": {
+            "private_supervisor_summary_checked": True,
+            "private_supervisor_summary_path_env_configured": True,
+            "private_supervisor_summary_path_value_included": False,
+            "private_supervisor_summary_private_reference_count": 5,
+            "private_supervisor_summary_private_plist_count": 1,
+            "private_supervisor_summary_launchd_program_argument_count": 13,
+            "private_supervisor_summary_launchd_environment_variable_count": 1,
+            "private_supervisor_summary_required_environment_variable_count": 1,
+            "private_supervisor_summary_operator_control_count": 7,
+            "private_supervisor_summary_runtime_validation_count": 5,
+            "private_supervisor_summary_raw_values_included": False,
+        },
     }
 
 
@@ -165,6 +199,7 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert "mlx_runtime_supervisor_operator_runbook" not in blocked_ids
     assert "mlx_runtime_supervisor_owner_handoff_checklist" not in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation_checklist" not in blocked_ids
+    assert "mlx_runtime_supervisor_private_runtime_metadata" in blocked_ids
     assert "mlx_runtime_supervisor_operator_controls" in blocked_ids
     assert "mlx_runtime_supervisor_runtime_validation" in blocked_ids
     operator_requirement = next(
@@ -261,6 +296,27 @@ def test_supervisor_template_is_safe_to_review_but_not_ready():
     assert checklist_requirement["status"] == "ready"
     assert checklist_requirement["evidence"]["raw_checklist_text_included"] is False
     assert checklist_requirement["evidence"]["missing_marker_count"] == 0
+    private_metadata_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_runtime_metadata"
+    )
+    assert (
+        "private_plist_metadata_not_checked"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        "private_supervisor_summary_not_checked"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        "private_supervisor_summary_private_reference_count_missing"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        private_metadata_requirement["evidence"]["private_plist_raw_values_included"]
+        is False
+    )
 
 
 def test_ready_supervisor_evidence_passes_all_requirements(tmp_path):
@@ -275,6 +331,104 @@ def test_ready_supervisor_evidence_passes_all_requirements(tmp_path):
     assert report["safe_to_review"] is True
     assert report["supervisor_ready"] is True
     assert report["blocked_item_count"] == 0
+
+
+def test_ready_supervisor_requires_private_runtime_metadata(tmp_path):
+    validator = _load_validator()
+    plist_path = tmp_path / "claimguard.mlx-student.plist"
+    evidence_path = tmp_path / "supervisor_missing_private_metadata.json"
+    evidence = _ready_evidence(plist_path)
+    for key in [
+        "private_plist_metadata_checked",
+        "private_plist_program_arguments_checked",
+        "private_plist_environment_checked",
+        "private_plist_runs_mlx_lm_server",
+        "private_plist_uses_adapter_path",
+        "private_plist_uses_loopback",
+        "private_plist_port_configured",
+        "private_plist_working_directory_configured",
+        "private_plist_keepalive_configured",
+        "private_plist_log_paths_configured",
+        "private_plist_runtime_profile_ok",
+    ]:
+        evidence["private_plist_validation"][key] = False
+    for key in [
+        "private_plist_program_argument_count",
+        "private_plist_environment_key_count",
+        "private_plist_required_environment_key_count",
+    ]:
+        evidence["private_plist_validation"][key] = 0
+    for key in [
+        "private_supervisor_summary_checked",
+        "private_supervisor_summary_path_env_configured",
+    ]:
+        evidence["private_summary_validation"][key] = False
+    for key in [
+        "private_supervisor_summary_private_reference_count",
+        "private_supervisor_summary_private_plist_count",
+        "private_supervisor_summary_launchd_program_argument_count",
+        "private_supervisor_summary_launchd_environment_variable_count",
+        "private_supervisor_summary_required_environment_variable_count",
+        "private_supervisor_summary_operator_control_count",
+        "private_supervisor_summary_runtime_validation_count",
+    ]:
+        evidence["private_summary_validation"][key] = 0
+    _write_plist(plist_path)
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    private_metadata_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_runtime_metadata"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["supervisor_ready"] is False
+    assert (
+        "private_plist_metadata_not_checked"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        "private_supervisor_summary_private_reference_count_missing"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        "private_supervisor_summary_private_plist_count_must_be_one"
+        in private_metadata_requirement["blockers"]
+    )
+
+
+def test_private_runtime_metadata_value_flags_are_blocked(tmp_path):
+    validator = _load_validator()
+    plist_path = tmp_path / "claimguard.mlx-student.plist"
+    evidence_path = tmp_path / "supervisor_private_value_flags.json"
+    evidence = _ready_evidence(plist_path)
+    evidence["private_plist_validation"]["private_plist_path_value_included"] = True
+    evidence["private_summary_validation"][
+        "private_supervisor_summary_raw_values_included"
+    ] = True
+    _write_plist(plist_path)
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    private_metadata_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "mlx_runtime_supervisor_private_runtime_metadata"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["supervisor_ready"] is False
+    assert "private_plist_path_value_included" in private_metadata_requirement["blockers"]
+    assert (
+        "private_supervisor_summary_raw_values_included"
+        in private_metadata_requirement["blockers"]
+    )
+    assert (
+        private_metadata_requirement["evidence"]["private_plist_path_value_included"]
+        is True
+    )
 
 
 def test_source_control_runbook_markers_are_required(tmp_path):

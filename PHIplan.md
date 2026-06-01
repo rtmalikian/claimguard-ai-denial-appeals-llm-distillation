@@ -1097,6 +1097,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   evidence handoff without storing private plist values, private summary paths,
   runtime owner values, approval references, logs, endpoint responses, model
   output, PHI, or secrets in source control.
+  The MLX runtime supervisor validator now also requires the private plist and
+  private runtime-summary metadata emitted by that renderer before
+  `supervisor_ready=true`; missing private plist checks, unchecked private
+  summaries, zero private reference/plist/argument/environment/operator/
+  validation counts, count mismatches, or marked private plist path/raw-value
+  inclusion keep supervised runtime readiness blocked.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,

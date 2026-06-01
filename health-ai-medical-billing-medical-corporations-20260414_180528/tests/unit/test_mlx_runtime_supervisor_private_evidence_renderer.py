@@ -450,6 +450,10 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert payload["launchd_template"]["plist_path"] == str(plist_path)
     assert payload["private_plist_validation"]["private_plist_uses_loopback"] is True
     assert (
+        payload["private_plist_validation"]["private_plist_path_value_included"]
+        is False
+    )
+    assert (
         payload["private_summary_validation"]["private_supervisor_summary_checked"]
         is True
     )

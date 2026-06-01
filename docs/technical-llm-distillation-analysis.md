@@ -232,6 +232,13 @@ permissions and the command summary prints only redacted booleans/counts. It
 does not install launchd, start MLX, validate endpoint output, or store private
 runtime values or private summary paths in checked-in reports.
 
+The MLX runtime supervisor validator also requires that renderer-shaped private
+plist and runtime-summary metadata before `supervisor_ready=true`. Missing
+private plist checks, unchecked private summaries, zero private
+reference/plist/argument/environment/operator/validation counts, count
+mismatches, or marked private plist path/raw-value inclusion keep the checked-in
+evidence blocked.
+
 ### Model-Improvement Private Env Controls
 
 User-data model improvement remains disabled until legal approval, BAA

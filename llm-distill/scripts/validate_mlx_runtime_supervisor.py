@@ -163,6 +163,20 @@ def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
 
 
+def false_value(section: dict[str, Any], key: str) -> bool:
+    return section.get(key) is False
+
+
+def positive_int_value(section: dict[str, Any], key: str) -> bool:
+    value = section.get(key)
+    return not isinstance(value, bool) and isinstance(value, int) and value > 0
+
+
+def int_value(section: dict[str, Any], key: str, default: int) -> int:
+    value = section.get(key)
+    return value if not isinstance(value, bool) and isinstance(value, int) and value >= 0 else default
+
+
 def str_value(section: dict[str, Any], key: str) -> str:
     value = section.get(key)
     return value if isinstance(value, str) else ""
@@ -710,6 +724,152 @@ def runtime_validation_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def private_runtime_metadata_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
+    plist = evidence.get("private_plist_validation", {})
+    if not isinstance(plist, dict):
+        plist = {}
+    summary = evidence.get("private_summary_validation", {})
+    if not isinstance(summary, dict):
+        summary = {}
+    required_plist_true_flags = {
+        "private_plist_metadata_checked": "private_plist_metadata_not_checked",
+        "private_plist_program_arguments_checked": "private_plist_program_arguments_not_checked",
+        "private_plist_environment_checked": "private_plist_environment_not_checked",
+        "private_plist_runs_mlx_lm_server": "private_plist_mlx_lm_server_not_verified",
+        "private_plist_uses_adapter_path": "private_plist_adapter_path_not_verified",
+        "private_plist_uses_loopback": "private_plist_loopback_not_verified",
+        "private_plist_port_configured": "private_plist_port_not_verified",
+        "private_plist_working_directory_configured": "private_plist_working_directory_not_verified",
+        "private_plist_keepalive_configured": "private_plist_keepalive_not_verified",
+        "private_plist_log_paths_configured": "private_plist_log_paths_not_verified",
+        "private_plist_runtime_profile_ok": "private_plist_runtime_profile_not_verified",
+    }
+    required_plist_false_flags = {
+        "private_plist_secret_like_env_keys_present": "private_plist_secret_like_env_keys_present",
+        "private_plist_unapproved_env_keys_present": "private_plist_unapproved_env_keys_present",
+        "private_plist_path_value_included": "private_plist_path_value_included",
+        "private_plist_raw_values_included": "private_plist_raw_values_included",
+    }
+    required_plist_positive_counts = {
+        "private_plist_program_argument_count": "private_plist_program_argument_count_missing",
+        "private_plist_environment_key_count": "private_plist_environment_key_count_missing",
+        "private_plist_required_environment_key_count": "private_plist_required_environment_key_count_missing",
+    }
+    required_summary_true_flags = {
+        "private_supervisor_summary_checked": "private_supervisor_summary_not_checked",
+        "private_supervisor_summary_path_env_configured": "private_supervisor_summary_path_env_not_configured",
+    }
+    required_summary_false_flags = {
+        "private_supervisor_summary_path_value_included": "private_supervisor_summary_path_value_included",
+        "private_supervisor_summary_raw_values_included": "private_supervisor_summary_raw_values_included",
+    }
+    required_summary_positive_counts = {
+        "private_supervisor_summary_private_reference_count": "private_supervisor_summary_private_reference_count_missing",
+        "private_supervisor_summary_private_plist_count": "private_supervisor_summary_private_plist_count_missing",
+        "private_supervisor_summary_launchd_program_argument_count": "private_supervisor_summary_launchd_program_argument_count_missing",
+        "private_supervisor_summary_launchd_environment_variable_count": "private_supervisor_summary_launchd_environment_variable_count_missing",
+        "private_supervisor_summary_required_environment_variable_count": "private_supervisor_summary_required_environment_variable_count_missing",
+        "private_supervisor_summary_operator_control_count": "private_supervisor_summary_operator_control_count_missing",
+        "private_supervisor_summary_runtime_validation_count": "private_supervisor_summary_runtime_validation_count_missing",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_plist_true_flags.items()
+        if not bool_value(plist, key)
+    ]
+    blockers.extend(
+        blocker
+        for key, blocker in required_plist_false_flags.items()
+        if not false_value(plist, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_plist_positive_counts.items()
+        if not positive_int_value(plist, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_summary_true_flags.items()
+        if not bool_value(summary, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_summary_false_flags.items()
+        if not false_value(summary, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_summary_positive_counts.items()
+        if not positive_int_value(summary, key)
+    )
+
+    plist_program_argument_count = int_value(
+        plist,
+        "private_plist_program_argument_count",
+        0,
+    )
+    plist_environment_key_count = int_value(
+        plist,
+        "private_plist_environment_key_count",
+        0,
+    )
+    plist_required_environment_key_count = int_value(
+        plist,
+        "private_plist_required_environment_key_count",
+        0,
+    )
+    summary_program_argument_count = int_value(
+        summary,
+        "private_supervisor_summary_launchd_program_argument_count",
+        0,
+    )
+    summary_environment_key_count = int_value(
+        summary,
+        "private_supervisor_summary_launchd_environment_variable_count",
+        0,
+    )
+    summary_required_environment_key_count = int_value(
+        summary,
+        "private_supervisor_summary_required_environment_variable_count",
+        0,
+    )
+    if (
+        summary_program_argument_count
+        and summary_program_argument_count != plist_program_argument_count
+    ):
+        blockers.append("private_supervisor_summary_program_argument_count_mismatch")
+    if (
+        summary_environment_key_count
+        and summary_environment_key_count != plist_environment_key_count
+    ):
+        blockers.append("private_supervisor_summary_environment_key_count_mismatch")
+    if (
+        summary_required_environment_key_count
+        and summary_required_environment_key_count != plist_required_environment_key_count
+    ):
+        blockers.append(
+            "private_supervisor_summary_required_environment_count_mismatch"
+        )
+    if int_value(summary, "private_supervisor_summary_private_plist_count", 0) != 1:
+        blockers.append("private_supervisor_summary_private_plist_count_must_be_one")
+
+    return requirement(
+        requirement_id="mlx_runtime_supervisor_private_runtime_metadata",
+        name="Private supervisor plist and runtime summary metadata is checked without exposing values",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            **{key: bool_value(plist, key) for key in required_plist_true_flags},
+            **{key: bool_value(plist, key) for key in required_plist_false_flags},
+            **{key: plist.get(key, 0) for key in required_plist_positive_counts},
+            **{key: bool_value(summary, key) for key in required_summary_true_flags},
+            **{key: bool_value(summary, key) for key in required_summary_false_flags},
+            **{key: summary.get(key, 0) for key in required_summary_positive_counts},
+            "values_redacted": True,
+        },
+    )
+
+
 def build_report(evidence_path: Path) -> dict[str, Any]:
     evidence, load_errors = load_json(evidence_path)
     if evidence is None:
@@ -726,6 +886,7 @@ def build_report(evidence_path: Path) -> dict[str, Any]:
         operator_controls_requirement(evidence if isinstance(evidence, dict) else {}),
         runtime_validation_checklist_requirement(evidence_path, evidence if isinstance(evidence, dict) else {}),
         runtime_validation_requirement(evidence if isinstance(evidence, dict) else {}),
+        private_runtime_metadata_requirement(evidence if isinstance(evidence, dict) else {}),
     ]
     if load_errors:
         requirements.insert(
