@@ -367,12 +367,14 @@ source-controlled private packet renderer that refuses repository output,
 requires explicit student cutover, student runtime, model-improvement,
 production-corpus, retrieval-vector, prediction-fairness, file-ingestion,
 dependent-report-readiness, and no-raw-value attestations before approved
-mode, reads private manifest record ids and governance references from
-environment variables only, verifies the configured supervisor,
-model-improvement, production-corpus, retrieval-vector, prediction-fairness,
-and file-ingestion surface reports are ready before writing a ready packet,
-writes `0600` private output, and reports redacted booleans/counts while
-preserving all external manual-gate blockers.
+mode, reads private manifest record ids, governance references, and a private
+aggregate manual-gate summary path from environment variables only, verifies
+the configured supervisor, model-improvement, production-corpus,
+retrieval-vector, prediction-fairness, and file-ingestion surface reports are
+ready, validates private summary booleans, positive aggregate counts, and
+explicit no-raw-value flags before writing a ready packet, rejects unsupported
+private summary fields, writes `0600` private output, and reports redacted
+booleans/counts while preserving all external manual-gate blockers.
 The manual production-gate packet now also carries the boolean
 `model_improvement_evidence_report_ready` flag so the packet cannot pass
 user-data model-improvement approval unless the dedicated evidence report has
@@ -1005,6 +1007,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   and metadata-only PHI surface/safe-audit-marker attestations
 - [x] PHIplan production-readiness report includes manual packet
   `blocked_requirement_ids` without exposing raw values
+- [x] Manual production-gate private packet renderer approved mode validates a
+  private aggregate manual-gate summary for required readiness booleans,
+  positive counts, no-raw approval/reference/document/report/evidence flags,
+  and unsupported-field rejection before writing ready private evidence
 - [x] PHIplan production-readiness report includes dependent report
   `blocked_requirement_ids` for runtime supervisor, model-improvement,
   retrieval-vector backend, production-corpus, and prediction-fairness gates
@@ -1155,7 +1161,8 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   renderer, and the dedicated model-improvement, production-corpus,
   retrieval-vector, and prediction-fairness evidence-report readiness flags.
   Local progress: the private manual-packet renderer now also verifies
-  configured dependent evidence reports before writing a ready packet.
+  configured dependent evidence reports and validates a private aggregate
+  manual-gate summary before writing a ready packet.
 
 ### ❌ Not Implemented (Required for Production)
 - JWT Authentication & RBAC

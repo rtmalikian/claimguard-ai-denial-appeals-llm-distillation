@@ -871,15 +871,18 @@ plan plus the active ClaimGuard `AGENTS.md`.
   student-runtime, model-improvement, production-corpus, retrieval-vector,
   prediction-fairness, file-ingestion, dependent-report-readiness, and
   no-raw-value attestations before approved mode, reads private manifest record
-  ids and governance references from environment variables, verifies the
-  configured supervisor, model-improvement, production-corpus,
-  retrieval-vector, prediction-fairness, and file-ingestion surface reports are
-  ready before writing a ready packet, writes private output with `0600`
-  permissions, and prints only redacted booleans/counts. This
+  ids, governance references, and a private aggregate manual-gate summary path
+  from environment variables, verifies the configured supervisor,
+  model-improvement, production-corpus, retrieval-vector, prediction-fairness,
+  and file-ingestion surface reports are ready, validates required private
+  summary booleans, positive aggregate counts, and explicit no-raw-value flags
+  before writing a ready packet, rejects unsupported private summary fields,
+  writes private output with `0600` permissions, and prints only redacted
+  booleans/counts. This
   prepares the final manual gate packet handoff without storing approval
-  values, manifest record ids, PHI, source text, vectors, raw demographic
-  values, production outcome rows, or production document content in source
-  control. The packet also
+  values, private summary paths, manifest record ids, PHI, source text,
+  vectors, raw demographic values, production outcome rows, or production
+  document content in source control. The packet also
   requires retrieval-vector backend readiness through
   `vector_backend_evidence_report_ready`, source-controlled runbook
   documentation, source-controlled reindex checklist documentation,

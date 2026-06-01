@@ -2,6 +2,53 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 01:09:56 PDT - Manual gate private summary validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden the PHIplan manual production-gate private packet renderer so
+  approved-mode rendering refuses to write a ready packet unless a private
+  aggregate manual-gate summary has been validated.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/PHIplan.md` | Documented private aggregate manual-gate summary validation before ready packet rendering. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/docs/technical-llm-distillation-analysis.md` | Updated the technical breakdown to note private summary validation for manual gate packet rendering. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking and the checklist for private manual-gate summary validation. | Restore backup over the same path. |
+| `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | Added approved-mode private aggregate summary path loading, JSON validation, required readiness booleans, positive aggregate counts, no-raw-value flags, unsupported-field rejection, and redacted count output. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added private summary validation markers to the source-controlled private packet renderer check. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, `blocked=5`, and private packet renderer markers all present. | Restore backup over the same path or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | Added coverage for required private summary paths, source-control path refusal, incomplete summary refusal, raw-value flag refusal, unsupported field refusal, count mismatch refusal, and redacted summary counts in approved output. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py -q`: passed, 14 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py -q`: passed, 50 tests.
+- `python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, `blocked=5`, and 25/25 private packet renderer markers present.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Final PHI/PII scan, value-shaped secret scan, JSON parsing checks, and `git diff --check` were run before commit; no raw PHI/PII values, secrets, approval-reference values, private summary paths, source text, vectors, raw demographic values, production outcome rows, or production document content were introduced.
+
+### Failed Or Avoided Approaches
+- Avoided treating command-line attestations, manifest record IDs, private references, and dependent ready reports as sufficient manual production-gate evidence.
+- Avoided storing private summary paths, approval references, governance references, raw report evidence, PHI, secrets, source text, vector values, raw demographic values, production outcome rows, or production document content in checked-in reports.
+- Avoided accepting arbitrary private summary fields that could smuggle identifiers, raw values, service URLs, credentials, or unsupported evidence into the private-ready packet.
+- Avoided marking the manual production gate or PHIplan production readiness complete; external approval, corpus, retrieval, runtime, model-improvement, and fairness-monitoring gates remain blocked.
+
+### Notes
+- Rollback: restore every modified file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-010552-manual-gate-private-summary-validation/`,
+  then rerun the manual gate and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice strengthens the private manual production-gate handoff; it does
+  not complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 00:58:36 PDT - Retrieval runtime private summary validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

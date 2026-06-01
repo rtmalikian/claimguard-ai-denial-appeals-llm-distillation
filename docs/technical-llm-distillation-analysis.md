@@ -405,7 +405,8 @@ Safety and validation:
 - `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` for
   private manual production-gate packet rendering after every dependent
   evidence report and external/manual attestation is complete, with dependent
-  report readiness checked before any ready private packet is written.
+  report readiness and a private aggregate manual-gate summary checked before
+  any ready private packet is written.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual

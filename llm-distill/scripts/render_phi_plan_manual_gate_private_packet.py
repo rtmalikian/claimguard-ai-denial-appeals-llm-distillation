@@ -28,6 +28,7 @@ DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV = (
     "PHI_PLAN_MANUAL_GATE_DEPENDENT_EVIDENCE_REFERENCE"
 )
 DEFAULT_RELEASE_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_RELEASE_REFERENCE"
+DEFAULT_PRIVATE_SUMMARY_PATH_ENV = "PHI_PLAN_MANUAL_GATE_PRIVATE_SUMMARY_PATH"
 DEFAULT_PRIVATE_PACKET_RENDERER_PATH = (
     "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
 )
@@ -70,6 +71,7 @@ ALLOWED_ENV_KEYS = {
     DEFAULT_MANUAL_REVIEW_REFERENCE_ENV,
     DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
     DEFAULT_RELEASE_REFERENCE_ENV,
+    DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
 }
 FORBIDDEN_ENV_KEY_FRAGMENTS = {
     "api_key",
@@ -83,6 +85,50 @@ FORBIDDEN_ENV_KEY_FRAGMENTS = {
 SAFE_REFERENCE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
 SAFE_RECORD_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,127}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS = {
+    "student_cutover_attested",
+    "student_runtime_attested",
+    "model_improvement_attested",
+    "production_corpus_attested",
+    "retrieval_vector_attested",
+    "prediction_fairness_attested",
+    "file_ingestion_surface_attested",
+    "dependent_reports_ready_attested",
+    "manual_review_completed",
+    "release_review_completed",
+    "all_dependent_reports_ready",
+    "manifest_records_reviewed",
+    "approved_non_synthetic_pairs_reviewed",
+    "no_phi_or_secret_values_attested",
+    "no_raw_values_attested",
+    "values_redacted",
+}
+REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS = {
+    "approval_reference_values_included",
+    "private_reference_values_included",
+    "summary_manifest_record_ids_included",
+    "raw_document_content_included",
+    "raw_report_evidence_included",
+    "phi_or_secret_values_included",
+    "source_text_included",
+    "vector_values_included",
+    "endpoint_values_included",
+    "credential_values_included",
+    "raw_demographic_values_included",
+    "raw_outcome_rows_included",
+}
+REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS = {
+    "approved_non_synthetic_pair_count",
+    "approved_source_type_count",
+    "manifest_record_id_count",
+    "dependent_report_count",
+    "private_reference_count",
+}
+ALLOWED_PRIVATE_SUMMARY_KEYS = (
+    REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS
+)
 
 
 class RenderError(ValueError):
@@ -100,6 +146,7 @@ class RenderConfig:
     manual_review_reference_env: str = DEFAULT_MANUAL_REVIEW_REFERENCE_ENV
     dependent_evidence_reference_env: str = DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV
     release_reference_env: str = DEFAULT_RELEASE_REFERENCE_ENV
+    private_summary_path_env: str = DEFAULT_PRIVATE_SUMMARY_PATH_ENV
     supervisor_report: str = DEFAULT_SUPERVISOR_REPORT
     model_improvement_report: str = DEFAULT_MODEL_IMPROVEMENT_REPORT
     production_corpus_report: str = DEFAULT_PRODUCTION_CORPUS_REPORT
@@ -193,6 +240,35 @@ def _load_manifest_record_ids(config: RenderConfig) -> list[str]:
     for record_id in record_ids:
         _validate_record_id(record_id)
     return record_ids
+
+
+def _load_private_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private manual gate summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError("private manual gate summary path contains unsupported characters")
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError("private manual gate summary path must be outside source control")
+    if not summary_path.exists():
+        raise RenderError("private manual gate summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private manual gate summary path must be a file")
+    return summary_path
+
+
+def _load_private_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private manual gate summary must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private manual gate summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private manual gate summary must be a JSON object")
+    return payload
 
 
 def _validate_approved_attestations(config: RenderConfig) -> None:
@@ -336,6 +412,46 @@ def _validate_dependent_reports_ready(config: RenderConfig) -> None:
         )
 
 
+def _validate_private_manual_gate_summary(
+    summary_path: Path,
+    config: RenderConfig,
+    private_reference_count: int,
+    manifest_record_id_count: int,
+) -> dict[str, int]:
+    payload = _load_private_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_PRIVATE_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private manual gate summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private manual gate summary requires {key}=true")
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private manual gate summary requires {key}=false")
+    counts: dict[str, int] = {}
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(f"private manual gate summary requires positive {key}")
+        counts[key] = int(value)
+
+    expected_dependent_report_count = len(_dependent_report_specs(config))
+    if counts["approved_non_synthetic_pair_count"] < config.approved_non_synthetic_pair_count:
+        raise RenderError("private manual gate summary pair count is below approved request")
+    if counts["approved_source_type_count"] != len(config.approved_source_types):
+        raise RenderError("private manual gate summary source-type count mismatch")
+    if counts["manifest_record_id_count"] != manifest_record_id_count:
+        raise RenderError("private manual gate summary manifest record count mismatch")
+    if counts["manifest_record_id_count"] < config.approved_non_synthetic_pair_count * 2:
+        raise RenderError("private manual gate summary manifest record count is incomplete")
+    if counts["dependent_report_count"] != expected_dependent_report_count:
+        raise RenderError("private manual gate summary dependent report count mismatch")
+    if counts["private_reference_count"] != private_reference_count:
+        raise RenderError("private manual gate summary private reference count mismatch")
+    return counts
+
+
 def _mark_source_control_renderer(packet: dict[str, Any]) -> None:
     packet["source_control_private_packet_renderer_documented"] = True
     packet["private_packet_renderer_path"] = DEFAULT_PRIVATE_PACKET_RENDERER_PATH
@@ -353,7 +469,7 @@ def _blocked_packet(template: dict[str, Any]) -> tuple[dict[str, Any], int, int]
 def _approved_packet(
     template: dict[str, Any],
     config: RenderConfig,
-) -> tuple[dict[str, Any], int, int]:
+) -> tuple[dict[str, Any], int, int, dict[str, int]]:
     _validate_approved_attestations(config)
     _validate_dependent_reports_ready(config)
     private_reference_count = len(_load_private_references(config))
@@ -361,11 +477,37 @@ def _approved_packet(
     minimum_record_count = config.approved_non_synthetic_pair_count * 2
     if len(manifest_record_ids) < minimum_record_count:
         raise RenderError("manifest record ids are missing for approved pairs")
+    private_summary_counts = _validate_private_manual_gate_summary(
+        _load_private_summary_path(config.private_summary_path_env),
+        config,
+        private_reference_count,
+        len(manifest_record_ids),
+    )
 
     packet = json.loads(json.dumps(template))
     packet["packet_status"] = "private_manual_production_gate_ready"
     packet["prepared_at"] = datetime.now(timezone.utc).isoformat()
     packet["no_phi_or_secret_values_attested"] = True
+    packet["private_manual_gate_summary_path_env"] = config.private_summary_path_env
+    packet["private_manual_gate_summary_path_configured"] = True
+    packet["private_manual_gate_summary_path_value_included"] = False
+    packet["private_manual_gate_summary_checked"] = True
+    packet["private_manual_gate_summary_approved_non_synthetic_pair_count"] = (
+        private_summary_counts["approved_non_synthetic_pair_count"]
+    )
+    packet["private_manual_gate_summary_approved_source_type_count"] = (
+        private_summary_counts["approved_source_type_count"]
+    )
+    packet["private_manual_gate_summary_manifest_record_id_count"] = (
+        private_summary_counts["manifest_record_id_count"]
+    )
+    packet["private_manual_gate_summary_dependent_report_count"] = (
+        private_summary_counts["dependent_report_count"]
+    )
+    packet["private_manual_gate_summary_private_reference_count"] = (
+        private_summary_counts["private_reference_count"]
+    )
+    packet["private_manual_gate_summary_raw_values_included"] = False
     _mark_source_control_renderer(packet)
 
     student = packet["student_default_cutover"]
@@ -470,7 +612,7 @@ def _approved_packet(
             "safe_audit_marker_coverage_attested": True,
         }
     )
-    return packet, private_reference_count, len(manifest_record_ids)
+    return packet, private_reference_count, len(manifest_record_ids), private_summary_counts
 
 
 def _json_file_text(payload: dict[str, Any]) -> str:
@@ -484,8 +626,20 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
 
     _validate_dependent_report_paths(config)
     template = _load_template(config.template_path)
+    private_summary_counts = {
+        "approved_non_synthetic_pair_count": 0,
+        "approved_source_type_count": 0,
+        "manifest_record_id_count": 0,
+        "dependent_report_count": 0,
+        "private_reference_count": 0,
+    }
     if config.approved_production_gate:
-        packet, private_reference_count, manifest_record_id_count = _approved_packet(
+        (
+            packet,
+            private_reference_count,
+            manifest_record_id_count,
+            private_summary_counts,
+        ) = _approved_packet(
             template,
             config,
         )
@@ -522,6 +676,29 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
         ),
         "manifest_record_id_count": manifest_record_id_count,
         "private_reference_count": private_reference_count,
+        "private_manual_gate_summary_checked": config.approved_production_gate,
+        "private_manual_gate_summary_path_env_configured": (
+            bool(config.private_summary_path_env)
+            if config.approved_production_gate
+            else False
+        ),
+        "private_manual_gate_summary_path_value_included": False,
+        "private_manual_gate_summary_approved_non_synthetic_pair_count": (
+            private_summary_counts["approved_non_synthetic_pair_count"]
+        ),
+        "private_manual_gate_summary_approved_source_type_count": (
+            private_summary_counts["approved_source_type_count"]
+        ),
+        "private_manual_gate_summary_manifest_record_id_count": (
+            private_summary_counts["manifest_record_id_count"]
+        ),
+        "private_manual_gate_summary_dependent_report_count": (
+            private_summary_counts["dependent_report_count"]
+        ),
+        "private_manual_gate_summary_private_reference_count": (
+            private_summary_counts["private_reference_count"]
+        ),
+        "private_manual_gate_summary_raw_values_included": False,
         "manual_gate_private_packet_renderer_documented": True,
         "output_path_in_source_control": False,
         "approval_reference_value_included": False,
@@ -553,6 +730,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         manual_review_reference_env=args.manual_review_reference_env,
         dependent_evidence_reference_env=args.dependent_evidence_reference_env,
         release_reference_env=args.release_reference_env,
+        private_summary_path_env=args.private_summary_path_env,
         supervisor_report=args.supervisor_report,
         model_improvement_report=args.model_improvement_report,
         production_corpus_report=args.production_corpus_report,
@@ -593,6 +771,7 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
     )
     parser.add_argument("--release-reference-env", default=DEFAULT_RELEASE_REFERENCE_ENV)
+    parser.add_argument("--private-summary-path-env", default=DEFAULT_PRIVATE_SUMMARY_PATH_ENV)
     parser.add_argument("--supervisor-report", default=DEFAULT_SUPERVISOR_REPORT)
     parser.add_argument("--model-improvement-report", default=DEFAULT_MODEL_IMPROVEMENT_REPORT)
     parser.add_argument("--production-corpus-report", default=DEFAULT_PRODUCTION_CORPUS_REPORT)

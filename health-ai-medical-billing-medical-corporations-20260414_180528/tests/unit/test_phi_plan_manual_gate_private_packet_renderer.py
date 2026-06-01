@@ -88,6 +88,57 @@ def _approved_config(renderer: ModuleType, output_path: Path):
     )
 
 
+def _manual_gate_summary_payload(**overrides):
+    payload = {
+        "student_cutover_attested": True,
+        "student_runtime_attested": True,
+        "model_improvement_attested": True,
+        "production_corpus_attested": True,
+        "retrieval_vector_attested": True,
+        "prediction_fairness_attested": True,
+        "file_ingestion_surface_attested": True,
+        "dependent_reports_ready_attested": True,
+        "manual_review_completed": True,
+        "release_review_completed": True,
+        "all_dependent_reports_ready": True,
+        "manifest_records_reviewed": True,
+        "approved_non_synthetic_pairs_reviewed": True,
+        "no_phi_or_secret_values_attested": True,
+        "no_raw_values_attested": True,
+        "values_redacted": True,
+        "approval_reference_values_included": False,
+        "private_reference_values_included": False,
+        "summary_manifest_record_ids_included": False,
+        "raw_document_content_included": False,
+        "raw_report_evidence_included": False,
+        "phi_or_secret_values_included": False,
+        "source_text_included": False,
+        "vector_values_included": False,
+        "endpoint_values_included": False,
+        "credential_values_included": False,
+        "raw_demographic_values_included": False,
+        "raw_outcome_rows_included": False,
+        "approved_non_synthetic_pair_count": 1,
+        "approved_source_type_count": 1,
+        "manifest_record_id_count": 2,
+        "dependent_report_count": 6,
+        "private_reference_count": 3,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def _write_private_summary(path: Path, **overrides) -> None:
+    path.write_text(
+        json.dumps(
+            _manual_gate_summary_payload(**overrides),
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+
 def _set_private_values(monkeypatch, renderer: ModuleType) -> dict[str, str]:
     values = {
         renderer.DEFAULT_MANIFEST_RECORD_IDS_ENV: json.dumps(
@@ -100,6 +151,10 @@ def _set_private_values(monkeypatch, renderer: ModuleType) -> dict[str, str]:
     for key, value in values.items():
         monkeypatch.setenv(key, value)
     return values
+
+
+def _set_private_summary(monkeypatch, renderer: ModuleType, summary_path: Path) -> None:
+    monkeypatch.setenv(renderer.DEFAULT_PRIVATE_SUMMARY_PATH_ENV, str(summary_path))
 
 
 def test_conservative_dry_run_redacts_values(tmp_path):
@@ -154,6 +209,19 @@ def test_approved_mode_requires_private_manifest_record_ids(monkeypatch, tmp_pat
         renderer.render_private_packet(config)
 
 
+def test_approved_mode_requires_private_summary_path(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+
+    with pytest.raises(
+        renderer.RenderError,
+        match="private manual gate summary path env var is required",
+    ):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
 def test_approved_mode_requires_ready_dependent_reports(monkeypatch, tmp_path):
     renderer = _load_renderer()
     _set_private_values(monkeypatch, renderer)
@@ -189,6 +257,75 @@ def test_approved_mode_rejects_insufficient_manifest_record_ids(monkeypatch, tmp
         )
 
 
+def test_approved_mode_rejects_source_control_summary_path(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+    monkeypatch.setenv(renderer.DEFAULT_PRIVATE_SUMMARY_PATH_ENV, str(RENDERER_SCRIPT))
+
+    with pytest.raises(renderer.RenderError, match="outside source control"):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
+def test_approved_mode_rejects_incomplete_private_summary(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+    summary_path = tmp_path / "manual-gate-summary.json"
+    _write_private_summary(summary_path, all_dependent_reports_ready=False)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(
+        renderer.RenderError,
+        match="all_dependent_reports_ready=true",
+    ):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
+def test_approved_mode_rejects_private_summary_raw_value_flags(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+    summary_path = tmp_path / "manual-gate-summary.json"
+    _write_private_summary(summary_path, raw_report_evidence_included=True)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="raw_report_evidence_included=false"):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
+def test_approved_mode_rejects_unsupported_private_summary_fields(
+    monkeypatch,
+    tmp_path,
+):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+    summary_path = tmp_path / "manual-gate-summary.json"
+    _write_private_summary(summary_path, raw_approval_reference="redacted")
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="unsupported fields"):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
+def test_approved_mode_rejects_private_summary_count_mismatch(monkeypatch, tmp_path):
+    renderer = _load_renderer()
+    _set_private_values(monkeypatch, renderer)
+    summary_path = tmp_path / "manual-gate-summary.json"
+    _write_private_summary(summary_path, manifest_record_id_count=3)
+    _set_private_summary(monkeypatch, renderer, summary_path)
+
+    with pytest.raises(renderer.RenderError, match="manifest record count mismatch"):
+        renderer.render_private_packet(
+            _approved_config(renderer, tmp_path / "manual-gate.private.json")
+        )
+
+
 def test_approved_mode_writes_private_packet_and_redacts_summary(
     monkeypatch,
     tmp_path,
@@ -197,6 +334,9 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     validator = _load_validator()
     private_values = _set_private_values(monkeypatch, renderer)
     output_path = tmp_path / "manual-gate.private.json"
+    summary_path = tmp_path / "manual-gate-summary.json"
+    _write_private_summary(summary_path)
+    _set_private_summary(monkeypatch, renderer, summary_path)
 
     summary = renderer.render_private_packet(
         _approved_config(renderer, output_path)
@@ -214,11 +354,30 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     assert summary["dependent_evidence_reports_ready"] is True
     assert summary["private_reference_count"] == 3
     assert summary["manifest_record_id_count"] == 2
+    assert summary["private_manual_gate_summary_checked"] is True
+    assert summary["private_manual_gate_summary_path_env_configured"] is True
+    assert summary["private_manual_gate_summary_path_value_included"] is False
+    assert summary["private_manual_gate_summary_approved_non_synthetic_pair_count"] == 1
+    assert summary["private_manual_gate_summary_approved_source_type_count"] == 1
+    assert summary["private_manual_gate_summary_manifest_record_id_count"] == 2
+    assert summary["private_manual_gate_summary_dependent_report_count"] == 6
+    assert summary["private_manual_gate_summary_private_reference_count"] == 3
+    assert summary["private_manual_gate_summary_raw_values_included"] is False
     assert summary["manifest_record_ids_included_in_summary"] is False
     assert summary["approval_reference_value_included"] is False
     assert summary["values_redacted"] is True
     assert payload["packet_status"] == "private_manual_production_gate_ready"
     assert payload["source_control_private_packet_renderer_documented"] is True
+    assert (
+        payload["private_manual_gate_summary_path_env"]
+        == renderer.DEFAULT_PRIVATE_SUMMARY_PATH_ENV
+    )
+    assert payload["private_manual_gate_summary_path_value_included"] is False
+    assert payload["private_manual_gate_summary_checked"] is True
+    assert payload["private_manual_gate_summary_manifest_record_id_count"] == 2
+    assert payload["private_manual_gate_summary_private_reference_count"] == 3
+    assert str(summary_path) not in output_text
+    assert str(summary_path) not in serialized_summary
     assert report["safe_to_review"] is True
     assert report["production_gate_ready"] is True
     for key, private_value in private_values.items():
