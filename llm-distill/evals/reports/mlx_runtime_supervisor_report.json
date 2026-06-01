@@ -107,7 +107,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
-  "generated_at": "2026-06-01T18:45:37.137870+00:00",
+  "generated_at": "2026-06-01T19:33:19.955151+00:00",
   "notes": [
     "This validator reads local JSON and plist templates only; it does not install launchd services, start mlx_lm.server, call model endpoints, or enable student default routing.",
     "Approval references, environment secrets, and production document details must remain outside source control.",
@@ -178,6 +178,7 @@
         "present_marker_count": 7,
         "raw_renderer_text_included": false,
         "renderer_exists": true,
+        "renderer_inside_source_control": true,
         "renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_mlx_launchd_private_copy.py",
         "required_marker_count": 7,
         "values_redacted": true
@@ -193,6 +194,7 @@
         "missing_marker_count": 0,
         "present_marker_count": 33,
         "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_inside_source_control": true,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
@@ -213,6 +215,7 @@
         "raw_runbook_text_included": false,
         "required_marker_count": 9,
         "runbook_exists": true,
+        "runbook_inside_source_control": true,
         "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-supervisor-runbook.md",
         "source_control_runbook_documented": true,
         "values_redacted": true
@@ -227,6 +230,7 @@
       "evidence": {
         "missing_marker_count": 0,
         "owner_handoff_checklist_exists": true,
+        "owner_handoff_checklist_inside_source_control": true,
         "owner_handoff_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
         "present_marker_count": 19,
         "raw_checklist_text_included": false,
@@ -268,6 +272,7 @@
         "required_marker_count": 13,
         "source_control_validation_checklist_documented": true,
         "validation_checklist_exists": true,
+        "validation_checklist_inside_source_control": true,
         "validation_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-validation-checklist.md",
         "values_redacted": true
       },

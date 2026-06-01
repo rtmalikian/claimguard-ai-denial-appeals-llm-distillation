@@ -237,7 +237,11 @@ plist and runtime-summary metadata before `supervisor_ready=true`. Missing
 private plist checks, unchecked private summaries, zero private
 reference/plist/argument/environment/operator/validation counts, count
 mismatches, or marked private plist path/raw-value inclusion keep the checked-in
-evidence blocked.
+evidence blocked. It also verifies that source-controlled supervisor artifacts
+resolve inside this repository before reading marker text, covering the private
+launchd-copy renderer, private supervisor evidence renderer, supervisor runbook,
+owner-handoff checklist, and runtime validation checklist. Outside files with
+matching marker text block readiness and are not read into the report.
 
 ### Model-Improvement Private Env Controls
 

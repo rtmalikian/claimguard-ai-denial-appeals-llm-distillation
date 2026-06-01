@@ -305,6 +305,14 @@ def resolve_repo_path(raw_path: str, base_path: Path) -> Path:
     return (base_path.parent / path).resolve()
 
 
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def load_plist(path: Path | None) -> tuple[dict[str, Any], list[str]]:
     if path is None:
         return {}, ["launchd_template.plist_path is required"]
@@ -427,10 +435,15 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(RUNBOOK_REQUIRED_MARKERS)
+    runbook_inside_source_control = bool(
+        runbook_path and path_is_within(runbook_path, REPO_ROOT)
+    )
     if not runbook_configured:
         blockers.append("source_control_runbook_not_documented")
     if runbook_path is None:
         blockers.append("source_control_runbook_path_missing")
+    elif not runbook_inside_source_control:
+        blockers.append("source_control_runbook_must_be_inside_repo")
     elif not runbook_path.exists():
         blockers.append("source_control_runbook_missing")
     else:
@@ -455,6 +468,7 @@ def operator_runbook_requirement(evidence_path: Path, evidence: dict[str, Any]) 
             "source_control_runbook_documented": runbook_configured,
             "runbook_path": str(runbook_path) if runbook_path else None,
             "runbook_exists": bool(runbook_path and runbook_path.exists()),
+            "runbook_inside_source_control": runbook_inside_source_control,
             "required_marker_count": len(RUNBOOK_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -479,9 +493,12 @@ def private_copy_renderer_requirement(
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PRIVATE_COPY_RENDERER_REQUIRED_MARKERS)
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     if not configured:
         blockers.append("launchd_private_copy_renderer_not_available")
-    if not renderer_path.exists():
+    if not renderer_inside_source_control:
+        blockers.append("launchd_private_copy_renderer_must_be_inside_repo")
+    elif not renderer_path.exists():
         blockers.append("launchd_private_copy_renderer_missing")
     else:
         try:
@@ -508,6 +525,7 @@ def private_copy_renderer_requirement(
             "launchd_private_copy_renderer_available": configured,
             "renderer_path": str(renderer_path),
             "renderer_exists": renderer_path.exists(),
+            "renderer_inside_source_control": renderer_inside_source_control,
             "required_marker_count": len(PRIVATE_COPY_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -532,9 +550,12 @@ def private_evidence_renderer_requirement(
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS)
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     if not configured:
         blockers.append("source_control_private_evidence_renderer_not_documented")
-    if not renderer_path.exists():
+    if not renderer_inside_source_control:
+        blockers.append("source_control_private_evidence_renderer_must_be_inside_repo")
+    elif not renderer_path.exists():
         blockers.append("source_control_private_evidence_renderer_missing")
     else:
         try:
@@ -561,6 +582,9 @@ def private_evidence_renderer_requirement(
             "source_control_private_evidence_renderer_documented": configured,
             "private_evidence_renderer_path": str(renderer_path),
             "private_evidence_renderer_exists": renderer_path.exists(),
+            "private_evidence_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "required_marker_count": len(PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -582,10 +606,15 @@ def owner_handoff_checklist_requirement(evidence_path: Path, evidence: dict[str,
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_owner_handoff_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_owner_handoff_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_owner_handoff_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_owner_handoff_checklist_missing")
     else:
@@ -614,6 +643,9 @@ def owner_handoff_checklist_requirement(evidence_path: Path, evidence: dict[str,
             "source_control_owner_handoff_checklist_documented": checklist_configured,
             "owner_handoff_checklist_path": str(checklist_path) if checklist_path else None,
             "owner_handoff_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "owner_handoff_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "required_marker_count": len(OWNER_HANDOFF_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,
@@ -660,10 +692,15 @@ def runtime_validation_checklist_requirement(evidence_path: Path, evidence: dict
     blockers: list[str] = []
     present_marker_count = 0
     missing_marker_count = len(VALIDATION_CHECKLIST_REQUIRED_MARKERS)
+    checklist_inside_source_control = bool(
+        checklist_path and path_is_within(checklist_path, REPO_ROOT)
+    )
     if not checklist_configured:
         blockers.append("source_control_validation_checklist_not_documented")
     if checklist_path is None:
         blockers.append("source_control_validation_checklist_path_missing")
+    elif not checklist_inside_source_control:
+        blockers.append("source_control_validation_checklist_must_be_inside_repo")
     elif not checklist_path.exists():
         blockers.append("source_control_validation_checklist_missing")
     else:
@@ -692,6 +729,7 @@ def runtime_validation_checklist_requirement(evidence_path: Path, evidence: dict
             "source_control_validation_checklist_documented": checklist_configured,
             "validation_checklist_path": str(checklist_path) if checklist_path else None,
             "validation_checklist_exists": bool(checklist_path and checklist_path.exists()),
+            "validation_checklist_inside_source_control": checklist_inside_source_control,
             "required_marker_count": len(VALIDATION_CHECKLIST_REQUIRED_MARKERS),
             "present_marker_count": present_marker_count,
             "missing_marker_count": missing_marker_count,

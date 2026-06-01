@@ -1119,7 +1119,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `supervisor_ready=true`; missing private plist checks, unchecked private
   summaries, zero private reference/plist/argument/environment/operator/
   validation counts, count mismatches, or marked private plist path/raw-value
-  inclusion keep supervised runtime readiness blocked.
+  inclusion keep supervised runtime readiness blocked. It now also rejects
+  source-controlled MLX supervisor artifact paths that resolve outside this
+  repository, including the private launchd-copy renderer, private supervisor
+  evidence renderer, supervisor runbook, owner-handoff checklist, and runtime
+  validation checklist, so temporary or private files with matching marker text
+  cannot satisfy checked-in supervisor evidence gates.
   The production-readiness audit and manual gate packet still block
   default student cutover until private runtime owner assignment, manual
   runbook review,

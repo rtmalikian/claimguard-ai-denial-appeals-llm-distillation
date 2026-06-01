@@ -2,6 +2,62 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 12:33:46 PDT - MLX supervisor source-control path hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden MLX runtime supervisor evidence so source-controlled supervisor
+  artifacts cannot be satisfied by arbitrary private or temporary files outside
+  the repository, even when those files contain matching marker text.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-123048-mlx-supervisor-source-control-paths/PHIplan.md` | Documented that MLX supervisor source-control evidence paths must resolve inside the repository. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-123048-mlx-supervisor-source-control-paths/docs/technical-llm-distillation-analysis.md` | Added a technical note that outside MLX supervisor artifact files block readiness and are not read into reports. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `backups/20260601-123048-mlx-supervisor-source-control-paths/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Added repository-containment checks for the private launchd-copy renderer, private supervisor evidence renderer, supervisor runbook, owner-handoff checklist, and runtime validation checklist. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `backups/20260601-123048-mlx-supervisor-source-control-paths/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Refreshed MLX supervisor evidence; `supervisor_ready=false`, `safe_to_review=true`, `blocked=3`, and the five source-controlled artifact checks now record inside-source-control evidence. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-123048-mlx-supervisor-source-control-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_mlx_runtime_supervisor.py` | `backups/20260601-123048-mlx-supervisor-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py` | Added coverage for inside-source-control evidence and blockers for outside MLX supervisor artifact paths with matching marker text, without emitting outside file contents. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-123048-mlx-supervisor-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-123048-mlx-supervisor-source-control-paths/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-123048-mlx-supervisor-source-control-paths -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor.py -q`: passed, 19 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py -q`: passed, 34 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py tests/unit/test_student_default_startup_config.py tests/unit/test_student_cutover_private_env_renderer.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 107 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_mlx_runtime_supervisor.py --report ../llm-distill/evals/reports/mlx_runtime_supervisor_report.json`: passed with `supervisor_ready=False`, `safe_to_review=True`, and `blocked=3`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_mlx_runtime_supervisor.py` and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/evals/reports/mlx_runtime_supervisor_report.json` and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, secrets, approval values, runtime owner values, private plist values, private summary paths, endpoint output, model output, logs, or credentials were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, runtime owner values, private plist values, model output, logs, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating outside temporary files with matching marker text as
+  source-controlled MLX supervisor evidence; such paths now block readiness
+  before marker text is read.
+- Avoided changing the real supervised-runtime blockers for private runtime
+  ownership, live runtime validation, launchd load/restart evidence, or private
+  plist/runtime-summary metadata.
+- Existing missing-marker tests now monkeypatch path containment only for those
+  tests so marker validation remains covered without weakening runtime
+  behavior.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-123048-mlx-supervisor-source-control-paths/`, then rerun
+  the MLX supervisor and PHIplan readiness validators if refreshed reports are
+  needed after rollback.
+- This slice strengthens checked-in MLX runtime supervisor evidence; it does
+  not complete the full PHIplan objective or approve student default cutover.
+
 ## 2026-06-01 12:26:00 PDT - Prediction fairness source-control path hardening
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
