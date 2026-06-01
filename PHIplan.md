@@ -311,13 +311,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   model approval, production vector backend, hash-fallback disablement,
   reindex completion, vector health, retrieval quality smoke, rollback, and
   no-raw-value attestations before approved mode, reads private backend/model/
-  vector labels from environment variables, verifies the configured
-  retrieval/vector backend evidence report is safe, ready, and unblocked before
-  writing enabled settings, writes private output with `0600` permissions, and
-  prints only redacted booleans/counts. This prepares the
+  vector labels and a private aggregate configuration-summary path from
+  environment variables, verifies the configured retrieval/vector backend
+  evidence report is safe, ready, and unblocked, validates required private
+  configuration-summary booleans, positive aggregate counts, explicit
+  no-raw-source/vector/URL/credential flags, unsupported-field rejection, and
+  count mismatch refusal before writing enabled settings, writes private output
+  with `0600` permissions, and prints only redacted booleans/counts. This prepares the
   private semantic retrieval configuration handoff without storing provider
-  labels, model names, vector-store labels, service URLs, credentials, source
-  text, vector values, PHI, or production document content in source control.
+  labels, model names, vector-store labels, private summary paths, service
+  URLs, credentials, source text, vector values, PHI, or production document
+  content in source control.
 - Add corpus endpoints under `/api/v1/denial-workflow/corpus` for status,
   manifest validation, machine de-identification, manual review decision, and
   import of approved de-identified documents into the encrypted retrieval store.
@@ -1261,7 +1265,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/scripts/validate_retrieval_vector_backend.py` before treating
   retrieval as production semantic search. The private retrieval/vector env
   renderer now refuses enabled output if the configured evidence report is
-  missing, unsafe, blocked, or not ready. Keep the local governance,
+  missing, unsafe, blocked, not ready, or if the private aggregate
+  configuration summary is missing or incomplete. Keep the local governance,
   source-controlled retrieval-vector runbook and reindex-checklist
   documentation, backup/restore, and rollback/disable-path review evidence
   ready.

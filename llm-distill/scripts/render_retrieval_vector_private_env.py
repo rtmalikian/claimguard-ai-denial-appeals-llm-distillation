@@ -18,6 +18,7 @@ DEFAULT_OUTPUT = Path("/private/tmp/claimguard-retrieval-vector.private.env")
 DEFAULT_EMBEDDING_BACKEND_ENV = "RETRIEVAL_PRODUCTION_EMBEDDING_BACKEND"
 DEFAULT_EMBEDDING_MODEL_ENV = "RETRIEVAL_PRODUCTION_EMBEDDING_MODEL"
 DEFAULT_VECTOR_BACKEND_ENV = "RETRIEVAL_PRODUCTION_VECTOR_BACKEND"
+DEFAULT_PRIVATE_SUMMARY_PATH_ENV = "RETRIEVAL_VECTOR_PRIVATE_ENV_SUMMARY_PATH"
 DEFAULT_EVIDENCE_REPORT = "llm-distill/evals/reports/retrieval_vector_backend_report.json"
 HASH_EMBEDDING_MODEL = "claimguard-hash-embedding-v1"
 HASH_BACKENDS = {"hash", "local_hash", "deterministic_hash"}
@@ -41,6 +42,7 @@ ALLOWED_ENV_KEYS = {
     DEFAULT_EMBEDDING_BACKEND_ENV,
     DEFAULT_EMBEDDING_MODEL_ENV,
     DEFAULT_VECTOR_BACKEND_ENV,
+    DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
 }
 OUTPUT_ENV_KEYS = {
     "RETRIEVAL_EMBEDDING_BACKEND",
@@ -61,6 +63,51 @@ FORBIDDEN_TEXT_FRAGMENTS = {
 }
 SAFE_PRIVATE_VALUE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/=@+-]{2,255}$")
 ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS = {
+    "semantic_backend_attested",
+    "embedding_model_approved_attested",
+    "production_vector_backend_attested",
+    "hash_fallback_disabled_attested",
+    "reindex_completed_attested",
+    "vector_health_attested",
+    "retrieval_quality_smoke_attested",
+    "rollback_reviewed",
+    "evidence_report_ready",
+    "private_backend_values_configured",
+    "hash_backend_disabled",
+    "hash_model_disabled",
+    "local_vector_backend_disabled",
+    "service_url_values_excluded",
+    "no_raw_values_attested",
+    "values_redacted",
+}
+REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS = {
+    "private_summary_path_value_included",
+    "embedding_backend_value_included",
+    "embedding_model_value_included",
+    "vector_backend_value_included",
+    "raw_env_values_included",
+    "raw_source_text_included",
+    "raw_vector_values_included",
+    "service_urls_included",
+    "credential_values_included",
+    "phi_or_secret_values_included",
+    "production_document_content_included",
+}
+REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS = {
+    "environment_variable_count",
+    "private_backend_value_count",
+    "evidence_report_count",
+    "reindex_review_count",
+    "vector_health_check_count",
+    "retrieval_quality_smoke_count",
+    "rollback_review_count",
+}
+ALLOWED_PRIVATE_SUMMARY_KEYS = (
+    REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS
+    | REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS
+)
 
 
 class RenderError(ValueError):
@@ -74,6 +121,7 @@ class RenderConfig:
     embedding_backend_env: str = DEFAULT_EMBEDDING_BACKEND_ENV
     embedding_model_env: str = DEFAULT_EMBEDDING_MODEL_ENV
     vector_backend_env: str = DEFAULT_VECTOR_BACKEND_ENV
+    private_summary_path_env: str = DEFAULT_PRIVATE_SUMMARY_PATH_ENV
     evidence_report: str = DEFAULT_EVIDENCE_REPORT
     semantic_backend_attested: bool = False
     embedding_model_approved_attested: bool = False
@@ -129,6 +177,35 @@ def _load_private_value(env_name: str, label: str) -> str:
     return value
 
 
+def _load_private_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private retrieval vector summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError("private retrieval vector summary path contains unsupported characters")
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError("private retrieval vector summary path must be outside source control")
+    if not summary_path.exists():
+        raise RenderError("private retrieval vector summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private retrieval vector summary path must be a file")
+    return summary_path
+
+
+def _load_private_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private retrieval vector summary must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private retrieval vector summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private retrieval vector summary must be a JSON object")
+    return payload
+
+
 def _validate_evidence_report(value: str) -> str:
     cleaned = value.strip()
     if not cleaned:
@@ -180,6 +257,46 @@ def _validate_evidence_report_ready(evidence_report: str) -> None:
         raise RenderError("retrieval vector evidence report has blocked requirements")
     if isinstance(blocked_items, list) and blocked_items:
         raise RenderError("retrieval vector evidence report has blocked requirements")
+
+
+def _validate_private_retrieval_vector_summary(
+    summary_path: Path,
+    environment_variable_count: int,
+) -> dict[str, int]:
+    payload = _load_private_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_PRIVATE_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private retrieval vector summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private retrieval vector summary requires {key}=true")
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private retrieval vector summary requires {key}=false")
+
+    counts: dict[str, int] = {}
+    for key in sorted(REQUIRED_PRIVATE_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(f"private retrieval vector summary requires positive {key}")
+        counts[key] = int(value)
+
+    if counts["environment_variable_count"] != environment_variable_count:
+        raise RenderError("private retrieval vector summary environment variable count mismatch")
+    if counts["private_backend_value_count"] != 3:
+        raise RenderError("private retrieval vector summary backend value count mismatch")
+    if counts["evidence_report_count"] != 1:
+        raise RenderError("private retrieval vector summary evidence report count mismatch")
+    if counts["reindex_review_count"] != 1:
+        raise RenderError("private retrieval vector summary reindex review count mismatch")
+    if counts["vector_health_check_count"] != 1:
+        raise RenderError("private retrieval vector summary health check count mismatch")
+    if counts["retrieval_quality_smoke_count"] != 1:
+        raise RenderError("private retrieval vector summary quality smoke count mismatch")
+    if counts["rollback_review_count"] != 1:
+        raise RenderError("private retrieval vector summary rollback review count mismatch")
+    return counts
 
 
 def _build_environment(config: RenderConfig) -> dict[str, str]:
@@ -243,6 +360,20 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         raise RenderError("refusing_to_write_inside_source_control")
 
     env = _build_environment(config)
+    private_summary_counts = {
+        "environment_variable_count": 0,
+        "private_backend_value_count": 0,
+        "evidence_report_count": 0,
+        "reindex_review_count": 0,
+        "vector_health_check_count": 0,
+        "retrieval_quality_smoke_count": 0,
+        "rollback_review_count": 0,
+    }
+    if config.approved_vector_backend:
+        private_summary_counts = _validate_private_retrieval_vector_summary(
+            _load_private_summary_path(config.private_summary_path_env),
+            len(env),
+        )
     summary = {
         "dry_run": config.dry_run,
         "rendered": not config.dry_run,
@@ -270,6 +401,37 @@ def render_private_env(config: RenderConfig) -> dict[str, Any]:
         "evidence_report_checked": config.approved_vector_backend,
         "evidence_report_ready": config.approved_vector_backend,
         "environment_variable_count": len(env),
+        "private_retrieval_vector_summary_checked": (
+            config.approved_vector_backend
+        ),
+        "private_retrieval_vector_summary_path_env_configured": (
+            bool(config.private_summary_path_env)
+            if config.approved_vector_backend
+            else False
+        ),
+        "private_retrieval_vector_summary_path_value_included": False,
+        "private_retrieval_vector_summary_environment_variable_count": (
+            private_summary_counts["environment_variable_count"]
+        ),
+        "private_retrieval_vector_summary_backend_value_count": (
+            private_summary_counts["private_backend_value_count"]
+        ),
+        "private_retrieval_vector_summary_evidence_report_count": (
+            private_summary_counts["evidence_report_count"]
+        ),
+        "private_retrieval_vector_summary_reindex_review_count": (
+            private_summary_counts["reindex_review_count"]
+        ),
+        "private_retrieval_vector_summary_health_check_count": (
+            private_summary_counts["vector_health_check_count"]
+        ),
+        "private_retrieval_vector_summary_quality_smoke_count": (
+            private_summary_counts["retrieval_quality_smoke_count"]
+        ),
+        "private_retrieval_vector_summary_rollback_review_count": (
+            private_summary_counts["rollback_review_count"]
+        ),
+        "private_retrieval_vector_summary_raw_values_included": False,
         "output_path_in_source_control": False,
         "raw_env_values_included": False,
         "embedding_backend_value_included": False,
@@ -297,6 +459,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         embedding_backend_env=args.embedding_backend_env,
         embedding_model_env=args.embedding_model_env,
         vector_backend_env=args.vector_backend_env,
+        private_summary_path_env=args.private_summary_path_env,
         evidence_report=args.evidence_report,
         semantic_backend_attested=args.semantic_backend_attested,
         embedding_model_approved_attested=args.embedding_model_approved_attested,
@@ -318,6 +481,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--embedding-backend-env", default=DEFAULT_EMBEDDING_BACKEND_ENV)
     parser.add_argument("--embedding-model-env", default=DEFAULT_EMBEDDING_MODEL_ENV)
     parser.add_argument("--vector-backend-env", default=DEFAULT_VECTOR_BACKEND_ENV)
+    parser.add_argument(
+        "--private-summary-path-env",
+        default=DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
+    )
     parser.add_argument("--evidence-report", default=DEFAULT_EVIDENCE_REPORT)
     parser.add_argument("--semantic-backend-attested", action="store_true")
     parser.add_argument("--embedding-model-approved-attested", action="store_true")

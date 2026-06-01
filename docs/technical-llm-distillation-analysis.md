@@ -316,13 +316,16 @@ The renderer refuses output inside source control, requires explicit semantic
 backend, embedding model approval, production vector backend, hash-fallback
 disablement, reindex completion, vector health, retrieval quality smoke,
 rollback, and no-raw-value attestations before approved mode, reads private
-backend/model/vector labels from environment variables, verifies the configured
-retrieval/vector backend evidence report is safe, ready, and unblocked before
-writing enabled settings, writes the private env file with `0600` permissions,
-and prints only redacted booleans/counts. It does not store private provider
-labels, model names, vector-store labels, service URLs, credentials, source
-text, vector values, PHI, or production document content in checked-in reports
-or command output.
+backend/model/vector labels plus a private aggregate configuration-summary path
+from environment variables, verifies the configured retrieval/vector backend
+evidence report is safe, ready, and unblocked, validates required private
+configuration-summary booleans, positive counts, no-raw-value flags,
+unsupported-field rejection, and count mismatch refusal before writing enabled
+settings, writes the private env file with `0600` permissions, and prints only
+redacted booleans/counts. It does not store private provider labels, model
+names, vector-store labels, private summary paths, service URLs, credentials,
+source text, vector values, PHI, or production document content in checked-in
+reports or command output.
 
 ### Retrieval Reindex Controls
 
@@ -403,7 +406,9 @@ Safety and validation:
   evidence can be written.
 - `llm-distill/scripts/render_retrieval_vector_private_env.py` for private
   retrieval/vector env rendering after semantic backend, reindex, health,
-  quality-smoke, rollback, and evidence-report readiness gates are complete.
+  quality-smoke, rollback, and evidence-report readiness gates are complete,
+  with approved mode validating a private aggregate configuration summary before
+  enabled settings are written.
 - `llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py`
   for private boolean-only retrieval runtime evidence rendering after reindex,
   vector health, retrieval quality smoke, backup, rollback, and no-raw-value
