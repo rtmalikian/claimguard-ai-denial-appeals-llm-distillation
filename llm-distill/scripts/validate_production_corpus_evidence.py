@@ -184,6 +184,15 @@ def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
 
 
+def false_value(section: dict[str, Any], key: str) -> bool:
+    return section.get(key) is False
+
+
+def positive_int_value(section: dict[str, Any], key: str) -> bool:
+    value = section.get(key)
+    return not isinstance(value, bool) and isinstance(value, int) and value > 0
+
+
 def int_value(section: dict[str, Any], key: str, default: int) -> int:
     value = section.get(key)
     return value if isinstance(value, int) and value >= 0 else default
@@ -586,6 +595,152 @@ def private_evidence_renderer_requirement(evidence_path: Path, evidence: dict[st
     )
 
 
+def private_summary_metadata_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
+    required_true_flags = {
+        "private_manifest_path_configured": "private_manifest_path_not_configured",
+        "private_summary_path_configured": "private_summary_path_not_configured",
+        "private_manifest_metadata_checked": "private_manifest_metadata_not_checked",
+        "private_production_corpus_summary_checked": "private_production_corpus_summary_not_checked",
+    }
+    required_false_flags = {
+        "private_manifest_path_value_included": "private_manifest_path_value_included",
+        "private_summary_path_value_included": "private_summary_path_value_included",
+        "approval_reference_value_included": "approval_reference_value_included",
+        "raw_private_values_included": "raw_private_values_included",
+        "raw_document_content_included": "raw_document_content_included",
+        "source_document_values_included": "source_document_values_included",
+        "pair_id_values_included": "pair_id_values_included",
+        "source_paths_or_urls_included": "source_paths_or_urls_included",
+        "checksum_values_included": "checksum_values_included",
+        "credential_values_included": "credential_values_included",
+        "phi_or_secret_values_included": "phi_or_secret_values_included",
+        "production_document_content_included": "production_document_content_included",
+    }
+    required_positive_counts = {
+        "private_manifest_record_count": "private_manifest_record_count_missing",
+        "private_manifest_candidate_role_count": "private_manifest_candidate_role_count_missing",
+        "private_manifest_complete_pair_count": "private_manifest_complete_pair_count_missing",
+        "private_production_corpus_summary_manifest_record_count": "private_production_corpus_summary_manifest_record_count_missing",
+        "private_production_corpus_summary_candidate_role_count": "private_production_corpus_summary_candidate_role_count_missing",
+        "private_production_corpus_summary_complete_pair_count": "private_production_corpus_summary_complete_pair_count_missing",
+        "private_production_corpus_summary_private_reference_count": "private_production_corpus_summary_private_reference_count_missing",
+        "private_production_corpus_summary_pair_review_count": "private_production_corpus_summary_pair_review_count_missing",
+        "private_production_corpus_summary_source_document_review_count": "private_production_corpus_summary_source_document_review_count_missing",
+        "private_production_corpus_summary_privacy_review_count": "private_production_corpus_summary_privacy_review_count_missing",
+        "private_production_corpus_summary_license_review_count": "private_production_corpus_summary_license_review_count_missing",
+        "private_production_corpus_summary_residual_risk_review_count": "private_production_corpus_summary_residual_risk_review_count_missing",
+        "private_production_corpus_summary_training_scope_review_count": "private_production_corpus_summary_training_scope_review_count_missing",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_true_flags.items()
+        if not bool_value(evidence, key)
+    ]
+    blockers.extend(
+        blocker
+        for key, blocker in required_false_flags.items()
+        if not false_value(evidence, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_positive_counts.items()
+        if not positive_int_value(evidence, key)
+    )
+
+    private_manifest_env = str_value(evidence, "private_manifest_path_env")
+    private_summary_env = str_value(evidence, "private_summary_path_env")
+    if str_value(evidence, "manifest_path"):
+        blockers.append("private_manifest_path_env_required_for_ready_evidence")
+    if not private_manifest_env:
+        blockers.append("private_manifest_path_env_not_configured")
+    else:
+        blockers.extend(validate_private_manifest_env_key(private_manifest_env))
+    if not private_summary_env:
+        blockers.append("private_summary_path_env_not_configured")
+    else:
+        if not ENV_KEY_RE.match(private_summary_env):
+            blockers.append("private_summary_path_env_invalid")
+        if any(fragment in private_summary_env.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS):
+            blockers.append("private_summary_path_env_secret_like")
+
+    manifest_record_count = int_value(evidence, "private_manifest_record_count", 0)
+    manifest_candidate_role_count = int_value(
+        evidence,
+        "private_manifest_candidate_role_count",
+        0,
+    )
+    manifest_complete_pair_count = int_value(
+        evidence,
+        "private_manifest_complete_pair_count",
+        0,
+    )
+    summary_manifest_record_count = int_value(
+        evidence,
+        "private_production_corpus_summary_manifest_record_count",
+        0,
+    )
+    summary_candidate_role_count = int_value(
+        evidence,
+        "private_production_corpus_summary_candidate_role_count",
+        0,
+    )
+    summary_complete_pair_count = int_value(
+        evidence,
+        "private_production_corpus_summary_complete_pair_count",
+        0,
+    )
+    pair_review_count = int_value(
+        evidence,
+        "private_production_corpus_summary_pair_review_count",
+        0,
+    )
+    source_document_review_count = int_value(
+        evidence,
+        "private_production_corpus_summary_source_document_review_count",
+        0,
+    )
+    if (
+        summary_manifest_record_count
+        and summary_manifest_record_count != manifest_record_count
+    ):
+        blockers.append("private_summary_manifest_record_count_mismatch")
+    if (
+        summary_candidate_role_count
+        and summary_candidate_role_count != manifest_candidate_role_count
+    ):
+        blockers.append("private_summary_candidate_role_count_mismatch")
+    if (
+        summary_complete_pair_count
+        and summary_complete_pair_count != manifest_complete_pair_count
+    ):
+        blockers.append("private_summary_complete_pair_count_mismatch")
+    if pair_review_count and pair_review_count < manifest_complete_pair_count:
+        blockers.append("private_summary_pair_review_count_below_complete_pair_count")
+    if (
+        source_document_review_count
+        and source_document_review_count < manifest_candidate_role_count
+    ):
+        blockers.append(
+            "private_summary_source_document_review_count_below_candidate_role_count"
+        )
+
+    return requirement(
+        requirement_id="production_corpus_private_summary_metadata",
+        name="Private production-corpus manifest and summary metadata is checked without exposing values",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            **{key: bool_value(evidence, key) for key in required_true_flags},
+            **{key: bool_value(evidence, key) for key in required_false_flags},
+            **{key: evidence.get(key, 0) for key in required_positive_counts},
+            "private_manifest_path_env": private_manifest_env or None,
+            "private_summary_path_env": private_summary_env or None,
+            "manifest_path_value_included": bool(str_value(evidence, "manifest_path")),
+            "values_redacted": True,
+        },
+    )
+
+
 def manifest_records(path: Path) -> tuple[list[dict[str, Any]], list[str]]:
     payload, errors = load_json(path)
     if errors:
@@ -713,6 +868,7 @@ def build_report(evidence_path: Path = DEFAULT_EVIDENCE) -> dict[str, Any]:
         collection_license_checklist_requirement(evidence_path, evidence),
         pair_source_checklist_requirement(evidence_path, evidence),
         private_evidence_renderer_requirement(evidence_path, evidence),
+        private_summary_metadata_requirement(evidence),
         manifest_pair_requirement(evidence_path, evidence),
     ]
     if errors:

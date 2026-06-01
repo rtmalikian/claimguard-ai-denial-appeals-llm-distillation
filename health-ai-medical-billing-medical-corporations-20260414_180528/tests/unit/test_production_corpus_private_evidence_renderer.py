@@ -497,6 +497,35 @@ def test_approved_mode_writes_private_evidence_and_redacts_values(
     assert payload["private_manifest_record_count"] == 2
     assert payload["private_manifest_candidate_role_count"] == 2
     assert payload["private_manifest_complete_pair_count"] == 1
+    assert payload["private_production_corpus_summary_manifest_record_count"] == 2
+    assert payload["private_production_corpus_summary_candidate_role_count"] == 2
+    assert payload["private_production_corpus_summary_complete_pair_count"] == 1
+    assert payload["private_production_corpus_summary_private_reference_count"] == 5
+    assert payload["private_production_corpus_summary_pair_review_count"] == 1
+    assert (
+        payload["private_production_corpus_summary_source_document_review_count"]
+        == 2
+    )
+    assert payload["private_production_corpus_summary_privacy_review_count"] == 1
+    assert payload["private_production_corpus_summary_license_review_count"] == 1
+    assert (
+        payload["private_production_corpus_summary_residual_risk_review_count"]
+        == 1
+    )
+    assert (
+        payload["private_production_corpus_summary_training_scope_review_count"]
+        == 1
+    )
+    assert payload["approval_reference_value_included"] is False
+    assert payload["raw_private_values_included"] is False
+    assert payload["raw_document_content_included"] is False
+    assert payload["source_document_values_included"] is False
+    assert payload["pair_id_values_included"] is False
+    assert payload["source_paths_or_urls_included"] is False
+    assert payload["checksum_values_included"] is False
+    assert payload["credential_values_included"] is False
+    assert payload["phi_or_secret_values_included"] is False
+    assert payload["production_document_content_included"] is False
     assert payload["corpus_review"]["privacy_review_attested"] is True
     assert payload["pairing_requirements"][
         "pair_ids_reviewed_outside_source_control"

@@ -49,7 +49,7 @@ def _record(*, role: str, source_type: str = "real_deidentified_pair") -> dict:
     }
 
 
-def _ready_evidence(manifest_path: Path) -> dict:
+def _ready_evidence(manifest_path: Path | None) -> dict:
     return {
         "artifact": "claimguard_production_corpus_evidence",
         "version": "1.0",
@@ -57,7 +57,38 @@ def _ready_evidence(manifest_path: Path) -> dict:
         "prepared_at": "2026-05-30T19:02:43-07:00",
         "no_phi_or_secret_values_attested": True,
         "no_raw_document_content_attested": True,
-        "manifest_path": str(manifest_path),
+        "manifest_path": str(manifest_path) if manifest_path else None,
+        "private_manifest_path_env": "PRODUCTION_CORPUS_PRIVATE_MANIFEST_PATH",
+        "private_summary_path_env": "PRODUCTION_CORPUS_PRIVATE_SUMMARY_PATH",
+        "private_manifest_path_configured": True,
+        "private_manifest_path_value_included": False,
+        "private_summary_path_configured": True,
+        "private_summary_path_value_included": False,
+        "private_manifest_metadata_checked": True,
+        "private_production_corpus_summary_checked": True,
+        "private_manifest_record_count": 2,
+        "private_manifest_candidate_role_count": 2,
+        "private_manifest_complete_pair_count": 1,
+        "private_production_corpus_summary_manifest_record_count": 2,
+        "private_production_corpus_summary_candidate_role_count": 2,
+        "private_production_corpus_summary_complete_pair_count": 1,
+        "private_production_corpus_summary_private_reference_count": 5,
+        "private_production_corpus_summary_pair_review_count": 1,
+        "private_production_corpus_summary_source_document_review_count": 2,
+        "private_production_corpus_summary_privacy_review_count": 1,
+        "private_production_corpus_summary_license_review_count": 1,
+        "private_production_corpus_summary_residual_risk_review_count": 1,
+        "private_production_corpus_summary_training_scope_review_count": 1,
+        "approval_reference_value_included": False,
+        "raw_private_values_included": False,
+        "raw_document_content_included": False,
+        "source_document_values_included": False,
+        "pair_id_values_included": False,
+        "source_paths_or_urls_included": False,
+        "checksum_values_included": False,
+        "credential_values_included": False,
+        "phi_or_secret_values_included": False,
+        "production_document_content_included": False,
         "corpus_review": {
             "source_control_review_runbook_documented": True,
             "source_control_review_runbook_path": str(
@@ -114,6 +145,7 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert "production_corpus_collection_license_checklist" not in blocked_ids
     assert "production_corpus_pair_source_checklist" not in blocked_ids
     assert "production_corpus_private_evidence_renderer" not in blocked_ids
+    assert "production_corpus_private_summary_metadata" in blocked_ids
     assert "production_corpus_manifest_pair_evidence" in blocked_ids
     runbook_requirement = next(
         item
@@ -201,6 +233,31 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert private_renderer_requirement["evidence"]["private_evidence_renderer_exists"] is True
     assert private_renderer_requirement["evidence"]["missing_marker_count"] == 0
     assert private_renderer_requirement["evidence"]["raw_renderer_text_included"] is False
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "production_corpus_private_summary_metadata"
+    )
+    assert (
+        "private_manifest_path_not_configured"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_production_corpus_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manifest_record_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manifest_path_env_required_for_ready_evidence"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"]["private_summary_path_value_included"]
+        is False
+    )
     manifest_requirement = next(
         item
         for item in report["blocked_items"]
@@ -211,7 +268,10 @@ def test_production_corpus_template_is_safe_to_review_but_not_ready():
     assert "source_documents_not_reviewed_outside_source_control" in manifest_requirement["blockers"]
 
 
-def test_ready_production_corpus_evidence_passes_all_requirements(tmp_path):
+def test_ready_production_corpus_evidence_passes_all_requirements(
+    monkeypatch,
+    tmp_path,
+):
     validator = _load_validator()
     manifest_path = tmp_path / "manifest.json"
     evidence_path = tmp_path / "corpus_evidence.json"
@@ -219,7 +279,12 @@ def test_ready_production_corpus_evidence_passes_all_requirements(tmp_path):
         manifest_path,
         {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
     )
-    _write_json(evidence_path, _ready_evidence(manifest_path))
+    evidence = _ready_evidence(None)
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(
+        evidence["private_manifest_path_env"],
+        str(manifest_path),
+    )
 
     report = validator.build_report(evidence_path)
 
@@ -240,7 +305,7 @@ def test_private_manifest_env_evidence_passes_without_emitting_path(
         manifest_path,
         {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
     )
-    evidence = _ready_evidence(manifest_path)
+    evidence = _ready_evidence(None)
     evidence["manifest_path"] = None
     evidence["private_manifest_path_env"] = env_name
     evidence["private_manifest_path_configured"] = True
@@ -263,6 +328,105 @@ def test_private_manifest_env_evidence_passes_without_emitting_path(
     assert manifest_requirement["evidence"]["private_manifest_path_env"] == env_name
     assert manifest_requirement["evidence"]["manifest_path_value_included"] is False
     assert str(manifest_path) not in serialized
+
+
+def test_ready_evidence_requires_private_summary_metadata(monkeypatch, tmp_path):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_missing_private_summary.json"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    evidence = _ready_evidence(None)
+    evidence["private_manifest_path_configured"] = False
+    evidence["private_summary_path_configured"] = False
+    evidence["private_manifest_metadata_checked"] = False
+    evidence["private_production_corpus_summary_checked"] = False
+    for key in [
+        "private_manifest_record_count",
+        "private_manifest_candidate_role_count",
+        "private_manifest_complete_pair_count",
+        "private_production_corpus_summary_manifest_record_count",
+        "private_production_corpus_summary_candidate_role_count",
+        "private_production_corpus_summary_complete_pair_count",
+        "private_production_corpus_summary_private_reference_count",
+        "private_production_corpus_summary_pair_review_count",
+        "private_production_corpus_summary_source_document_review_count",
+        "private_production_corpus_summary_privacy_review_count",
+        "private_production_corpus_summary_license_review_count",
+        "private_production_corpus_summary_residual_risk_review_count",
+        "private_production_corpus_summary_training_scope_review_count",
+    ]:
+        evidence[key] = 0
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(
+        evidence["private_manifest_path_env"],
+        str(manifest_path),
+    )
+
+    report = validator.build_report(evidence_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "production_corpus_private_summary_metadata"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "private_manifest_path_not_configured"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_production_corpus_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_production_corpus_summary_private_reference_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"]["private_manifest_path_value_included"]
+        is False
+    )
+
+
+def test_private_summary_value_flags_are_blocked(monkeypatch, tmp_path):
+    validator = _load_validator()
+    manifest_path = tmp_path / "private-manifest.json"
+    evidence_path = tmp_path / "corpus_private_values.json"
+    _write_json(
+        manifest_path,
+        {"records": [_record(role="denial_letter"), _record(role="appeal_letter")]},
+    )
+    evidence = _ready_evidence(None)
+    evidence["private_summary_path_value_included"] = True
+    evidence["raw_document_content_included"] = True
+    _write_json(evidence_path, evidence)
+    monkeypatch.setenv(
+        evidence["private_manifest_path_env"],
+        str(manifest_path),
+    )
+
+    report = validator.build_report(evidence_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "production_corpus_private_summary_metadata"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["production_corpus_ready"] is False
+    assert (
+        "private_summary_path_value_included"
+        in private_summary_requirement["blockers"]
+    )
+    assert "raw_document_content_included" in private_summary_requirement["blockers"]
+    assert (
+        private_summary_requirement["evidence"]["private_summary_path_value_included"]
+        is True
+    )
 
 
 def test_production_corpus_evidence_blocks_synthetic_only_manifest(tmp_path):

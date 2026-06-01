@@ -467,6 +467,46 @@ def _evidence_payload(
         "private_manifest_complete_pair_count": private_manifest_metadata[
             "complete_pair_count"
         ],
+        "private_production_corpus_summary_manifest_record_count": (
+            private_summary_counts["private_manifest_record_count"]
+        ),
+        "private_production_corpus_summary_candidate_role_count": (
+            private_summary_counts["private_manifest_candidate_role_count"]
+        ),
+        "private_production_corpus_summary_complete_pair_count": (
+            private_summary_counts["private_manifest_complete_pair_count"]
+        ),
+        "private_production_corpus_summary_private_reference_count": (
+            private_summary_counts["private_reference_count"]
+        ),
+        "private_production_corpus_summary_pair_review_count": (
+            private_summary_counts["pair_review_count"]
+        ),
+        "private_production_corpus_summary_source_document_review_count": (
+            private_summary_counts["source_document_review_count"]
+        ),
+        "private_production_corpus_summary_privacy_review_count": (
+            private_summary_counts["privacy_review_count"]
+        ),
+        "private_production_corpus_summary_license_review_count": (
+            private_summary_counts["license_review_count"]
+        ),
+        "private_production_corpus_summary_residual_risk_review_count": (
+            private_summary_counts["residual_risk_review_count"]
+        ),
+        "private_production_corpus_summary_training_scope_review_count": (
+            private_summary_counts["training_scope_review_count"]
+        ),
+        "approval_reference_value_included": False,
+        "raw_private_values_included": False,
+        "raw_document_content_included": False,
+        "source_document_values_included": False,
+        "pair_id_values_included": False,
+        "source_paths_or_urls_included": False,
+        "checksum_values_included": False,
+        "credential_values_included": False,
+        "phi_or_secret_values_included": False,
+        "production_document_content_included": False,
         "corpus_review": {
             "source_control_review_runbook_documented": True,
             "source_control_review_runbook_path": (

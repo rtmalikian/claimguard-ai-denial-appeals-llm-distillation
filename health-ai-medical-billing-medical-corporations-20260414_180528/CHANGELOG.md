@@ -2,6 +2,71 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 11:35:41 PDT - Production corpus private summary validator
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden production-corpus evidence readiness so
+  `production_corpus_ready=true` requires the redacted private manifest and
+  production-corpus summary metadata emitted by the approved private evidence
+  renderer, not only a manifest path plus high-level review booleans.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-113152-production-corpus-private-summary-validator/PHIplan.md` | Documented that production-corpus readiness now requires private manifest/summary metadata, positive private counts, count parity, and no marked private value inclusion. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-113152-production-corpus-private-summary-validator/docs/technical-llm-distillation-analysis.md` | Added the technical note that missing private production-corpus manifest/summary metadata keeps checked-in evidence blocked. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_production_corpus_evidence.py` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/scripts/validate_production_corpus_evidence.py` | Added a private summary metadata requirement for private manifest env use, checked private manifest and summary metadata, positive private counts, count parity, and no private path/reference/raw/source/checksum/credential/PHI/content inclusion. | Restore backup over the same path. |
+| `../llm-distill/scripts/render_production_corpus_private_evidence.py` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/scripts/render_production_corpus_private_evidence.py` | Added the redacted private summary counts and no-value flags to the private evidence payload written by the renderer. | Restore backup over the same path. |
+| `../llm-distill/data/production_corpus_evidence/corpus_evidence.template.json` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/data/production_corpus_evidence/corpus_evidence.template.json` | Added false/zero private manifest and production-corpus summary metadata placeholders until an approved private renderer run produces them. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/production_corpus_evidence_report.json` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/evals/reports/production_corpus_evidence_report.json` | Refreshed production-corpus evidence; `production_corpus_ready=false`, `safe_to_review=true`, and `blocked=2`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-113152-production-corpus-private-summary-validator/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_production_corpus_evidence.py` | `backups/20260601-113152-production-corpus-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py` | Added coverage for private manifest/summary metadata readiness and blocks for missing metadata or marked private value inclusion. | Restore backup over the same path. |
+| `tests/unit/test_production_corpus_private_evidence_renderer.py` | `backups/20260601-113152-production-corpus-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_private_evidence_renderer.py` | Added assertions that the private renderer writes the new redacted summary counts and no-value flags without private values. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-113152-production-corpus-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-113152-production-corpus-private-summary-validator/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-113152-production-corpus-private-summary-validator -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_production_corpus_evidence.py ../llm-distill/scripts/render_production_corpus_private_evidence.py tests/unit/test_production_corpus_evidence.py tests/unit/test_production_corpus_private_evidence_renderer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_production_corpus_evidence.py tests/unit/test_production_corpus_private_evidence_renderer.py -q`: passed, 25 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_production_corpus_evidence.py tests/unit/test_production_corpus_private_evidence_renderer.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 73 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_production_corpus_evidence.py --report ../llm-distill/evals/reports/production_corpus_evidence_report.json`: passed with `production_corpus_ready=False`, `safe_to_review=True`, and `blocked=2`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_production_corpus_evidence.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/data/production_corpus_evidence/corpus_evidence.template.json`, `../llm-distill/evals/reports/production_corpus_evidence_report.json`, `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`, and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report PHI scan returned no findings.
+- Changed-file value-shaped secret scan passed; no API keys, credentials,
+  private manifest paths, private summary paths, approval references, raw
+  documents, source paths, source URLs, checksums, pair ids, PHI, secrets, or
+  production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided accepting a direct checked-in manifest path plus high-level corpus
+  review booleans as enough for `production_corpus_ready=true`; private
+  manifest env evidence and private aggregate summary metadata are now required.
+- Avoided storing private manifest paths, private summary paths, raw denial or
+  appeal documents, source paths, source URLs, checksums, approval references,
+  pair ids, credentials, PHI, secrets, or production document content in source
+  control.
+- Avoided marking production corpus evidence, the manual production gate, or
+  PHIplan production readiness complete; approved non-synthetic pair evidence
+  and outside-source-control pair/source review remain external blockers.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-113152-production-corpus-private-summary-validator/`,
+  then rerun the production-corpus, manual gate, and PHIplan readiness
+  validators if refreshed reports are needed after rollback.
+- This slice strengthens production-corpus evidence validation; it does not
+  complete the full PHIplan objective or approve production corpus readiness.
+
 ## 2026-06-01 11:24:30 PDT - Prediction fairness private summary validator
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

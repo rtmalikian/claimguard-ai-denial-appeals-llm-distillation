@@ -282,6 +282,14 @@ does not add approved production pairs, open raw source documents, or store
 review reference values, private summary paths, pair ids, source paths,
 checksums, PHI, secrets, or production document content in checked-in reports.
 
+The production corpus validator also requires that renderer-shaped private
+manifest and production-corpus summary metadata before
+`production_corpus_ready=true`. Checked-in manifest paths, missing private
+summary checks, zero private manifest/reference/review counts, count
+mismatches, or marked private path/reference/raw-document/source/checksum/
+credential/PHI/production-content inclusion keep the checked-in evidence
+blocked.
+
 ### Prediction-Fairness Private Evidence Controls
 
 Production threshold calibration and fairness monitoring remain blocked until

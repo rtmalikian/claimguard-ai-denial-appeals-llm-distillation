@@ -1029,11 +1029,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   environment-variable names in private evidence, writes private output with
   `0600` permissions, and prints only redacted booleans/counts. The validator
   resolves the private manifest path from that environment variable at operator
-  runtime without emitting the raw path in reports. This prepares the private
-  production-corpus evidence handoff without storing raw denial letters, raw
-  appeal letters, source paths, private manifest paths, private summary paths,
-  checksums, approval references, pair ids, credentials, PHI, secrets, or
-  production document content in source control.
+  runtime without emitting the raw path in reports. The production corpus
+  evidence validator now also requires the private manifest/summary metadata
+  emitted by that renderer before `production_corpus_ready=true`; direct
+  checked-in manifest paths, missing private summary checks, zero private
+  manifest/reference/review counts, count mismatches, or marked private path,
+  reference, raw-document, source, checksum, credential, PHI, or production
+  content inclusion keep production corpus readiness blocked. This prepares the
+  private production-corpus evidence handoff without storing raw denial
+  letters, raw appeal letters, source paths, private manifest paths, private
+  summary paths, checksums, approval references, pair ids, credentials, PHI,
+  secrets, or production document content in source control.
 - Add a non-secret MLX student runtime supervisor evidence template at
   `llm-distill/data/runtime_supervision/` plus
   `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. The checked-in
