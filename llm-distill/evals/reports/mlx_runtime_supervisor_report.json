@@ -106,8 +106,8 @@
       "warnings": []
     }
   ],
-  "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
-  "generated_at": "2026-06-01T19:33:19.955151+00:00",
+  "evidence_path": "llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
+  "generated_at": "2026-06-01T23:32:35.314434+00:00",
   "notes": [
     "This validator reads local JSON and plist templates only; it does not install launchd services, start mlx_lm.server, call model endpoints, or enable student default routing.",
     "Approval references, environment secrets, and production document details must remain outside source control.",
@@ -131,12 +131,12 @@
     {
       "blockers": [],
       "evidence": {
-        "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
+        "evidence_path": "llm-distill/data/runtime_supervision/supervisor_evidence.template.json",
         "forbidden_value_key_count": 0,
         "no_phi_or_secret_values_attested": true,
         "phi_finding_count": 0,
         "phi_finding_types": [],
-        "plist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist",
+        "plist_path": "llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist",
         "values_redacted": true
       },
       "name": "Supervisor evidence contains no PHI, secrets, or raw approval values",
@@ -153,7 +153,7 @@
         "keepalive_configured": true,
         "log_paths_configured": true,
         "missing_required_environment_variables": [],
-        "plist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist",
+        "plist_path": "llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist",
         "program_argument_count": 13,
         "raw_environment_values_included": false,
         "required_environment_variable_count": 1,
@@ -179,7 +179,7 @@
         "raw_renderer_text_included": false,
         "renderer_exists": true,
         "renderer_inside_source_control": true,
-        "renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_mlx_launchd_private_copy.py",
+        "renderer_path": "llm-distill/scripts/render_mlx_launchd_private_copy.py",
         "required_marker_count": 7,
         "values_redacted": true
       },
@@ -195,7 +195,7 @@
         "present_marker_count": 33,
         "private_evidence_renderer_exists": true,
         "private_evidence_renderer_inside_source_control": true,
-        "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
+        "private_evidence_renderer_path": "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
         "required_marker_count": 33,
@@ -216,7 +216,7 @@
         "required_marker_count": 9,
         "runbook_exists": true,
         "runbook_inside_source_control": true,
-        "runbook_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-supervisor-runbook.md",
+        "runbook_path": "llm-distill/docs/mlx-runtime-supervisor-runbook.md",
         "source_control_runbook_documented": true,
         "values_redacted": true
       },
@@ -231,7 +231,7 @@
         "missing_marker_count": 0,
         "owner_handoff_checklist_exists": true,
         "owner_handoff_checklist_inside_source_control": true,
-        "owner_handoff_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
+        "owner_handoff_checklist_path": "llm-distill/docs/mlx-runtime-owner-handoff-checklist.md",
         "present_marker_count": 19,
         "raw_checklist_text_included": false,
         "required_marker_count": 19,
@@ -273,7 +273,7 @@
         "source_control_validation_checklist_documented": true,
         "validation_checklist_exists": true,
         "validation_checklist_inside_source_control": true,
-        "validation_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/mlx-runtime-validation-checklist.md",
+        "validation_checklist_path": "llm-distill/docs/mlx-runtime-validation-checklist.md",
         "values_redacted": true
       },
       "name": "Source-controlled MLX runtime validation checklist is documented",

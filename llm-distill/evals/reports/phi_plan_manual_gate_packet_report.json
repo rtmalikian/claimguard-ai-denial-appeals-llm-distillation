@@ -185,14 +185,14 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T19:49:12.926603+00:00",
+  "generated_at": "2026-06-01T23:32:35.312982+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
     "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, and runtime-supervisor gates are complete."
   ],
   "objective": "Validate the manual PHIplan production-gate packet without storing approval reference values, PHI, secrets, or production document content.",
-  "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
+  "packet_path": "llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
   "production_gate_ready": false,
   "ready_item_count": 6,
   "requirements": [
@@ -213,7 +213,7 @@
       "evidence": {
         "forbidden_value_key_count": 0,
         "no_phi_or_secret_values_attested": true,
-        "packet_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
+        "packet_path": "llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
         "phi_finding_count": 0,
         "phi_finding_types": [],
         "values_redacted": true
@@ -229,7 +229,7 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_inside_source_control": true,
         "manual_gate_checklist_missing_marker_count": 0,
-        "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
+        "manual_gate_checklist_path": "llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
         "manual_gate_checklist_present_marker_count": 19,
         "manual_gate_checklist_required_marker_count": 19,
         "manual_gate_checklist_values_included": false,
@@ -249,7 +249,7 @@
         "private_output_required": true,
         "private_packet_renderer_exists": true,
         "private_packet_renderer_inside_source_control": true,
-        "private_packet_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
+        "private_packet_renderer_path": "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
         "raw_renderer_text_included": false,
         "required_marker_count": 25,
         "source_control_private_packet_renderer_documented": true
@@ -306,7 +306,7 @@
         "present_marker_count": 25,
         "private_env_renderer_exists": true,
         "private_env_renderer_inside_source_control": true,
-        "private_env_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_student_cutover_private_env.py",
+        "private_env_renderer_path": "llm-distill/scripts/render_student_cutover_private_env.py",
         "private_output_required": true,
         "raw_renderer_text_included": false,
         "required_marker_count": 25,

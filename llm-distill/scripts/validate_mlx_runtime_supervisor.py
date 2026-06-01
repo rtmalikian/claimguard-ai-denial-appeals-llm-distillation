@@ -147,6 +147,7 @@ FORBIDDEN_LAUNCHD_ENV_KEY_FRAGMENTS = {
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from report_output_sanitizer import sanitize_report_value  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -980,7 +981,8 @@ def main() -> int:
 
     report = build_report(args.evidence)
     args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    safe_report = sanitize_report_value(report, REPO_ROOT)
+    args.report.write_text(json.dumps(safe_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(
         f"Wrote {args.report} supervisor_ready={report['supervisor_ready']} "
         f"safe_to_review={report['safe_to_review']} blocked={report['blocked_item_count']}"

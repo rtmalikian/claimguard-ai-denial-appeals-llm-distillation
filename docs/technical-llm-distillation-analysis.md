@@ -196,6 +196,13 @@ evidence. This keeps public readiness metadata useful without publishing local
 workstation paths, approval values, PHI, secrets, raw source text, vectors, or
 production outcome rows.
 
+The direct PHIplan evidence reports for MLX runtime supervision, model
+improvement, retrieval-vector backend readiness, production-corpus evidence,
+prediction-fairness monitoring, and the manual production-gate packet now use
+the same output sanitizer before JSON is written. The validators still inspect
+the actual source-controlled paths internally, but checked-in report payloads
+emit repository-relative paths and redact outside local paths.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit
@@ -541,7 +548,7 @@ Run focused unit tests from the application directory:
 
 ```bash
 cd health-ai-medical-billing-medical-corporations-20260414_180528
-PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/tmp/claimguard-pycache \
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="${TMPDIR:-.}/claimguard-pycache" \
   python3 -m pytest \
   tests/unit/test_retrieval_store.py \
   tests/unit/test_retrieval_semantic_provider.py \

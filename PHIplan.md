@@ -878,7 +878,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   source paths, vectors, raw demographic values, outcome rows, or raw documents.
   It now serializes source-controlled evidence paths as repository-relative
   paths and redacts outside-report paths in load errors so the checked-in
-  top-level readiness report does not expose local workstation paths.
+  top-level readiness report does not expose local workstation paths. The
+  direct PHIplan evidence validators for MLX runtime supervision,
+  model-improvement approval, retrieval-vector backend readiness,
+  production-corpus evidence, prediction-fairness monitoring, and the manual
+  production-gate packet now apply the same report-output sanitizer before
+  writing their checked-in JSON reports, while still validating real filesystem
+  paths internally.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at

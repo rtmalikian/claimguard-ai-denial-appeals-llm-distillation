@@ -2,6 +2,70 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 16:33:45 PDT - PHIplan evidence report path sanitization
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: remove local absolute workstation paths from the checked-in direct
+  PHIplan evidence reports while preserving real-path validation and the
+  current production blockers.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/report_output_sanitizer.py` | New file | Added shared recursive report-output sanitization for repository-relative paths and outside local path redaction. | Delete the file if rolling back this slice. |
+| `llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_mlx_runtime_supervisor.py` | Sanitizes the checked-in MLX runtime supervisor report before writing JSON. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_model_improvement_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_model_improvement_evidence.py` | Sanitizes the checked-in model-improvement evidence report before writing JSON. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_retrieval_vector_backend.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_retrieval_vector_backend.py` | Sanitizes the checked-in retrieval-vector backend report before writing JSON. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_prediction_fairness_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_prediction_fairness_evidence.py` | Sanitizes the checked-in prediction-fairness evidence report before writing JSON. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_production_corpus_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_production_corpus_evidence.py` | Sanitizes the checked-in production-corpus evidence report before writing JSON. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Sanitizes the checked-in manual production-gate packet report before writing JSON. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py` | New file | Added regression coverage for nested repo-relative paths and outside local path redaction. | Delete the file if rolling back this slice. |
+| `llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/mlx_runtime_supervisor_report.json` | Regenerated with repo-relative paths; remains `supervisor_ready=false`, `safe_to_review=true`, `blocked=3`. | Restore backup or rerun `llm-distill/scripts/validate_mlx_runtime_supervisor.py`. |
+| `llm-distill/evals/reports/model_improvement_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/model_improvement_evidence_report.json` | Regenerated with repo-relative paths; remains `model_improvement_ready=false`, `safe_to_review=true`, `blocked=1`. | Restore backup or rerun `llm-distill/scripts/validate_model_improvement_evidence.py`. |
+| `llm-distill/evals/reports/retrieval_vector_backend_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Regenerated with repo-relative paths; remains `vector_backend_ready=false`, `safe_to_review=true`, `blocked=3`. | Restore backup or rerun `llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `llm-distill/evals/reports/prediction_fairness_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/prediction_fairness_evidence_report.json` | Regenerated with repo-relative paths; remains `prediction_fairness_monitoring_ready=false`, `safe_to_review=true`, `blocked=4`. | Restore backup or rerun `llm-distill/scripts/validate_prediction_fairness_evidence.py`. |
+| `llm-distill/evals/reports/production_corpus_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/production_corpus_evidence_report.json` | Regenerated with repo-relative paths; remains `production_corpus_ready=false`, `safe_to_review=true`, `blocked=2`. | Restore backup or rerun `llm-distill/scripts/validate_production_corpus_evidence.py`. |
+| `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Regenerated with repo-relative paths; remains `production_gate_ready=false`, `safe_to_review=true`, `blocked=6`. | Restore backup or rerun `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed aggregate readiness after child report regeneration; remains `production_ready=false`, `safe_current_state=true`, `blocked=6`, `warnings=1`. | Restore backup or rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/PHIplan.md` | Documented direct PHIplan evidence report-output sanitization. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/report_output_sanitizer.py llm-distill/scripts/validate_mlx_runtime_supervisor.py llm-distill/scripts/validate_model_improvement_evidence.py llm-distill/scripts/validate_retrieval_vector_backend.py llm-distill/scripts/validate_prediction_fairness_evidence.py llm-distill/scripts/validate_production_corpus_evidence.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_report_output_sanitizer.py -q`: passed, 1 test.
+- Regenerated six direct PHIplan evidence reports with their validators; all remain `safe_to_review=true` and blocked where private approvals/evidence are missing.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_report_output_sanitizer.py tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_model_improvement_evidence.py tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_prediction_fairness_evidence.py tests/unit/test_production_corpus_evidence.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 136 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 -m json.tool` on all six direct PHIplan evidence reports and `phi_plan_production_readiness_report.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/|external_path_redacted"` on all six direct PHIplan evidence reports plus `phi_plan_production_readiness_report.json`: passed with no matches.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --fail-on-blocked --report /private/tmp/claimguard-phi-evidence-report-sanitizer-blocked-check.json`: returned expected exit status 2, preserving current production blockers.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries in `PHIplan.md` and `docs/technical-llm-distillation-analysis.md`; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, approval values, raw report values, local workstation paths, credentials, or adapter weight contents were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw report values, adapter weight contents, or production document content were introduced.
+- Changed doc/report local-path scan passed for `PHIplan.md`, `docs/technical-llm-distillation-analysis.md`, all six direct PHIplan evidence reports, and `phi_plan_production_readiness_report.json`.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing any readiness semantics or clearing approval-driven
+  production blockers.
+- Avoided sanitizing internal `build_report(...)` return values so validators
+  and tests still exercise real resolved paths before the public JSON boundary.
+- Avoided broad rewrites of historical non-PHIplan reports in this slice.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-163031-phi-evidence-report-sanitizer/`
+  and delete the two new files listed above, then rerun the affected validators
+  if refreshed reports are needed after rollback.
+- This slice improves checked-in PHIplan evidence hygiene; it does not complete
+  the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 13:24:17 PDT - Distillation readiness repo-relative path reporting
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
