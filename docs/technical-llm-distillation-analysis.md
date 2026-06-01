@@ -337,7 +337,11 @@ The prediction fairness validator also requires that renderer-shaped private
 monitoring-summary metadata before `prediction_fairness_monitoring_ready=true`.
 Missing summary checks, zero private reference/outcome/group/metric/alert
 counts, or marked private summary path/raw-value inclusion keep the checked-in
-evidence blocked.
+evidence blocked. It also verifies that the source-controlled model card,
+monitoring runbook, calibration checklist, monitoring validation checklist,
+legal/privacy checklist, and private evidence renderer resolve inside this
+repository before reading marker text. Outside files with matching marker text
+block readiness and are not read into the report.
 
 ### Retrieval Vector Private Env Controls
 

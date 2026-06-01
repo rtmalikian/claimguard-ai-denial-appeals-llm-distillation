@@ -519,6 +519,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `prediction_fairness_monitoring_ready=true`; missing summary checks, zero
   private reference/outcome/group/metric/alert counts, or any marked private
   summary path/raw-value inclusion keep fairness monitoring readiness blocked.
+  It now also rejects source-controlled prediction-fairness artifact paths that
+  resolve outside this repository, including the model card, monitoring
+  runbook, calibration checklist, monitoring validation checklist, legal/privacy
+  checklist, and private evidence renderer, so temporary or private files with
+  matching marker text cannot satisfy checked-in fairness evidence gates.
   FastAPI startup
   now also runs a metadata-only prediction fairness guard that fails fast in production while
   `PREDICTION_FAIRNESS_EVIDENCE_REPORT` is missing, unsafe, blocked, or not

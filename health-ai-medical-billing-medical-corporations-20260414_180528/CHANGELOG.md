@@ -2,6 +2,64 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 12:26:00 PDT - Prediction fairness source-control path hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden prediction-fairness monitoring evidence so source-controlled
+  fairness artifacts cannot be satisfied by arbitrary private or temporary
+  files outside the repository, even when those files contain matching marker
+  text.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-122218-prediction-fairness-source-control-paths/PHIplan.md` | Documented that prediction-fairness source-control evidence paths must resolve inside the repository. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-122218-prediction-fairness-source-control-paths/docs/technical-llm-distillation-analysis.md` | Added a technical note that outside prediction-fairness artifact files block readiness and are not read into reports. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_prediction_fairness_evidence.py` | `backups/20260601-122218-prediction-fairness-source-control-paths/llm-distill/scripts/validate_prediction_fairness_evidence.py` | Added repository-containment checks for the model card, monitoring runbook, calibration checklist, monitoring validation checklist, legal/privacy checklist, and private evidence renderer. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/prediction_fairness_evidence_report.json` | `backups/20260601-122218-prediction-fairness-source-control-paths/llm-distill/evals/reports/prediction_fairness_evidence_report.json` | Refreshed prediction-fairness evidence; `prediction_fairness_monitoring_ready=false`, `safe_to_review=true`, `blocked=4`, and the six source-controlled artifact checks now record inside-source-control evidence. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_prediction_fairness_evidence.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-122218-prediction-fairness-source-control-paths/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_prediction_fairness_evidence.py` | `backups/20260601-122218-prediction-fairness-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py` | Added coverage for inside-source-control evidence and blockers for outside prediction-fairness artifact paths with matching marker text, without emitting outside file contents. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-122218-prediction-fairness-source-control-paths/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-122218-prediction-fairness-source-control-paths/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-122218-prediction-fairness-source-control-paths -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_evidence.py -q`: passed, 17 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_private_evidence_renderer.py -q`: passed, 29 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_prediction_fairness_evidence.py tests/unit/test_prediction_fairness_private_evidence_renderer.py tests/unit/test_prediction_fairness_startup_config.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 87 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_prediction_fairness_evidence.py --report ../llm-distill/evals/reports/prediction_fairness_evidence_report.json`: passed with `prediction_fairness_monitoring_ready=False`, `safe_to_review=True`, and `blocked=4`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_prediction_fairness_evidence.py` and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/evals/reports/prediction_fairness_evidence_report.json` and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs were limited to Raphael attribution email entries; a separate scan of the new root and app changelog entries also found only Raphael attribution email entries. No patient PHI, production document content, secrets, approval values, private monitoring values, private summary paths, raw demographic values, production outcome rows, legal documents, BAA documents, consent documents, or credentials were introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, endpoint values, PHI, secrets, approval values, raw demographic values, production outcome rows, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating outside temporary files with matching marker text as
+  source-controlled prediction-fairness evidence; such paths now block
+  readiness before file text is read.
+- Avoided changing the real production prediction-fairness blockers for
+  approved outcome data, calibration, continuous monitoring, private monitoring
+  summary metadata, or legal/privacy review.
+- Existing missing-marker tests now monkeypatch path containment only for those
+  tests so marker validation remains covered without weakening runtime
+  behavior.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-122218-prediction-fairness-source-control-paths/`, then
+  rerun the prediction-fairness and PHIplan readiness validators if refreshed
+  reports are needed after rollback.
+- This slice strengthens checked-in prediction-fairness monitoring evidence; it
+  does not complete the full PHIplan objective or approve production fairness
+  monitoring.
+
 ## 2026-06-01 12:16:39 PDT - Retrieval source-control path hardening
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

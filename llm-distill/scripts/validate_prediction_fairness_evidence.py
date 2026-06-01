@@ -217,6 +217,14 @@ def resolve_repo_path(raw_path: Any, default_path: Path) -> Path:
     return (REPO_ROOT / path).resolve()
 
 
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
 def requirement(
     *,
     requirement_id: str,
@@ -360,13 +368,16 @@ def calibration_checklist_requirement(evidence: dict[str, Any]) -> dict[str, Any
         DEFAULT_CALIBRATION_CHECKLIST,
     )
     checklist_exists = checklist_path.exists()
+    checklist_inside_source_control = path_is_within(checklist_path, REPO_ROOT)
     checklist_marker_count = 0
     missing_checklist_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_calibration_checklist_not_documented")
     if documented:
-        if not checklist_exists:
+        if not checklist_inside_source_control:
+            blockers.append("source_control_calibration_checklist_must_be_inside_repo")
+        elif not checklist_exists:
             blockers.append("calibration_checklist_document_missing")
         else:
             checklist_text = checklist_path.read_text(encoding="utf-8")
@@ -390,6 +401,9 @@ def calibration_checklist_requirement(evidence: dict[str, Any]) -> dict[str, Any
             "source_control_calibration_checklist_documented": documented,
             "calibration_checklist_path": str(checklist_path),
             "calibration_checklist_exists": checklist_exists,
+            "calibration_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "calibration_checklist_required_marker_count": len(
                 CALIBRATION_CHECKLIST_REQUIRED_MARKERS
             ),
@@ -436,13 +450,18 @@ def monitoring_validation_checklist_requirement(evidence: dict[str, Any]) -> dic
         DEFAULT_MONITORING_VALIDATION_CHECKLIST,
     )
     checklist_exists = checklist_path.exists()
+    checklist_inside_source_control = path_is_within(checklist_path, REPO_ROOT)
     checklist_marker_count = 0
     missing_checklist_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_monitoring_validation_checklist_not_documented")
     if documented:
-        if not checklist_exists:
+        if not checklist_inside_source_control:
+            blockers.append(
+                "source_control_monitoring_validation_checklist_must_be_inside_repo"
+            )
+        elif not checklist_exists:
             blockers.append("monitoring_validation_checklist_document_missing")
         else:
             checklist_text = checklist_path.read_text(encoding="utf-8")
@@ -466,6 +485,9 @@ def monitoring_validation_checklist_requirement(evidence: dict[str, Any]) -> dic
             "source_control_monitoring_validation_checklist_documented": documented,
             "monitoring_validation_checklist_path": str(checklist_path),
             "monitoring_validation_checklist_exists": checklist_exists,
+            "monitoring_validation_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "monitoring_validation_checklist_required_marker_count": len(
                 MONITORING_VALIDATION_CHECKLIST_REQUIRED_MARKERS
             ),
@@ -483,13 +505,16 @@ def monitoring_runbook_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     documented = bool_value(section, "source_control_monitoring_runbook_documented")
     runbook_path = resolve_repo_path(section.get("monitoring_runbook_path"), DEFAULT_RUNBOOK)
     runbook_exists = runbook_path.exists()
+    runbook_inside_source_control = path_is_within(runbook_path, REPO_ROOT)
     runbook_marker_count = 0
     missing_runbook_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_monitoring_runbook_not_documented")
     if documented:
-        if not runbook_exists:
+        if not runbook_inside_source_control:
+            blockers.append("source_control_monitoring_runbook_must_be_inside_repo")
+        elif not runbook_exists:
             blockers.append("monitoring_runbook_document_missing")
         else:
             runbook_text = runbook_path.read_text(encoding="utf-8")
@@ -512,6 +537,7 @@ def monitoring_runbook_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
             "source_control_monitoring_runbook_documented": documented,
             "monitoring_runbook_path": str(runbook_path),
             "monitoring_runbook_exists": runbook_exists,
+            "monitoring_runbook_inside_source_control": runbook_inside_source_control,
             "monitoring_runbook_required_marker_count": len(RUNBOOK_REQUIRED_MARKERS),
             "monitoring_runbook_present_marker_count": runbook_marker_count,
             "monitoring_runbook_missing_marker_count": len(missing_runbook_markers),
@@ -528,13 +554,16 @@ def private_evidence_renderer_requirement(evidence: dict[str, Any]) -> dict[str,
         DEFAULT_PRIVATE_EVIDENCE_RENDERER,
     )
     renderer_exists = renderer_path.exists()
+    renderer_inside_source_control = path_is_within(renderer_path, REPO_ROOT)
     marker_count = 0
     missing_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_private_evidence_renderer_not_documented")
     if documented:
-        if not renderer_exists:
+        if not renderer_inside_source_control:
+            blockers.append("source_control_private_evidence_renderer_must_be_inside_repo")
+        elif not renderer_exists:
             blockers.append("private_evidence_renderer_missing")
         else:
             renderer_text = renderer_path.read_text(encoding="utf-8")
@@ -558,6 +587,9 @@ def private_evidence_renderer_requirement(evidence: dict[str, Any]) -> dict[str,
             "source_control_private_evidence_renderer_documented": documented,
             "private_evidence_renderer_path": str(renderer_path),
             "private_evidence_renderer_exists": renderer_exists,
+            "private_evidence_renderer_inside_source_control": (
+                renderer_inside_source_control
+            ),
             "private_evidence_renderer_required_marker_count": len(
                 PRIVATE_EVIDENCE_RENDERER_REQUIRED_MARKERS
             ),
@@ -640,13 +672,16 @@ def legal_privacy_checklist_requirement(evidence: dict[str, Any]) -> dict[str, A
         DEFAULT_LEGAL_PRIVACY_CHECKLIST,
     )
     checklist_exists = checklist_path.exists()
+    checklist_inside_source_control = path_is_within(checklist_path, REPO_ROOT)
     checklist_marker_count = 0
     missing_checklist_markers: list[str] = []
     blockers: list[str] = []
     if not documented:
         blockers.append("source_control_legal_privacy_checklist_not_documented")
     if documented:
-        if not checklist_exists:
+        if not checklist_inside_source_control:
+            blockers.append("source_control_legal_privacy_checklist_must_be_inside_repo")
+        elif not checklist_exists:
             blockers.append("legal_privacy_checklist_document_missing")
         else:
             checklist_text = checklist_path.read_text(encoding="utf-8")
@@ -670,6 +705,9 @@ def legal_privacy_checklist_requirement(evidence: dict[str, Any]) -> dict[str, A
             "source_control_legal_privacy_checklist_documented": documented,
             "legal_privacy_checklist_path": str(checklist_path),
             "legal_privacy_checklist_exists": checklist_exists,
+            "legal_privacy_checklist_inside_source_control": (
+                checklist_inside_source_control
+            ),
             "legal_privacy_checklist_required_marker_count": len(
                 LEGAL_PRIVACY_CHECKLIST_REQUIRED_MARKERS
             ),
@@ -703,10 +741,13 @@ def governance_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
     ]
     model_card_path = resolve_repo_path(section.get("model_card_path"), DEFAULT_MODEL_CARD)
     model_card_exists = model_card_path.exists()
+    model_card_inside_source_control = path_is_within(model_card_path, REPO_ROOT)
     model_card_marker_count = 0
     missing_model_card_markers: list[str] = []
     if bool_value(section, "model_card_updated"):
-        if not model_card_exists:
+        if not model_card_inside_source_control:
+            blockers.append("source_control_model_card_must_be_inside_repo")
+        elif not model_card_exists:
             blockers.append("model_card_document_missing")
         else:
             model_card_text = model_card_path.read_text(encoding="utf-8")
@@ -729,6 +770,7 @@ def governance_controls_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
             **{key: bool_value(section, key) for key in required_flags},
             "model_card_path": str(model_card_path),
             "model_card_exists": model_card_exists,
+            "model_card_inside_source_control": model_card_inside_source_control,
             "model_card_required_marker_count": len(MODEL_CARD_REQUIRED_MARKERS),
             "model_card_present_marker_count": model_card_marker_count,
             "model_card_missing_marker_count": len(missing_model_card_markers),
