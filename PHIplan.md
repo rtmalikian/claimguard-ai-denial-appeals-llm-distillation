@@ -383,7 +383,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   requires workflow, fine-tune, base benchmark, and student benchmark reports to
   stay under `llm-distill/evals/reports/` and the accepted adapter path to stay
   under `llm-distill/models/adapters/`, preventing arbitrary temporary reports
-  or outside adapter directories from satisfying release evidence.
+  or outside adapter directories from satisfying release evidence. The
+  checked-in student acceptance report now serializes source-controlled paths
+  as repository-relative values and redacts outside paths so local workstation
+  paths are not published in release-readiness evidence.
 - Add Denial Workflow UI controls for encrypted retrieval-source creation,
   explicit privacy-review attestation, model-improvement opt-in gating through
   the existing backend validation, stored source visibility, document-surface

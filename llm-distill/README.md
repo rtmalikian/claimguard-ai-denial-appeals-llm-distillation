@@ -438,9 +438,12 @@ full live base/student benchmark reports, JSON/output-contract gates,
 human-review and draft markers, score regression, and PHI scan results. The
 input reports must stay under `llm-distill/evals/reports/`, and the adapter
 path must stay under `llm-distill/models/adapters/` before the acceptance report
-can be release-ready. The current checked-in report should be treated as the
-source of truth for whether the reviewed adapter is promotable; do not promote
-an adapter while `release_ready=false`.
+can be release-ready. The checked-in acceptance report serializes
+source-controlled evidence paths as repository-relative paths and redacts
+outside paths instead of publishing local workstation paths. The current
+checked-in report should be treated as the source of truth for whether the
+reviewed adapter is promotable; do not promote an adapter while
+`release_ready=false`.
 
 ## Data Rule
 

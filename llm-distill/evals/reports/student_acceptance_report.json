@@ -19,13 +19,13 @@
       "score_ratio": 0.9667
     },
     "fine_tune_run": {
-      "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
+      "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
       "adapter_path_exists": true,
       "adapter_path_inside_expected_root": true,
       "blocked_reasons": [],
       "data_total_phi_findings": 0,
       "errors": [],
-      "expected_adapter_root": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters",
+      "expected_adapter_root": "llm-distill/models/adapters",
       "manifest_training_allowed": true,
       "mode": "run",
       "preflight_errors": [],
@@ -37,30 +37,30 @@
     "input_paths": {
       "base_benchmark": {
         "exists": true,
-        "expected_report_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports",
+        "expected_report_dir": "llm-distill/evals/reports",
         "inside_report_dir": true,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json",
+        "path": "llm-distill/evals/reports/local_mlx_benchmark_report.json",
         "raw_report_values_included": false
       },
       "fine_tune": {
         "exists": true,
-        "expected_report_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports",
+        "expected_report_dir": "llm-distill/evals/reports",
         "inside_report_dir": true,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+        "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "raw_report_values_included": false
       },
       "student_benchmark": {
         "exists": true,
-        "expected_report_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports",
+        "expected_report_dir": "llm-distill/evals/reports",
         "inside_report_dir": true,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json",
+        "path": "llm-distill/evals/reports/student_mlx_benchmark_report.json",
         "raw_report_values_included": false
       },
       "workflow": {
         "exists": true,
-        "expected_report_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports",
+        "expected_report_dir": "llm-distill/evals/reports",
         "inside_report_dir": true,
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json",
+        "path": "llm-distill/evals/reports/workflow_baseline_report.json",
         "raw_report_values_included": false
       }
     },
@@ -69,25 +69,25 @@
         "exists": true,
         "finding_count": 0,
         "findings": [],
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json"
+        "path": "llm-distill/evals/reports/local_mlx_benchmark_report.json"
       },
       "fine_tune_report": {
         "exists": true,
         "finding_count": 0,
         "findings": [],
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+        "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json"
       },
       "student_benchmark": {
         "exists": true,
         "finding_count": 0,
         "findings": [],
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json"
+        "path": "llm-distill/evals/reports/student_mlx_benchmark_report.json"
       },
       "workflow_report": {
         "exists": true,
         "finding_count": 0,
         "findings": [],
-        "path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+        "path": "llm-distill/evals/reports/workflow_baseline_report.json"
       }
     },
     "student_benchmark": {
@@ -124,12 +124,12 @@
       "score_ratio": 1.0
     }
   },
-  "generated_at": "2026-06-01T19:57:03.290173+00:00",
+  "generated_at": "2026-06-01T20:14:53.773658+00:00",
   "inputs": {
-    "base_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/local_mlx_benchmark_report.json",
-    "fine_tune_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/mlx_finetune_preflight_report.json",
-    "student_benchmark": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/student_mlx_benchmark_report.json",
-    "workflow_report": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/evals/reports/workflow_baseline_report.json"
+    "base_benchmark": "llm-distill/evals/reports/local_mlx_benchmark_report.json",
+    "fine_tune_report": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+    "student_benchmark": "llm-distill/evals/reports/student_mlx_benchmark_report.json",
+    "workflow_report": "llm-distill/evals/reports/workflow_baseline_report.json"
   },
   "notes": [
     "This gate does not train, quantize, download models, call endpoints, or inspect adapter weights.",

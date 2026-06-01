@@ -81,6 +81,9 @@ secrets:
    - Student acceptance now requires every input report to resolve under
      `llm-distill/evals/reports/` and the adapter path to resolve under
      `llm-distill/models/adapters/` before `release_ready=true`.
+   - The checked-in student acceptance report emits repository-relative paths
+     for source-controlled evidence and redacts outside paths, so local
+     workstation paths are not part of release-readiness evidence.
 
 5. Production-readiness separation
    - Distillation evidence can be ready while production deployment remains

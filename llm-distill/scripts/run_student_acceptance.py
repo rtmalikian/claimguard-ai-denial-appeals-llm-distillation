@@ -20,6 +20,7 @@ DEFAULT_STUDENT_BENCHMARK = REPORT_DIR / "student_mlx_benchmark_report.json"
 DEFAULT_FINE_TUNE_REPORT = REPORT_DIR / "mlx_finetune_preflight_report.json"
 DEFAULT_OUTPUT = REPORT_DIR / "student_acceptance_report.json"
 DEFAULT_ADAPTER_ROOT = REPO_ROOT / "llm-distill" / "models" / "adapters"
+EXTERNAL_PATH_REDACTION = "external_path_redacted"
 
 
 def path_is_within(path: Path, parent: Path) -> bool:
@@ -39,33 +40,50 @@ def resolve_cli_path(path: Path) -> Path:
     return path.resolve()
 
 
+def safe_report_path(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    resolved_path = path.expanduser().resolve()
+    try:
+        return resolved_path.relative_to(REPO_ROOT.resolve()).as_posix()
+    except ValueError:
+        return EXTERNAL_PATH_REDACTION
+
+
 def load_report(path: Path) -> tuple[dict[str, Any] | None, list[str]]:
     if not path.exists():
-        return None, [f"missing report: {path}"]
+        return None, [f"missing report: {safe_report_path(path)}"]
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        return None, [f"{path}: invalid JSON: {exc}"]
+        return None, [f"{safe_report_path(path)}: invalid JSON: {exc}"]
     if not isinstance(payload, dict):
-        return None, [f"{path}: report must be a JSON object"]
+        return None, [f"{safe_report_path(path)}: report must be a JSON object"]
     return payload, []
 
 
 def phi_scan_report(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {
-            "path": str(path),
+            "path": safe_report_path(path),
             "exists": False,
             "finding_count": None,
             "findings": [],
         }
     text = path.read_text(encoding="utf-8")
     findings = scan_text(path, text)
+    safe_findings = [
+        {
+            **finding,
+            "path": safe_report_path(Path(str(finding.get("path", path)))),
+        }
+        for finding in findings
+    ]
     return {
-        "path": str(path),
+        "path": safe_report_path(path),
         "exists": True,
         "finding_count": len(findings),
-        "findings": findings,
+        "findings": safe_findings,
     }
 
 
@@ -81,10 +99,10 @@ def input_report_path_check(label: str, path: Path) -> tuple[dict[str, Any], lis
     if not inside_report_dir:
         blockers.append(f"{label} report path must stay inside llm-distill/evals/reports")
     return {
-        "path": str(path),
+        "path": safe_report_path(path),
         "exists": path.exists(),
         "inside_report_dir": inside_report_dir,
-        "expected_report_dir": str(REPORT_DIR),
+        "expected_report_dir": safe_report_path(REPORT_DIR),
         "raw_report_values_included": False,
     }, blockers
 
@@ -203,10 +221,12 @@ def check_fine_tune_report(
         "data_total_phi_findings": data_check.get("total_phi_findings")
         if isinstance(data_check, dict)
         else None,
-        "adapter_path": str(resolved_adapter_path) if resolved_adapter_path else adapter_path,
+        "adapter_path": safe_report_path(resolved_adapter_path)
+        if resolved_adapter_path
+        else adapter_path,
         "adapter_path_exists": adapter_exists,
         "adapter_path_inside_expected_root": adapter_inside_expected_root,
-        "expected_adapter_root": str(DEFAULT_ADAPTER_ROOT),
+        "expected_adapter_root": safe_report_path(DEFAULT_ADAPTER_ROOT),
         "blocked_reasons": blocked_reasons,
         "preflight_errors": preflight_errors,
         "errors": load_errors,
@@ -411,10 +431,10 @@ def build_report(
             "max_score_regression": max_score_regression,
         },
         "inputs": {
-            "workflow_report": str(workflow_report_path),
-            "fine_tune_report": str(fine_tune_report_path),
-            "base_benchmark": str(base_benchmark_path),
-            "student_benchmark": str(student_benchmark_path),
+            "workflow_report": safe_report_path(workflow_report_path),
+            "fine_tune_report": safe_report_path(fine_tune_report_path),
+            "base_benchmark": safe_report_path(base_benchmark_path),
+            "student_benchmark": safe_report_path(student_benchmark_path),
         },
         "checks": {
             "input_paths": input_path_checks,

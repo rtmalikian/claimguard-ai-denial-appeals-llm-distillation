@@ -139,17 +139,30 @@ def test_student_acceptance_ready_requires_repo_report_paths_and_adapter_root(
     reports = _write_ready_reports(paths)
 
     report = _build_report(gate, reports)
+    serialized = json.dumps(report, sort_keys=True)
 
     assert report["release_ready"] is True
     assert report["blocked_reasons"] == []
+    assert str(paths["repo_root"]) not in serialized
+    assert report["inputs"]["workflow_report"] == (
+        "llm-distill/evals/reports/workflow_baseline_report.json"
+    )
     for check in report["checks"]["input_paths"].values():
         assert check["inside_report_dir"] is True
+        assert check["path"].startswith("llm-distill/evals/reports/")
+        assert check["expected_report_dir"] == "llm-distill/evals/reports"
         assert check["raw_report_values_included"] is False
     assert (
         report["checks"]["fine_tune_run"]["adapter_path_inside_expected_root"]
         is True
     )
     assert report["checks"]["fine_tune_run"]["adapter_path_exists"] is True
+    assert report["checks"]["fine_tune_run"]["adapter_path"] == (
+        "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+    )
+    assert report["checks"]["fine_tune_run"]["expected_adapter_root"] == (
+        "llm-distill/models/adapters"
+    )
 
 
 def test_student_acceptance_blocks_outside_input_report_path(
@@ -172,7 +185,10 @@ def test_student_acceptance_blocks_outside_input_report_path(
         in report["blocked_reasons"]
     )
     assert report["checks"]["input_paths"]["workflow"]["inside_report_dir"] is False
-    assert "outside-workflow-report" in serialized
+    assert report["checks"]["input_paths"]["workflow"]["path"] == "external_path_redacted"
+    assert "external_path_redacted" in serialized
+    assert str(outside_workflow) not in serialized
+    assert "outside-workflow-report" not in serialized
 
 
 def test_student_acceptance_blocks_adapter_outside_adapter_root(
@@ -196,3 +212,5 @@ def test_student_acceptance_blocks_adapter_outside_adapter_root(
     )
     assert fine_tune_check["adapter_path_exists"] is True
     assert fine_tune_check["adapter_path_inside_expected_root"] is False
+    assert fine_tune_check["adapter_path"] == "external_path_redacted"
+    assert str(outside_adapter) not in json.dumps(report, sort_keys=True)
