@@ -193,6 +193,15 @@ def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
 
 
+def false_value(section: dict[str, Any], key: str) -> bool:
+    return section.get(key) is False
+
+
+def positive_int_value(section: dict[str, Any], key: str) -> bool:
+    value = section.get(key)
+    return not isinstance(value, bool) and isinstance(value, int) and value > 0
+
+
 def str_value(section: dict[str, Any], key: str) -> str:
     value = section.get(key)
     return value if isinstance(value, str) else ""
@@ -712,18 +721,57 @@ def runtime_validation_requirement(evidence: dict[str, Any]) -> dict[str, Any]:
         "retrieval_quality_smoke_passed": "retrieval_quality_smoke_not_passed",
         "backup_restore_reviewed": "backup_restore_not_reviewed",
         "disable_or_rollback_path_reviewed": "disable_or_rollback_path_not_reviewed",
+        "health_evidence_reference_configured": "health_evidence_reference_not_configured",
+        "quality_evidence_reference_configured": "quality_evidence_reference_not_configured",
+        "reindex_evidence_reference_configured": "reindex_evidence_reference_not_configured",
+    }
+    summary_true_flags = {
+        "private_runtime_summary_path_configured": "private_runtime_summary_path_not_configured",
+        "private_runtime_summary_checked": "private_runtime_summary_not_checked",
+    }
+    summary_false_flags = {
+        "private_runtime_summary_path_value_included": "private_runtime_summary_path_value_included",
+        "private_runtime_summary_raw_values_included": "private_runtime_summary_raw_values_included",
+    }
+    summary_positive_counts = {
+        "private_runtime_summary_reindexed_chunk_count": "private_runtime_summary_reindexed_chunk_count_missing",
+        "private_runtime_summary_vector_health_check_count": "private_runtime_summary_vector_health_check_count_missing",
+        "private_runtime_summary_retrieval_quality_query_count": "private_runtime_summary_retrieval_quality_query_count_missing",
+        "private_runtime_summary_backup_restore_check_count": "private_runtime_summary_backup_restore_check_count_missing",
     }
     blockers = [
         blocker
         for key, blocker in required_flags.items()
         if not bool_value(section, key)
     ]
+    blockers.extend(
+        blocker
+        for key, blocker in summary_true_flags.items()
+        if not bool_value(evidence, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in summary_false_flags.items()
+        if not false_value(evidence, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in summary_positive_counts.items()
+        if not positive_int_value(evidence, key)
+    )
     return requirement(
         requirement_id="retrieval_vector_backend_runtime_validation",
         name="Vector backend health, quality, backup, and rollback validation are attested",
         status="blocked" if blockers else "ready",
         blockers=blockers,
-        evidence={key: bool_value(section, key) for key in required_flags},
+        evidence={
+            **{key: bool_value(section, key) for key in required_flags},
+            **{key: bool_value(evidence, key) for key in summary_true_flags},
+            **{key: bool_value(evidence, key) for key in summary_false_flags},
+            **{key: evidence.get(key, 0) for key in summary_positive_counts},
+            "private_runtime_reference_values_included": False,
+            "values_redacted": True,
+        },
     )
 
 

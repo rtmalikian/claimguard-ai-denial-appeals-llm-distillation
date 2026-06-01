@@ -37,6 +37,14 @@ def _ready_evidence() -> dict:
         "prepared_at": "2026-05-30T18:54:28-07:00",
         "no_phi_or_secret_values_attested": True,
         "no_source_text_or_vector_values_attested": True,
+        "private_runtime_summary_path_configured": True,
+        "private_runtime_summary_path_value_included": False,
+        "private_runtime_summary_checked": True,
+        "private_runtime_summary_reindexed_chunk_count": 18,
+        "private_runtime_summary_vector_health_check_count": 2,
+        "private_runtime_summary_retrieval_quality_query_count": 5,
+        "private_runtime_summary_backup_restore_check_count": 1,
+        "private_runtime_summary_raw_values_included": False,
         "backend_configuration": {
             "source_control_private_env_renderer_documented": True,
             "source_control_private_env_renderer_path": (
@@ -90,6 +98,9 @@ def _ready_evidence() -> dict:
             "retrieval_quality_smoke_passed": True,
             "backup_restore_reviewed": True,
             "disable_or_rollback_path_reviewed": True,
+            "health_evidence_reference_configured": True,
+            "quality_evidence_reference_configured": True,
+            "reindex_evidence_reference_configured": True,
         },
     }
 
@@ -254,6 +265,14 @@ def test_vector_backend_template_is_safe_to_review_but_not_ready():
     assert "disable_or_rollback_path_not_reviewed" not in runtime_requirement["blockers"]
     assert runtime_requirement["evidence"]["backup_restore_reviewed"] is True
     assert runtime_requirement["evidence"]["disable_or_rollback_path_reviewed"] is True
+    assert (
+        "health_evidence_reference_not_configured"
+        in runtime_requirement["blockers"]
+    )
+    assert (
+        "private_runtime_summary_not_checked"
+        in runtime_requirement["blockers"]
+    )
     index_requirement = next(
         item
         for item in report["blocked_items"]
@@ -389,6 +408,96 @@ def test_ready_vector_backend_evidence_passes_all_requirements(tmp_path):
     assert report["safe_to_review"] is True
     assert report["vector_backend_ready"] is True
     assert report["blocked_item_count"] == 0
+
+
+def test_vector_backend_evidence_blocks_missing_private_runtime_references(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    evidence = _ready_evidence()
+    evidence["runtime_validation"]["health_evidence_reference_configured"] = False
+    evidence["runtime_validation"]["quality_evidence_reference_configured"] = False
+    evidence["runtime_validation"]["reindex_evidence_reference_configured"] = False
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    runtime_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_runtime_validation"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert "health_evidence_reference_not_configured" in runtime_requirement["blockers"]
+    assert "quality_evidence_reference_not_configured" in runtime_requirement["blockers"]
+    assert "reindex_evidence_reference_not_configured" in runtime_requirement["blockers"]
+    assert runtime_requirement["evidence"]["private_runtime_reference_values_included"] is False
+
+
+def test_vector_backend_evidence_blocks_missing_private_runtime_summary(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    evidence = _ready_evidence()
+    evidence["private_runtime_summary_path_configured"] = False
+    evidence["private_runtime_summary_checked"] = False
+    evidence["private_runtime_summary_reindexed_chunk_count"] = 0
+    evidence["private_runtime_summary_vector_health_check_count"] = 0
+    evidence["private_runtime_summary_retrieval_quality_query_count"] = 0
+    evidence["private_runtime_summary_backup_restore_check_count"] = 0
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    runtime_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_runtime_validation"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert "private_runtime_summary_path_not_configured" in runtime_requirement["blockers"]
+    assert "private_runtime_summary_not_checked" in runtime_requirement["blockers"]
+    assert (
+        "private_runtime_summary_reindexed_chunk_count_missing"
+        in runtime_requirement["blockers"]
+    )
+    assert (
+        runtime_requirement["evidence"]["private_runtime_summary_path_value_included"]
+        is False
+    )
+    assert (
+        runtime_requirement["evidence"]["private_runtime_summary_raw_values_included"]
+        is False
+    )
+
+
+def test_vector_backend_evidence_blocks_private_runtime_summary_value_leak(tmp_path):
+    validator = _load_validator()
+    evidence_path = tmp_path / "vector_backend_evidence.json"
+    evidence = _ready_evidence()
+    evidence["private_runtime_summary_path_value_included"] = True
+    evidence["private_runtime_summary_raw_values_included"] = True
+    _write_json(evidence_path, evidence)
+
+    report = validator.build_report(evidence_path)
+    runtime_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "retrieval_vector_backend_runtime_validation"
+    )
+
+    assert report["safe_to_review"] is True
+    assert report["vector_backend_ready"] is False
+    assert "private_runtime_summary_path_value_included" in runtime_requirement["blockers"]
+    assert "private_runtime_summary_raw_values_included" in runtime_requirement["blockers"]
+    assert (
+        runtime_requirement["evidence"]["private_runtime_summary_path_value_included"]
+        is True
+    )
+    assert (
+        runtime_requirement["evidence"]["private_runtime_summary_raw_values_included"]
+        is True
+    )
 
 
 def test_vector_backend_evidence_blocks_hash_fallback(tmp_path):

@@ -304,6 +304,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   unsupported fields, and reports redacted booleans/counts without emitting
   private evidence references, private summary paths, source text, vector
   values, endpoint values, credentials, PHI, or production document content.
+  The retrieval vector backend validator now also requires those redacted
+  private health, quality-smoke, and reindex reference booleans plus private
+  runtime summary metadata before `vector_backend_ready=true`; missing
+  references, unchecked private summaries, zero aggregate runtime counts, or
+  any marked path/raw-value inclusion keep production vector backend readiness
+  blocked.
   The retrieval-vector path now also includes
   `llm-distill/scripts/render_retrieval_vector_private_env.py`, a renderer for
   the final private retrieval/vector runtime environment file. It refuses

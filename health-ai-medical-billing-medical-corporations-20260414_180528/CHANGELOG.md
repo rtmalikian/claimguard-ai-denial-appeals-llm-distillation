@@ -2,6 +2,69 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 02:23:50 PDT - Retrieval runtime reference validator
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden retrieval vector backend readiness so `vector_backend_ready=true`
+  requires redacted private runtime evidence references and private aggregate
+  runtime-summary metadata, not only high-level runtime attestation flags.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-022001-retrieval-runtime-reference-validator/PHIplan.md` | Documented that retrieval vector backend readiness now requires redacted health, quality-smoke, reindex reference booleans and private runtime summary metadata. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-022001-retrieval-runtime-reference-validator/docs/technical-llm-distillation-analysis.md` | Added the technical note that the validator blocks missing private runtime references, unchecked private summaries, zero aggregate counts, and marked path/raw-value inclusion. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_retrieval_vector_backend.py` | `backups/20260601-022001-retrieval-runtime-reference-validator/llm-distill/scripts/validate_retrieval_vector_backend.py` | Added runtime-validation blockers for missing private health/quality/reindex references, unchecked private runtime summaries, zero aggregate counts, private summary path inclusion, and raw runtime values. | Restore backup over the same path. |
+| `../llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | `backups/20260601-022001-retrieval-runtime-reference-validator/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json` | Added false/zero template fields for private runtime summary and reference evidence until an approved private run produces them. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/retrieval_vector_backend_report.json` | `backups/20260601-022001-retrieval-runtime-reference-validator/llm-distill/evals/reports/retrieval_vector_backend_report.json` | Refreshed retrieval vector evidence; `vector_backend_ready=false`, `safe_to_review=true`, and `blocked=3`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_retrieval_vector_backend.py`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-022001-retrieval-runtime-reference-validator/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=5`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-022001-retrieval-runtime-reference-validator/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_retrieval_vector_backend_evidence.py` | `backups/20260601-022001-retrieval-runtime-reference-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py` | Added coverage for ready evidence with runtime references and private summary metadata, plus blocks for missing references, missing summaries, and marked value leaks. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-022001-retrieval-runtime-reference-validator/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-022001-retrieval-runtime-reference-validator/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-022001-retrieval-runtime-reference-validator -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_retrieval_vector_backend.py tests/unit/test_retrieval_vector_backend_evidence.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py -q`: passed, 23 tests.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_retrieval_vector_backend_evidence.py tests/unit/test_retrieval_vector_runtime_private_evidence_renderer.py tests/unit/test_retrieval_vector_private_env_renderer.py tests/unit/test_retrieval_vector_startup_config.py tests/unit/test_retrieval_semantic_provider.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 97 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_retrieval_vector_backend.py --report ../llm-distill/evals/reports/retrieval_vector_backend_report.json`: passed with `vector_backend_ready=False`, `safe_to_review=True`, and `blocked=3`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=5`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_retrieval_vector_backend.py`, `validate_phi_plan_manual_gate_packet.py`, and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json`, `../llm-distill/evals/reports/retrieval_vector_backend_report.json`, `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`, and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- PHI scan findings were limited to expected Raphael attribution email entries and historical changelog label text; no raw PHI/PII values were introduced.
+- Value-shaped secret scan findings were limited to pre-existing synthetic changelog examples; no API keys, credentials, private references, private summary paths, PHI, source text, vector values, endpoint values, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- An initial focused pytest command used repo-root-relative test paths while the
+  working directory was already the app directory, so pytest found no files; the
+  command was rerun with app-relative paths and passed.
+- Avoided treating the missing guessed
+  `../llm-distill/evals/reports/retrieval_vector_runtime_report.json` filename
+  as a blocker; the runtime evidence is intentionally represented inside
+  `../llm-distill/evals/reports/retrieval_vector_backend_report.json`.
+- Avoided accepting runtime health, quality-smoke, backup, and rollback flags
+  alone as enough for `vector_backend_ready=true`; private reference booleans and
+  private aggregate summary metadata are now required too.
+- Avoided storing private reference values, private runtime summary paths, source
+  text, vector values, endpoint values, credentials, PHI, secrets, or production
+  document content in source control.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-022001-retrieval-runtime-reference-validator/`,
+  then rerun the retrieval vector, manual gate, and PHIplan readiness validators
+  if refreshed reports are needed after rollback.
+- This slice strengthens retrieval vector runtime evidence validation; it does
+  not complete the full PHIplan objective or approve production vector backend
+  readiness.
+
 ## 2026-06-01 02:12:39 PDT - Prediction fairness private reference count validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -355,6 +355,13 @@ positive aggregate counts, and explicit no-raw-source/vector/endpoint/
 credential flags, then writes only redacted booleans/counts with `0600`
 permissions.
 
+The retrieval vector backend validator also treats those redacted private
+reference booleans and aggregate runtime-summary counts as readiness inputs.
+It blocks `vector_backend_ready=true` if health, quality-smoke, or reindex
+references are absent, if the private summary was not checked, if aggregate
+counts are zero, or if a private summary path or raw runtime values are marked
+as included.
+
 This means the technical implementation path exists, but production readiness
 still requires private semantic backend configuration, a production vector
 backend, a completed write reindex, a metadata-only reindex audit, backend

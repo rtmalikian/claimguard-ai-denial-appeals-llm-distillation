@@ -146,7 +146,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T09:12:10.745181+00:00",
+  "generated_at": "2026-06-01T09:22:40.247816+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",

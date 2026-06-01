@@ -46,12 +46,34 @@
     {
       "blockers": [
         "vector_backend_health_not_checked",
-        "retrieval_quality_smoke_not_passed"
+        "retrieval_quality_smoke_not_passed",
+        "health_evidence_reference_not_configured",
+        "quality_evidence_reference_not_configured",
+        "reindex_evidence_reference_not_configured",
+        "private_runtime_summary_path_not_configured",
+        "private_runtime_summary_not_checked",
+        "private_runtime_summary_reindexed_chunk_count_missing",
+        "private_runtime_summary_vector_health_check_count_missing",
+        "private_runtime_summary_retrieval_quality_query_count_missing",
+        "private_runtime_summary_backup_restore_check_count_missing"
       ],
       "evidence": {
         "backup_restore_reviewed": true,
         "disable_or_rollback_path_reviewed": true,
+        "health_evidence_reference_configured": false,
+        "private_runtime_reference_values_included": false,
+        "private_runtime_summary_backup_restore_check_count": 0,
+        "private_runtime_summary_checked": false,
+        "private_runtime_summary_path_configured": false,
+        "private_runtime_summary_path_value_included": false,
+        "private_runtime_summary_raw_values_included": false,
+        "private_runtime_summary_reindexed_chunk_count": 0,
+        "private_runtime_summary_retrieval_quality_query_count": 0,
+        "private_runtime_summary_vector_health_check_count": 0,
+        "quality_evidence_reference_configured": false,
+        "reindex_evidence_reference_configured": false,
         "retrieval_quality_smoke_passed": false,
+        "values_redacted": true,
         "vector_backend_health_checked": false
       },
       "name": "Vector backend health, quality, backup, and rollback validation are attested",
@@ -61,7 +83,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/retrieval_vector_backend/vector_backend_evidence.template.json",
-  "generated_at": "2026-06-01T08:50:48.993801+00:00",
+  "generated_at": "2026-06-01T09:22:40.190346+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call vector stores or embedding providers.",
     "Embedding service URLs, credentials, vector values, source text, and production document details must remain outside source control.",
@@ -266,12 +288,34 @@
     {
       "blockers": [
         "vector_backend_health_not_checked",
-        "retrieval_quality_smoke_not_passed"
+        "retrieval_quality_smoke_not_passed",
+        "health_evidence_reference_not_configured",
+        "quality_evidence_reference_not_configured",
+        "reindex_evidence_reference_not_configured",
+        "private_runtime_summary_path_not_configured",
+        "private_runtime_summary_not_checked",
+        "private_runtime_summary_reindexed_chunk_count_missing",
+        "private_runtime_summary_vector_health_check_count_missing",
+        "private_runtime_summary_retrieval_quality_query_count_missing",
+        "private_runtime_summary_backup_restore_check_count_missing"
       ],
       "evidence": {
         "backup_restore_reviewed": true,
         "disable_or_rollback_path_reviewed": true,
+        "health_evidence_reference_configured": false,
+        "private_runtime_reference_values_included": false,
+        "private_runtime_summary_backup_restore_check_count": 0,
+        "private_runtime_summary_checked": false,
+        "private_runtime_summary_path_configured": false,
+        "private_runtime_summary_path_value_included": false,
+        "private_runtime_summary_raw_values_included": false,
+        "private_runtime_summary_reindexed_chunk_count": 0,
+        "private_runtime_summary_retrieval_quality_query_count": 0,
+        "private_runtime_summary_vector_health_check_count": 0,
+        "quality_evidence_reference_configured": false,
+        "reindex_evidence_reference_configured": false,
         "retrieval_quality_smoke_passed": false,
+        "values_redacted": true,
         "vector_backend_health_checked": false
       },
       "name": "Vector backend health, quality, backup, and rollback validation are attested",
