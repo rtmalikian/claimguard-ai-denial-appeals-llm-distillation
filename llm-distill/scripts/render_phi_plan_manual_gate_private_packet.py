@@ -508,6 +508,11 @@ def _approved_packet(
         private_summary_counts["private_reference_count"]
     )
     packet["private_manual_gate_summary_raw_values_included"] = False
+    packet["approval_reference_value_included"] = False
+    packet["private_reference_values_included"] = False
+    packet["manifest_record_ids_included_in_summary"] = False
+    packet["raw_document_content_included"] = False
+    packet["raw_report_evidence_included"] = False
     _mark_source_control_renderer(packet)
 
     student = packet["student_default_cutover"]
@@ -678,6 +683,11 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
         "private_reference_count": private_reference_count,
         "private_manual_gate_summary_checked": config.approved_production_gate,
         "private_manual_gate_summary_path_env_configured": (
+            bool(config.private_summary_path_env)
+            if config.approved_production_gate
+            else False
+        ),
+        "private_manual_gate_summary_path_configured": (
             bool(config.private_summary_path_env)
             if config.approved_production_gate
             else False

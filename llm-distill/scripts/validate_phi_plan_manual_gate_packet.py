@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,6 +34,7 @@ MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "student runtime supervisor private evidence renderer required",
     "user-data model improvement legal/BAA/consent approval required",
     "model-improvement private environment renderer required",
+    "private manual gate summary metadata required",
     "approved non-synthetic denial/appeal pair required",
     "production corpus private evidence renderer required",
     "production semantic vector backend required",
@@ -120,6 +122,18 @@ ALLOWED_CONFIGURED_FLAG_KEYS = {
     "approval_reference_configured",
     "consent_notice_version_configured",
 }
+ENV_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{2,127}$")
+FORBIDDEN_ENV_KEY_FRAGMENTS = {
+    "api_key",
+    "authorization",
+    "credential",
+    "password",
+    "raw",
+    "secret",
+    "token",
+}
+MANUAL_GATE_DEPENDENT_REPORT_COUNT = 6
+MANUAL_GATE_PRIVATE_REFERENCE_COUNT = 3
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -138,6 +152,25 @@ def load_json(path: Path) -> tuple[Any | None, list[str]]:
 
 def bool_value(section: dict[str, Any], key: str) -> bool:
     return section.get(key) is True
+
+
+def false_value(section: dict[str, Any], key: str) -> bool:
+    return section.get(key) is False
+
+
+def positive_int_value(section: dict[str, Any], key: str) -> bool:
+    value = section.get(key)
+    return not isinstance(value, bool) and isinstance(value, int) and value > 0
+
+
+def int_value(section: dict[str, Any], key: str, default: int = 0) -> int:
+    value = section.get(key)
+    return value if not isinstance(value, bool) and isinstance(value, int) and value >= 0 else default
+
+
+def str_value(section: dict[str, Any], key: str) -> str:
+    value = section.get(key)
+    return value if isinstance(value, str) else ""
 
 
 def count_value(section: dict[str, Any], key: str) -> int:
@@ -159,6 +192,15 @@ def resolve_repo_path(raw_path: Any, default_path: Path) -> Path:
     if path.is_absolute():
         return path
     return (REPO_ROOT / path).resolve()
+
+
+def validate_env_key(env_name: str) -> list[str]:
+    blockers: list[str] = []
+    if not ENV_KEY_RE.match(env_name):
+        blockers.append("private_manual_gate_summary_path_env_invalid")
+    if any(fragment in env_name.lower() for fragment in FORBIDDEN_ENV_KEY_FRAGMENTS):
+        blockers.append("private_manual_gate_summary_path_env_secret_like")
+    return blockers
 
 
 def requirement(
@@ -356,6 +398,133 @@ def manual_gate_private_packet_renderer_requirement(packet: dict[str, Any]) -> d
             "raw_renderer_text_included": False,
             "approval_reference_value_included": False,
             "private_output_required": True,
+        },
+    )
+
+
+def manual_gate_private_summary_metadata_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    required_true_flags = {
+        "private_manual_gate_summary_path_configured": "private_manual_gate_summary_path_not_configured",
+        "private_manual_gate_summary_checked": "private_manual_gate_summary_not_checked",
+    }
+    required_false_flags = {
+        "private_manual_gate_summary_path_value_included": "private_manual_gate_summary_path_value_included",
+        "private_manual_gate_summary_raw_values_included": "private_manual_gate_summary_raw_values_included",
+        "approval_reference_value_included": "approval_reference_value_included",
+        "private_reference_values_included": "private_reference_values_included",
+        "manifest_record_ids_included_in_summary": "manifest_record_ids_included_in_summary",
+        "raw_document_content_included": "raw_document_content_included",
+        "raw_report_evidence_included": "raw_report_evidence_included",
+    }
+    required_positive_counts = {
+        "private_manual_gate_summary_approved_non_synthetic_pair_count": (
+            "private_manual_gate_summary_approved_non_synthetic_pair_count_missing"
+        ),
+        "private_manual_gate_summary_approved_source_type_count": (
+            "private_manual_gate_summary_approved_source_type_count_missing"
+        ),
+        "private_manual_gate_summary_manifest_record_id_count": (
+            "private_manual_gate_summary_manifest_record_id_count_missing"
+        ),
+        "private_manual_gate_summary_dependent_report_count": (
+            "private_manual_gate_summary_dependent_report_count_missing"
+        ),
+        "private_manual_gate_summary_private_reference_count": (
+            "private_manual_gate_summary_private_reference_count_missing"
+        ),
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_true_flags.items()
+        if not bool_value(packet, key)
+    ]
+    blockers.extend(
+        blocker
+        for key, blocker in required_false_flags.items()
+        if not false_value(packet, key)
+    )
+    blockers.extend(
+        blocker
+        for key, blocker in required_positive_counts.items()
+        if not positive_int_value(packet, key)
+    )
+
+    private_summary_env = str_value(packet, "private_manual_gate_summary_path_env")
+    if not private_summary_env:
+        blockers.append("private_manual_gate_summary_path_env_not_configured")
+    else:
+        blockers.extend(validate_env_key(private_summary_env))
+
+    corpus = packet.get("production_corpus", {})
+    if not isinstance(corpus, dict):
+        corpus = {}
+    approved_pair_count = count_value(corpus, "approved_non_synthetic_pair_count")
+    approved_source_type_count = len(list_value(corpus, "approved_source_types"))
+    manifest_record_id_count = len(list_value(corpus, "manifest_record_ids"))
+    summary_pair_count = int_value(
+        packet,
+        "private_manual_gate_summary_approved_non_synthetic_pair_count",
+    )
+    summary_source_type_count = int_value(
+        packet,
+        "private_manual_gate_summary_approved_source_type_count",
+    )
+    summary_manifest_record_id_count = int_value(
+        packet,
+        "private_manual_gate_summary_manifest_record_id_count",
+    )
+    summary_dependent_report_count = int_value(
+        packet,
+        "private_manual_gate_summary_dependent_report_count",
+    )
+    summary_private_reference_count = int_value(
+        packet,
+        "private_manual_gate_summary_private_reference_count",
+    )
+    if summary_pair_count and summary_pair_count < approved_pair_count:
+        blockers.append("private_manual_gate_summary_pair_count_below_packet_pair_count")
+    if (
+        summary_source_type_count
+        and summary_source_type_count != approved_source_type_count
+    ):
+        blockers.append("private_manual_gate_summary_source_type_count_mismatch")
+    if (
+        summary_manifest_record_id_count
+        and summary_manifest_record_id_count != manifest_record_id_count
+    ):
+        blockers.append("private_manual_gate_summary_manifest_record_count_mismatch")
+    if (
+        summary_manifest_record_id_count
+        and summary_manifest_record_id_count < approved_pair_count * 2
+    ):
+        blockers.append("private_manual_gate_summary_manifest_record_count_incomplete")
+    if (
+        summary_dependent_report_count
+        and summary_dependent_report_count != MANUAL_GATE_DEPENDENT_REPORT_COUNT
+    ):
+        blockers.append("private_manual_gate_summary_dependent_report_count_mismatch")
+    if (
+        summary_private_reference_count
+        and summary_private_reference_count != MANUAL_GATE_PRIVATE_REFERENCE_COUNT
+    ):
+        blockers.append("private_manual_gate_summary_private_reference_count_mismatch")
+
+    return requirement(
+        requirement_id="manual_gate_private_summary_metadata",
+        name="Private manual-gate summary metadata is checked without exposing values",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            **{key: bool_value(packet, key) for key in required_true_flags},
+            **{key: bool_value(packet, key) for key in required_false_flags},
+            **{key: packet.get(key, 0) for key in required_positive_counts},
+            "private_manual_gate_summary_path_env": private_summary_env or None,
+            "approved_non_synthetic_pair_count": approved_pair_count,
+            "approved_source_type_count": approved_source_type_count,
+            "manifest_record_id_count": manifest_record_id_count,
+            "expected_dependent_report_count": MANUAL_GATE_DEPENDENT_REPORT_COUNT,
+            "expected_private_reference_count": MANUAL_GATE_PRIVATE_REFERENCE_COUNT,
+            "values_redacted": True,
         },
     )
 
@@ -641,6 +810,7 @@ def build_report(packet_path: Path) -> dict[str, Any]:
         no_phi_or_secret_values_requirement(packet_path, packet),
         manual_gate_checklist_requirement(packet if isinstance(packet, dict) else {}),
         manual_gate_private_packet_renderer_requirement(packet if isinstance(packet, dict) else {}),
+        manual_gate_private_summary_metadata_requirement(packet if isinstance(packet, dict) else {}),
         student_cutover_private_env_renderer_requirement(packet if isinstance(packet, dict) else {}),
         student_cutover_requirement(packet if isinstance(packet, dict) else {}),
         model_improvement_requirement(packet if isinstance(packet, dict) else {}),

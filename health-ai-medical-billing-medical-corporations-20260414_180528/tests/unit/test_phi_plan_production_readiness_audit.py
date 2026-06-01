@@ -117,6 +117,7 @@ def _manual_gate_packet_report(ready: bool) -> dict:
         []
         if ready
         else [
+            {"requirement_id": "manual_gate_private_summary_metadata"},
             {"requirement_id": "manual_student_default_cutover_evidence"},
             {"requirement_id": "manual_user_data_model_improvement_evidence"},
             {"requirement_id": "manual_production_corpus_evidence"},
@@ -358,6 +359,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         if item["requirement_id"] == "manual_production_gate_packet_evidence"
     )
     assert manual_requirement["evidence"]["blocked_requirement_ids"] == [
+        "manual_gate_private_summary_metadata",
         "manual_prediction_fairness_monitoring_evidence",
         "manual_production_corpus_evidence",
         "manual_retrieval_vector_backend_evidence",

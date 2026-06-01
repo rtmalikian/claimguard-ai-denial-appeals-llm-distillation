@@ -19,6 +19,7 @@ identifiers, or credentials.
 - student runtime supervisor private evidence renderer required
 - user-data model improvement legal/BAA/consent approval required
 - model-improvement private environment renderer required
+- private manual gate summary metadata required
 - approved non-synthetic denial/appeal pair required
 - production corpus private evidence renderer required
 - production semantic vector backend required

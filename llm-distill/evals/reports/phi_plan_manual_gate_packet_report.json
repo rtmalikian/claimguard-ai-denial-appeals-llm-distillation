@@ -1,6 +1,45 @@
 {
-  "blocked_item_count": 5,
+  "blocked_item_count": 6,
   "blocked_items": [
+    {
+      "blockers": [
+        "private_manual_gate_summary_path_not_configured",
+        "private_manual_gate_summary_not_checked",
+        "private_manual_gate_summary_approved_non_synthetic_pair_count_missing",
+        "private_manual_gate_summary_approved_source_type_count_missing",
+        "private_manual_gate_summary_manifest_record_id_count_missing",
+        "private_manual_gate_summary_dependent_report_count_missing",
+        "private_manual_gate_summary_private_reference_count_missing",
+        "private_manual_gate_summary_path_env_not_configured"
+      ],
+      "evidence": {
+        "approval_reference_value_included": false,
+        "approved_non_synthetic_pair_count": 0,
+        "approved_source_type_count": 0,
+        "expected_dependent_report_count": 6,
+        "expected_private_reference_count": 3,
+        "manifest_record_id_count": 0,
+        "manifest_record_ids_included_in_summary": false,
+        "private_manual_gate_summary_approved_non_synthetic_pair_count": 0,
+        "private_manual_gate_summary_approved_source_type_count": 0,
+        "private_manual_gate_summary_checked": false,
+        "private_manual_gate_summary_dependent_report_count": 0,
+        "private_manual_gate_summary_manifest_record_id_count": 0,
+        "private_manual_gate_summary_path_configured": false,
+        "private_manual_gate_summary_path_env": null,
+        "private_manual_gate_summary_path_value_included": false,
+        "private_manual_gate_summary_private_reference_count": 0,
+        "private_manual_gate_summary_raw_values_included": false,
+        "private_reference_values_included": false,
+        "raw_document_content_included": false,
+        "raw_report_evidence_included": false,
+        "values_redacted": true
+      },
+      "name": "Private manual-gate summary metadata is checked without exposing values",
+      "requirement_id": "manual_gate_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
     {
       "blockers": [
         "student_default_cutover_not_requested",
@@ -146,7 +185,7 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T18:45:37.136997+00:00",
+  "generated_at": "2026-06-01T18:56:31.233932+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
@@ -190,8 +229,8 @@
         "manual_gate_checklist_exists": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 18,
-        "manual_gate_checklist_required_marker_count": 18,
+        "manual_gate_checklist_present_marker_count": 19,
+        "manual_gate_checklist_required_marker_count": 19,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
@@ -216,6 +255,45 @@
       "name": "Source-controlled manual gate private packet renderer is available",
       "requirement_id": "manual_gate_private_packet_renderer",
       "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_manual_gate_summary_path_not_configured",
+        "private_manual_gate_summary_not_checked",
+        "private_manual_gate_summary_approved_non_synthetic_pair_count_missing",
+        "private_manual_gate_summary_approved_source_type_count_missing",
+        "private_manual_gate_summary_manifest_record_id_count_missing",
+        "private_manual_gate_summary_dependent_report_count_missing",
+        "private_manual_gate_summary_private_reference_count_missing",
+        "private_manual_gate_summary_path_env_not_configured"
+      ],
+      "evidence": {
+        "approval_reference_value_included": false,
+        "approved_non_synthetic_pair_count": 0,
+        "approved_source_type_count": 0,
+        "expected_dependent_report_count": 6,
+        "expected_private_reference_count": 3,
+        "manifest_record_id_count": 0,
+        "manifest_record_ids_included_in_summary": false,
+        "private_manual_gate_summary_approved_non_synthetic_pair_count": 0,
+        "private_manual_gate_summary_approved_source_type_count": 0,
+        "private_manual_gate_summary_checked": false,
+        "private_manual_gate_summary_dependent_report_count": 0,
+        "private_manual_gate_summary_manifest_record_id_count": 0,
+        "private_manual_gate_summary_path_configured": false,
+        "private_manual_gate_summary_path_env": null,
+        "private_manual_gate_summary_path_value_included": false,
+        "private_manual_gate_summary_private_reference_count": 0,
+        "private_manual_gate_summary_raw_values_included": false,
+        "private_reference_values_included": false,
+        "raw_document_content_included": false,
+        "raw_report_evidence_included": false,
+        "values_redacted": true
+      },
+      "name": "Private manual-gate summary metadata is checked without exposing values",
+      "requirement_id": "manual_gate_private_summary_metadata",
+      "status": "blocked",
       "warnings": []
     },
     {

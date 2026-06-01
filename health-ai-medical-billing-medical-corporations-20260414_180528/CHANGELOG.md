@@ -2,6 +2,78 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 11:52:43 PDT - Manual gate private summary validator
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden PHIplan manual production-gate readiness so
+  `production_gate_ready=true` requires redacted private manual-gate summary
+  metadata emitted by the approved private packet renderer, not only
+  handcrafted high-level manual packet booleans.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-115243-manual-gate-private-summary-validator/PHIplan.md` | Documented that manual production-gate readiness now requires private manual-gate summary checks, positive counts, count parity, and no marked private path/reference/raw-value inclusion. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-115243-manual-gate-private-summary-validator/docs/technical-llm-distillation-analysis.md` | Added a technical note that missing private manual-gate summary metadata keeps the checked-in manual gate blocked. | Restore backup over the same path. |
+| `../llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | Added the private manual gate summary metadata item to the source-controlled reviewer checklist. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | Added `manual_gate_private_summary_metadata` with env-name checks, required true/false flags, positive counts, dependent-report/private-reference expectations, and count parity. | Restore backup over the same path. |
+| `../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | Added redacted no-value flags and private-summary path configured metadata to renderer output so private packets satisfy the stricter validator. | Restore backup over the same path. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | Added false/zero private manual-gate summary placeholders until an approved private renderer run produces them. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | Refreshed manual gate evidence; `production_gate_ready=false`, `safe_to_review=true`, and `blocked=6`. | Restore backup over the same path or rerun `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-115243-manual-gate-private-summary-validator/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Refreshed PHIplan readiness; `production_ready=false`, `safe_current_state=true`, `blocked=6`, and `warning_item_count=1`. | Restore backup over the same path or rerun `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260601-115243-manual-gate-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py` | Added coverage for ready packets with private summary metadata and blocks for missing metadata, marked value flags, and count mismatches. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | `backups/20260601-115243-manual-gate-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | Added assertions that the private renderer writes the new redacted summary metadata and no-value flags. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260601-115243-manual-gate-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | Updated the dependent PHIplan audit fixture to propagate the new manual gate private-summary blocker. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-115243-manual-gate-private-summary-validator/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-115243-manual-gate-private-summary-validator/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-115243-manual-gate-private-summary-validator -type f | sort`: passed; backups exist for every modified existing file and refreshed report.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py ../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 65 tests, 1 existing SQLAlchemy deprecation warning.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_student_default_startup_config.py tests/unit/test_student_cutover_private_env_renderer.py tests/unit/test_mlx_runtime_supervisor.py tests/unit/test_mlx_runtime_supervisor_private_evidence_renderer.py tests/unit/test_production_corpus_evidence.py tests/unit/test_prediction_fairness_evidence.py tests/unit/test_retrieval_vector_backend_evidence.py -q`: passed, 151 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report ../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`: passed with `production_gate_ready=False`, `safe_to_review=True`, and `blocked=6`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=False`, `safe_current_state=True`, `blocked=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- Expected blocked checks with `--fail-on-blocked` returned exit status 2 for `validate_phi_plan_manual_gate_packet.py` and `run_phi_plan_production_readiness_audit.py`, preserving current blocked production gates.
+- JSON parsing checks for `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`, `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`, and `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed.
+- Changed code/report/doc PHI scan findings excluding historical changelogs
+  were limited to Raphael attribution email entries; a separate scan of the new
+  root and app changelog entries also found only Raphael attribution email
+  entries. No patient PHI, production document content, secrets, approval
+  values, private references, private summary paths, manifest record values,
+  source text, vectors, raw demographic values, or outcome rows were
+  introduced.
+- Changed-file value-shaped secret scan passed; no API keys, credentials, private summary paths, approval references, private governance references, PHI, secrets, vectors, source text, or production document content were introduced.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- An initial expected-failure wrapper stored the command result in zsh's
+  read-only `status` variable and failed before validating the expected exit
+  code; the command was rerun with `exit_code` and confirmed exit status 2.
+- Avoided accepting handcrafted manual-packet readiness booleans alone as
+  enough for `production_gate_ready=true`; private manual-gate summary metadata
+  is now required too.
+- Avoided storing private summary paths, approval references, private
+  governance references, raw report evidence, source text, vectors, manifest
+  record values, raw demographic values, outcome rows, PHI, secrets,
+  credentials, or production document content in source control.
+- Avoided marking the manual production gate or PHIplan production readiness
+  complete; external approvals, private summary evidence, non-synthetic corpus
+  evidence, production retrieval evidence, and fairness monitoring remain
+  blocked.
+
+### Notes
+- Rollback: restore every modified file from
+  `backups/20260601-115243-manual-gate-private-summary-validator/`, then rerun
+  the manual gate and PHIplan readiness validators if refreshed reports are
+  needed after rollback.
+- This slice strengthens final manual production-gate validation; it does not
+  complete the full PHIplan objective or approve production readiness.
+
 ## 2026-06-01 11:45:41 PDT - MLX supervisor private runtime metadata validator
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

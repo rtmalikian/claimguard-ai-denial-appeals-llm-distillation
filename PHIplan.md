@@ -896,7 +896,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   summary booleans, positive aggregate counts, and explicit no-raw-value flags
   before writing a ready packet, rejects unsupported private summary fields,
   writes private output with `0600` permissions, and prints only redacted
-  booleans/counts. This
+  booleans/counts. The manual gate validator now also requires that
+  renderer-shaped private summary metadata before `production_gate_ready=true`;
+  missing private manual-gate summary checks, zero private
+  pair/source/manifest/dependent-report/reference counts, count mismatches, or
+  marked private summary path/reference/raw-value inclusion keep the checked-in
+  packet blocked. This
   prepares the final manual gate packet handoff without storing approval
   values, private summary paths, manifest record ids, PHI, source text,
   vectors, raw demographic values, production outcome rows, or production

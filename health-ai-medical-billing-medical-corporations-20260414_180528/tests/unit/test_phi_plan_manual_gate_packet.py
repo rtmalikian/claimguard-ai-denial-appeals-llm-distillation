@@ -46,6 +46,21 @@ def _ready_packet() -> dict:
         "private_packet_renderer_path": (
             "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
         ),
+        "private_manual_gate_summary_path_env": "PHI_PLAN_MANUAL_GATE_PRIVATE_SUMMARY_PATH",
+        "private_manual_gate_summary_path_configured": True,
+        "private_manual_gate_summary_path_value_included": False,
+        "private_manual_gate_summary_checked": True,
+        "private_manual_gate_summary_approved_non_synthetic_pair_count": 1,
+        "private_manual_gate_summary_approved_source_type_count": 1,
+        "private_manual_gate_summary_manifest_record_id_count": 2,
+        "private_manual_gate_summary_dependent_report_count": 6,
+        "private_manual_gate_summary_private_reference_count": 3,
+        "private_manual_gate_summary_raw_values_included": False,
+        "approval_reference_value_included": False,
+        "private_reference_values_included": False,
+        "manifest_record_ids_included_in_summary": False,
+        "raw_document_content_included": False,
+        "raw_report_evidence_included": False,
         "student_default_cutover": {
             "requested": True,
             "raphael_approval_attested": True,
@@ -179,6 +194,7 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert "manual_gate_packet_no_phi_or_secret_values" not in blocked_ids
     assert "manual_gate_packet_completion_checklist" not in blocked_ids
     assert "manual_gate_private_packet_renderer" not in blocked_ids
+    assert "manual_gate_private_summary_metadata" in blocked_ids
     assert "manual_student_cutover_private_env_renderer" not in blocked_ids
     assert "manual_student_default_cutover_evidence" in blocked_ids
     assert "manual_user_data_model_improvement_evidence" in blocked_ids
@@ -253,6 +269,30 @@ def test_template_packet_is_safe_to_review_but_not_ready():
         private_packet_renderer_requirement["evidence"]["raw_renderer_text_included"]
         is False
     )
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_summary_metadata"
+    )
+    assert (
+        "private_manual_gate_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_path_not_configured"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_approved_non_synthetic_pair_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        private_summary_requirement["evidence"][
+            "private_manual_gate_summary_path_value_included"
+        ]
+        is False
+    )
+    assert private_summary_requirement["evidence"]["values_redacted"] is True
     private_renderer_requirement = next(
         item
         for item in report["requirements"]
@@ -418,6 +458,97 @@ def test_ready_packet_passes_all_manual_gate_requirements(tmp_path):
     assert report["safe_to_review"] is True
     assert report["production_gate_ready"] is True
     assert report["blocked_item_count"] == 0
+
+
+def test_ready_packet_requires_private_manual_gate_summary_metadata(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["private_manual_gate_summary_checked"] = False
+    packet["private_manual_gate_summary_path_configured"] = False
+    packet["private_manual_gate_summary_approved_non_synthetic_pair_count"] = 0
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_summary_metadata"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert (
+        "private_manual_gate_summary_not_checked"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_path_not_configured"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_approved_non_synthetic_pair_count_missing"
+        in private_summary_requirement["blockers"]
+    )
+
+
+def test_private_manual_gate_summary_value_flags_are_blocked(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["private_manual_gate_summary_path_value_included"] = True
+    packet["private_manual_gate_summary_raw_values_included"] = True
+    packet["raw_report_evidence_included"] = True
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_summary_metadata"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert (
+        "private_manual_gate_summary_path_value_included"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_raw_values_included"
+        in private_summary_requirement["blockers"]
+    )
+    assert "raw_report_evidence_included" in private_summary_requirement["blockers"]
+    assert (
+        private_summary_requirement["evidence"][
+            "private_manual_gate_summary_path_value_included"
+        ]
+        is True
+    )
+
+
+def test_private_manual_gate_summary_count_parity_is_required(tmp_path):
+    validator = _load_validator()
+    packet_path = tmp_path / "packet.json"
+    packet = _ready_packet()
+    packet["private_manual_gate_summary_manifest_record_id_count"] = 3
+    packet["private_manual_gate_summary_private_reference_count"] = 2
+    _write_json(packet_path, packet)
+
+    report = validator.build_report(packet_path)
+    private_summary_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_gate_private_summary_metadata"
+    )
+
+    assert report["production_gate_ready"] is False
+    assert (
+        "private_manual_gate_summary_manifest_record_count_mismatch"
+        in private_summary_requirement["blockers"]
+    )
+    assert (
+        "private_manual_gate_summary_private_reference_count_mismatch"
+        in private_summary_requirement["blockers"]
+    )
 
 
 def test_manual_gate_checklist_documentation_is_required(tmp_path):

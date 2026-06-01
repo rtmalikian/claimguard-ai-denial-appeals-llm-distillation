@@ -356,6 +356,7 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     assert summary["manifest_record_id_count"] == 2
     assert summary["private_manual_gate_summary_checked"] is True
     assert summary["private_manual_gate_summary_path_env_configured"] is True
+    assert summary["private_manual_gate_summary_path_configured"] is True
     assert summary["private_manual_gate_summary_path_value_included"] is False
     assert summary["private_manual_gate_summary_approved_non_synthetic_pair_count"] == 1
     assert summary["private_manual_gate_summary_approved_source_type_count"] == 1
@@ -374,8 +375,18 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     )
     assert payload["private_manual_gate_summary_path_value_included"] is False
     assert payload["private_manual_gate_summary_checked"] is True
+    assert payload["private_manual_gate_summary_path_configured"] is True
+    assert payload["private_manual_gate_summary_approved_non_synthetic_pair_count"] == 1
+    assert payload["private_manual_gate_summary_approved_source_type_count"] == 1
     assert payload["private_manual_gate_summary_manifest_record_id_count"] == 2
+    assert payload["private_manual_gate_summary_dependent_report_count"] == 6
     assert payload["private_manual_gate_summary_private_reference_count"] == 3
+    assert payload["private_manual_gate_summary_raw_values_included"] is False
+    assert payload["approval_reference_value_included"] is False
+    assert payload["private_reference_values_included"] is False
+    assert payload["manifest_record_ids_included_in_summary"] is False
+    assert payload["raw_document_content_included"] is False
+    assert payload["raw_report_evidence_included"] is False
     assert str(summary_path) not in output_text
     assert str(summary_path) not in serialized_summary
     assert report["safe_to_review"] is True

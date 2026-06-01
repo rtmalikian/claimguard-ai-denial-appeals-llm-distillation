@@ -388,6 +388,20 @@ still requires private semantic backend configuration, a production vector
 backend, a completed write reindex, a metadata-only reindex audit, backend
 health checks, and retrieval quality smoke checks.
 
+### Manual Gate Private Summary Controls
+
+The final PHIplan manual production gate is also split between checked-in
+source-control evidence and private governance evidence. The private manual
+gate packet renderer validates dependent report readiness, private manifest
+record counts, private reference counts, and a private aggregate manual-gate
+summary before writing a ready packet outside source control.
+
+The manual gate validator now requires the renderer-shaped private summary
+metadata before `production_gate_ready=true`. Missing private summary checks,
+zero private pair/source/manifest/dependent-report/reference counts, count
+mismatches, or marked private summary path/reference/raw-value inclusion keep
+the checked-in manual gate packet blocked.
+
 ## Tools Used
 
 Core application and workflow:
