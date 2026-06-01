@@ -57,3 +57,23 @@ def test_sanitizer_emits_repo_relative_paths_and_redacts_external_paths(tmp_path
     )
     assert str(repo_root) not in serialized
     assert str(tmp_path) not in serialized
+
+
+def test_write_sanitized_report_json_writes_clean_sorted_payload(tmp_path):
+    sanitizer = _load_sanitizer()
+    repo_root = tmp_path / "repo"
+    output = tmp_path / "report.json"
+    payload = {
+        "z_path": str(repo_root / "llm-distill" / "evals" / "reports" / "z.json"),
+        "a_path": str(tmp_path / "outside" / "private.json"),
+    }
+
+    sanitizer.write_sanitized_report_json(output, payload, repo_root)
+
+    text = output.read_text(encoding="utf-8")
+    assert text.endswith("\n")
+    assert text.index('"a_path"') < text.index('"z_path"')
+    assert "llm-distill/evals/reports/z.json" in text
+    assert "external_path_redacted" in text
+    assert str(repo_root) not in text
+    assert str(tmp_path) not in text

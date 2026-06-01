@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from report_output_sanitizer import write_sanitized_report_json
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 APP_ROOT = REPO_ROOT / "health-ai-medical-billing-medical-corporations-20260414_180528"
@@ -352,7 +354,7 @@ def main() -> int:
 
     report = audit_file_ingestion_surfaces(api_root=args.api_root)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    write_sanitized_report_json(args.output, report, REPO_ROOT)
     print(f"wrote file-ingestion surface audit report to {args.output}")
     if args.fail_on_blocked and not report["ready"]:
         return 2

@@ -210,6 +210,14 @@ generated evidence files without changing readiness booleans, blockers,
 warnings, counts, or benchmark results; `--check` verifies no report would be
 rewritten.
 
+The report generators for teacher labeling, teacher-review packets, MLX
+fine-tune evidence, MLX bootstrap evidence, reviewed distillation pipeline
+evidence, file-ingestion surface coverage, public-source-note coverage,
+generated-corpus format coverage, and generated-denial extraction coverage now
+write through the same sanitizer. That keeps future regenerated eval reports
+from reintroducing local workstation paths before the batch `--check` gate
+runs.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit

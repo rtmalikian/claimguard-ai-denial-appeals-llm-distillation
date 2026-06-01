@@ -18,6 +18,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from ingest_teacher_labels import REQUIRED_OUTPUT_KEYS, validate_teacher_output  # noqa: E402
+from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -78,7 +79,7 @@ def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_sanitized_report_json(path, payload, REPO_ROOT)
 
 
 def stable_hash(payload: Any) -> str:

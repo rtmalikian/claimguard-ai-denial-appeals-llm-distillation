@@ -2,6 +2,61 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 16:50:16 PDT - Eval report generator sanitized writes
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: prevent future regenerated public eval reports from reintroducing local
+  workstation paths by applying the shared report-output sanitizer at source
+  generator write boundaries.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/report_output_sanitizer.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/report_output_sanitizer.py` | Added `write_sanitized_report_json(...)` for reusable sanitized JSON report writes. | Restore backup over the same path. |
+| `tests/unit/test_report_output_sanitizer.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py` | Added regression coverage for sorted, newline-terminated sanitized report writes. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/run_teacher_label_batch.py` | Writes teacher-label batch reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_teacher_review_packet.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/run_teacher_review_packet.py` | Writes teacher-review packet reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_mlx_finetune.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/run_mlx_finetune.py` | Writes MLX fine-tune evidence reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/bootstrap_mlx_runtime.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/bootstrap_mlx_runtime.py` | Writes MLX bootstrap reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_reviewed_distillation_pipeline.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/run_reviewed_distillation_pipeline.py` | Writes reviewed distillation pipeline reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/audit_file_ingestion_surfaces.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/audit_file_ingestion_surfaces.py` | Writes file-ingestion surface audit reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/audit_public_source_notes.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/audit_public_source_notes.py` | Writes public-source-note coverage reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/audit_synthetic_document_analysis_extraction.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/audit_synthetic_document_analysis_extraction.py` | Writes synthetic document-analysis extraction reports through the sanitized report writer. | Restore backup over the same path. |
+| `../llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` | `backups/20260601-164724-eval-report-generator-sanitized-writes/llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` | Writes synthetic denial/appeal corpus format audit reports through the sanitized report writer. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-164724-eval-report-generator-sanitized-writes/PHIplan.md` | Documented sanitized write boundaries for eval report generators. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-164724-eval-report-generator-sanitized-writes/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-164724-eval-report-generator-sanitized-writes/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-164724-eval-report-generator-sanitized-writes/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-164724-eval-report-generator-sanitized-writes -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/report_output_sanitizer.py ../llm-distill/scripts/run_teacher_label_batch.py ../llm-distill/scripts/run_teacher_review_packet.py ../llm-distill/scripts/run_mlx_finetune.py ../llm-distill/scripts/bootstrap_mlx_runtime.py ../llm-distill/scripts/run_reviewed_distillation_pipeline.py ../llm-distill/scripts/audit_file_ingestion_surfaces.py ../llm-distill/scripts/audit_public_source_notes.py ../llm-distill/scripts/audit_synthetic_document_analysis_extraction.py ../llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_report_output_sanitizer.py tests/unit/test_sanitize_public_eval_reports.py -q`: passed, 4 tests.
+- `python3 ../llm-distill/scripts/run_teacher_label_batch.py --report-output /private/tmp/claimguard-teacher-label-sanitized-write-check.json --limit 1`: passed.
+- `python3 ../llm-distill/scripts/audit_file_ingestion_surfaces.py --output /private/tmp/claimguard-file-ingestion-sanitized-write-check.json`: passed.
+- `python3 ../llm-distill/scripts/audit_public_source_notes.py --output /private/tmp/claimguard-public-source-notes-sanitized-write-check.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/"` on the three temporary generator outputs above: passed with no matches.
+- `python3 -m json.tool` on the three temporary generator outputs above: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `changed_count=0` across 27 checked-in eval reports.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/evals/reports --glob '*.json'`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided rerunning heavy model training or generated-corpus extraction jobs.
+- Avoided changing readiness booleans, blockers, warnings, or checked-in report
+  payloads in this slice.
+- Avoided clearing approval-driven PHIplan production blockers.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-164724-eval-report-generator-sanitized-writes/`.
+- This slice hardens future report generation hygiene; it does not complete the
+  full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 16:42:55 PDT - Public eval report path hygiene
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from report_output_sanitizer import write_sanitized_report_json
 from run_phi_scan import scan_text
 
 
@@ -369,7 +370,7 @@ def acceptance_stage(
 
 def write_report(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_sanitized_report_json(path, payload, REPO_ROOT)
 
 
 def main() -> int:

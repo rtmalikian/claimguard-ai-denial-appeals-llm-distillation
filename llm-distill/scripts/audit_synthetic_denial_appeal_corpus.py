@@ -60,6 +60,7 @@ FORBIDDEN_UNSUPPORTED_APPEAL_PATTERNS = [
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -756,7 +757,7 @@ def main() -> int:
         max_pairs=args.max_pairs,
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    write_sanitized_report_json(args.output, report, REPO_ROOT)
     print(f"wrote synthetic corpus format audit report to {args.output}")
     if args.fail_on_blocked and not report["ready"]:
         return 2

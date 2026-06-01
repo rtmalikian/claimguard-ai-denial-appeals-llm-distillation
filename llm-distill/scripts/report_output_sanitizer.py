@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 from typing import Any
 
@@ -33,3 +34,17 @@ def sanitize_report_value(value: Any, repo_root: Path) -> Any:
             for key, item in value.items()
         }
     return value
+
+
+def write_sanitized_report_json(
+    path: Path,
+    payload: Any,
+    repo_root: Path,
+    *,
+    sort_keys: bool = True,
+) -> None:
+    safe_payload = sanitize_report_value(payload, repo_root)
+    path.write_text(
+        json.dumps(safe_payload, indent=2, sort_keys=sort_keys) + "\n",
+        encoding="utf-8",
+    )

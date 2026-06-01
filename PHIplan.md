@@ -891,6 +891,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   readiness semantics while converting repository-owned paths to
   repository-relative values and redacting outside local paths; `--check`
   verifies that no checked-in eval report would still need path sanitization.
+- Wire source report generators for teacher-label preflight, teacher-review
+  packets, MLX fine-tune evidence, MLX bootstrap evidence, reviewed
+  distillation pipeline evidence, file-ingestion surface audit,
+  public-source-note coverage, generated-corpus format audit, and generated
+  denial extraction audit through the shared sanitized report writer. Future
+  regeneration of those public eval reports now applies repository-relative
+  path serialization at the source write boundary.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at
