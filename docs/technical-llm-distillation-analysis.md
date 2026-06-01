@@ -285,11 +285,14 @@ The renderer refuses output inside source control, requires explicit
 outcome-data, sample-size, calibration, threshold-review, human-review-policy,
 demographic-grouping, monitoring, alert-owner, latest-run, legal/privacy,
 rollback, metadata-only audit, and no-raw-value attestations before approved
-mode, reads private governance references from environment variables, writes
-the private evidence file with `0600` permissions, and prints only redacted
-booleans/counts. It does not store the private references, raw demographic
-values, production outcome rows, claim content, or approval documents in either
-the checked-in report or its command output.
+mode, reads private governance references and a private aggregate monitoring
+summary path from environment variables, validates required readiness booleans,
+positive aggregate counts, and explicit no-raw-value flags, and rejects
+unsupported fields or raw-value inclusion flags. The private evidence file is
+written with `0600` permissions and the command summary prints only redacted
+booleans/counts. It does not store the private references, private summary
+path, raw demographic values, production outcome rows, claim content, or
+approval documents in either the checked-in report or its command output.
 
 ### Retrieval Vector Private Env Controls
 
@@ -377,7 +380,9 @@ Safety and validation:
   manifest paths resolved from env vars and redacted from output evidence.
 - `llm-distill/scripts/render_prediction_fairness_private_evidence.py` for
   private boolean-only prediction-fairness evidence rendering after approved
-  outcome, monitoring, latest-run, and legal/privacy gates are complete.
+  outcome, monitoring, latest-run, and legal/privacy gates are complete, with
+  approved mode validating a private aggregate monitoring summary before ready
+  evidence can be written.
 - `llm-distill/scripts/render_retrieval_vector_private_env.py` for private
   retrieval/vector env rendering after semantic backend, reindex, health,
   quality-smoke, rollback, and evidence-report readiness gates are complete.

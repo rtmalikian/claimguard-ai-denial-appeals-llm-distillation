@@ -24,8 +24,47 @@ DEFAULT_MONITORING_CONFIG_REFERENCE_ENV = "PREDICTION_FAIRNESS_MONITORING_CONFIG
 DEFAULT_ALERT_OWNER_REFERENCE_ENV = "PREDICTION_FAIRNESS_ALERT_OWNER_REFERENCE"
 DEFAULT_LATEST_RUN_REFERENCE_ENV = "PREDICTION_FAIRNESS_LATEST_RUN_REFERENCE"
 DEFAULT_LEGAL_PRIVACY_REFERENCE_ENV = "PREDICTION_FAIRNESS_LEGAL_PRIVACY_REFERENCE"
+DEFAULT_MONITORING_SUMMARY_PATH_ENV = (
+    "PREDICTION_FAIRNESS_PRIVATE_MONITORING_SUMMARY_PATH"
+)
 DEFAULT_PRIVATE_EVIDENCE_RENDERER_PATH = (
     "llm-distill/scripts/render_prediction_fairness_private_evidence.py"
+)
+REQUIRED_MONITORING_SUMMARY_TRUE_FLAGS = {
+    "approved_outcome_dataset_available",
+    "minimum_sample_size_met",
+    "calibration_run_completed",
+    "threshold_review_completed",
+    "human_review_policy_confirmed",
+    "approved_demographic_grouping_reviewed",
+    "continuous_monitoring_configured",
+    "disparity_thresholds_documented",
+    "alerting_and_review_owner_configured",
+    "latest_monitoring_run_passed",
+    "legal_privacy_review_completed",
+    "rollback_or_threshold_reversion_reviewed",
+    "audit_log_metadata_only_verified",
+    "no_phi_or_secret_values_attested",
+    "no_raw_demographic_values_attested",
+    "no_production_outcome_rows_attested",
+    "values_redacted",
+}
+REQUIRED_MONITORING_SUMMARY_FALSE_FLAGS = {
+    "raw_demographic_values_included",
+    "production_outcome_rows_included",
+    "individual_identifiers_included",
+    "approval_reference_values_included",
+}
+REQUIRED_MONITORING_SUMMARY_POSITIVE_COUNTS = {
+    "evaluated_outcome_count",
+    "monitored_group_count",
+    "disparity_metric_count",
+    "alert_rule_count",
+}
+ALLOWED_MONITORING_SUMMARY_KEYS = (
+    REQUIRED_MONITORING_SUMMARY_TRUE_FLAGS
+    | REQUIRED_MONITORING_SUMMARY_FALSE_FLAGS
+    | REQUIRED_MONITORING_SUMMARY_POSITIVE_COUNTS
 )
 REQUIRED_ATTESTATIONS = {
     "approved_outcome_dataset_attested": "approved outcome dataset attestation is required",
@@ -51,12 +90,14 @@ ALLOWED_ENV_KEYS = {
     DEFAULT_ALERT_OWNER_REFERENCE_ENV,
     DEFAULT_LATEST_RUN_REFERENCE_ENV,
     DEFAULT_LEGAL_PRIVACY_REFERENCE_ENV,
+    DEFAULT_MONITORING_SUMMARY_PATH_ENV,
 }
 FORBIDDEN_ENV_KEY_FRAGMENTS = {
     "api_key",
     "authorization",
     "credential",
     "password",
+    "proxy",
     "raw",
     "secret",
     "token",
@@ -80,6 +121,7 @@ class RenderConfig:
     alert_owner_reference_env: str = DEFAULT_ALERT_OWNER_REFERENCE_ENV
     latest_run_reference_env: str = DEFAULT_LATEST_RUN_REFERENCE_ENV
     legal_privacy_reference_env: str = DEFAULT_LEGAL_PRIVACY_REFERENCE_ENV
+    monitoring_summary_path_env: str = DEFAULT_MONITORING_SUMMARY_PATH_ENV
     approved_outcome_dataset_attested: bool = False
     minimum_sample_size_attested: bool = False
     calibration_run_attested: bool = False
@@ -130,6 +172,60 @@ def _load_private_reference(env_name: str, label: str) -> str:
     return value
 
 
+def _load_private_monitoring_summary_path(env_name: str) -> Path:
+    _validate_env_key(env_name)
+    raw_path = os.environ.get(env_name, "").strip()
+    if not raw_path:
+        raise RenderError("private monitoring summary path env var is required")
+    if "\n" in raw_path or "\r" in raw_path or "\t" in raw_path or "#" in raw_path:
+        raise RenderError("private monitoring summary path contains unsupported characters")
+    summary_path = Path(raw_path).expanduser().resolve()
+    if path_is_within(summary_path, REPO_ROOT):
+        raise RenderError("private monitoring summary path must be outside source control")
+    if not summary_path.exists():
+        raise RenderError("private monitoring summary path does not exist")
+    if not summary_path.is_file():
+        raise RenderError("private monitoring summary path must be a file")
+    return summary_path
+
+
+def _load_private_monitoring_summary_payload(summary_path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(summary_path.read_text(encoding="utf-8"))
+    except UnicodeDecodeError as exc:
+        raise RenderError("private monitoring summary must be UTF-8 JSON") from exc
+    except json.JSONDecodeError as exc:
+        raise RenderError("private monitoring summary must be valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise RenderError("private monitoring summary must be a JSON object")
+    return payload
+
+
+def _validate_private_monitoring_summary(summary_path: Path) -> dict[str, int]:
+    payload = _load_private_monitoring_summary_payload(summary_path)
+    unsupported_keys = sorted(set(payload) - ALLOWED_MONITORING_SUMMARY_KEYS)
+    if unsupported_keys:
+        raise RenderError("private monitoring summary contains unsupported fields")
+
+    for key in sorted(REQUIRED_MONITORING_SUMMARY_TRUE_FLAGS):
+        if payload.get(key) is not True:
+            raise RenderError(f"private monitoring summary requires {key}=true")
+    for key in sorted(REQUIRED_MONITORING_SUMMARY_FALSE_FLAGS):
+        if payload.get(key) is not False:
+            raise RenderError(f"private monitoring summary requires {key}=false")
+    for key in sorted(REQUIRED_MONITORING_SUMMARY_POSITIVE_COUNTS):
+        value = payload.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise RenderError(f"private monitoring summary requires positive {key}")
+
+    return {
+        "evaluated_outcome_count": int(payload["evaluated_outcome_count"]),
+        "monitored_group_count": int(payload["monitored_group_count"]),
+        "disparity_metric_count": int(payload["disparity_metric_count"]),
+        "alert_rule_count": int(payload["alert_rule_count"]),
+    }
+
+
 def _validate_approved_attestations(config: RenderConfig) -> None:
     missing = [
         message
@@ -158,8 +254,20 @@ def _load_private_references(config: RenderConfig) -> list[str]:
 
 def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
     private_reference_count = 0
+    private_monitoring_summary = {
+        "evaluated_outcome_count": 0,
+        "monitored_group_count": 0,
+        "disparity_metric_count": 0,
+        "alert_rule_count": 0,
+    }
     if config.approved_monitoring:
         _validate_approved_attestations(config)
+        monitoring_summary_path = _load_private_monitoring_summary_path(
+            config.monitoring_summary_path_env
+        )
+        private_monitoring_summary = _validate_private_monitoring_summary(
+            monitoring_summary_path
+        )
         private_reference_count = len(_load_private_references(config))
         status = "production_monitoring_ready"
         calibrated_ready = True
@@ -179,6 +287,25 @@ def _evidence_payload(config: RenderConfig) -> tuple[dict[str, Any], int]:
         "no_phi_or_secret_values_attested": True,
         "no_raw_demographic_values_attested": True,
         "no_production_outcome_rows_attested": True,
+        "private_monitoring_summary_path_env": (
+            config.monitoring_summary_path_env if config.approved_monitoring else None
+        ),
+        "private_monitoring_summary_path_configured": bool(config.approved_monitoring),
+        "private_monitoring_summary_path_value_included": False,
+        "private_monitoring_summary_checked": bool(config.approved_monitoring),
+        "private_monitoring_summary_evaluated_outcome_count": (
+            private_monitoring_summary["evaluated_outcome_count"]
+        ),
+        "private_monitoring_summary_monitored_group_count": (
+            private_monitoring_summary["monitored_group_count"]
+        ),
+        "private_monitoring_summary_disparity_metric_count": (
+            private_monitoring_summary["disparity_metric_count"]
+        ),
+        "private_monitoring_summary_alert_rule_count": (
+            private_monitoring_summary["alert_rule_count"]
+        ),
+        "private_monitoring_summary_raw_values_included": False,
         "calibrated_threshold": {
             "source_control_calibration_checklist_documented": True,
             "calibration_checklist_path": (
@@ -264,6 +391,26 @@ def render_private_evidence(config: RenderConfig) -> dict[str, Any]:
             "legal_privacy_review_completed"
         ],
         "private_reference_count": private_reference_count,
+        "private_monitoring_summary_path_env_configured": bool(
+            evidence["private_monitoring_summary_path_env"]
+        ),
+        "private_monitoring_summary_path_value_included": False,
+        "private_monitoring_summary_checked": evidence[
+            "private_monitoring_summary_checked"
+        ],
+        "private_monitoring_summary_evaluated_outcome_count": evidence[
+            "private_monitoring_summary_evaluated_outcome_count"
+        ],
+        "private_monitoring_summary_monitored_group_count": evidence[
+            "private_monitoring_summary_monitored_group_count"
+        ],
+        "private_monitoring_summary_disparity_metric_count": evidence[
+            "private_monitoring_summary_disparity_metric_count"
+        ],
+        "private_monitoring_summary_alert_rule_count": evidence[
+            "private_monitoring_summary_alert_rule_count"
+        ],
+        "private_monitoring_summary_raw_values_included": False,
         "output_path_in_source_control": False,
         "raw_private_values_included": False,
         "raw_demographic_values_included": False,
@@ -293,6 +440,7 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         alert_owner_reference_env=args.alert_owner_reference_env,
         latest_run_reference_env=args.latest_run_reference_env,
         legal_privacy_reference_env=args.legal_privacy_reference_env,
+        monitoring_summary_path_env=args.monitoring_summary_path_env,
         approved_outcome_dataset_attested=args.approved_outcome_dataset_attested,
         minimum_sample_size_attested=args.minimum_sample_size_attested,
         calibration_run_attested=args.calibration_run_attested,
@@ -339,6 +487,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--legal-privacy-reference-env",
         default=DEFAULT_LEGAL_PRIVACY_REFERENCE_ENV,
+    )
+    parser.add_argument(
+        "--monitoring-summary-path-env",
+        default=DEFAULT_MONITORING_SUMMARY_PATH_ENV,
     )
     parser.add_argument("--approved-outcome-dataset-attested", action="store_true")
     parser.add_argument("--minimum-sample-size-attested", action="store_true")

@@ -482,11 +482,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   demographic-grouping, continuous-monitoring, disparity-threshold,
   alert-owner, latest-run, legal/privacy, rollback, metadata-only audit, and
   no-raw-value attestations before approved mode, reads private governance
-  references from environment variables, writes private output with `0600`
-  permissions, and prints only redacted booleans/counts. This prepares the
-  private fairness-evidence handoff without storing references, raw
-  demographic values, production outcome rows, claim content, legal records, or
-  approval documents in source control. The PHIplan
+  references and a private aggregate monitoring-summary path from environment
+  variables, validates that the summary has required readiness booleans,
+  positive aggregate counts, and explicit no-raw-value flags, and rejects
+  unsupported fields or raw-value inclusion flags. It writes private output
+  with `0600` permissions and prints only redacted booleans/counts. This
+  prepares the private fairness-evidence handoff without storing references,
+  private summary paths, raw demographic values, production outcome rows, claim
+  content, legal records, or approval documents in source control. The PHIplan
   production-readiness audit blocks
   on that report until approved outcome data, monitoring ownership, latest run
   evidence, and legal/privacy governance are complete outside source control.

@@ -65,7 +65,7 @@
     }
   ],
   "evidence_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/prediction_fairness_evidence/fairness_monitoring_evidence.template.json",
-  "generated_at": "2026-05-31T21:26:57.895648+00:00",
+  "generated_at": "2026-06-01T07:46:14.679432+00:00",
   "notes": [
     "This validator reads a local JSON evidence packet only and does not call external outcome, legal, privacy, alerting, or model-card systems.",
     "Raw demographic values, production outcome rows, PHI, secrets, approval references, and individual identifiers must remain outside source control.",
@@ -213,8 +213,8 @@
         "private_evidence_renderer_exists": true,
         "private_evidence_renderer_missing_marker_count": 0,
         "private_evidence_renderer_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/scripts/render_prediction_fairness_private_evidence.py",
-        "private_evidence_renderer_present_marker_count": 16,
-        "private_evidence_renderer_required_marker_count": 16,
+        "private_evidence_renderer_present_marker_count": 26,
+        "private_evidence_renderer_required_marker_count": 26,
         "private_output_required": true,
         "raw_private_values_included": false,
         "raw_renderer_text_included": false,

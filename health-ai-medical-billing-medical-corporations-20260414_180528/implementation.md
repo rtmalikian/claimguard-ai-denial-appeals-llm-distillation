@@ -327,9 +327,12 @@ The current evidence now also verifies
 source-controlled private evidence renderer that refuses source-control output,
 requires approved outcome, sample-size, calibration, threshold-review,
 monitoring, latest-run, legal/privacy, rollback, metadata-only audit, and
-no-raw-value attestations before approved mode, reads private references only
-from environment variables, writes `0600` private output, and reports redacted
-booleans/counts without storing private references, raw demographic values, or
+no-raw-value attestations before approved mode, reads private references and a
+private aggregate monitoring-summary path only from environment variables,
+validates required readiness booleans, positive aggregate counts, and explicit
+no-raw-value flags, rejects unsupported fields or raw-value inclusion flags,
+writes `0600` private output, and reports redacted booleans/counts without
+storing private references, private summary paths, raw demographic values, or
 production outcome rows.
 The manual production-gate packet now also carries
 `manual_prediction_fairness_monitoring_evidence`, including the dedicated
@@ -951,6 +954,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Manual production-gate packet requires
   `prediction_fairness_evidence_report_ready` and production threshold/fairness
   monitoring attestations before fairness monitoring evidence can pass
+- [x] Prediction fairness private evidence renderer approved mode validates a
+  private aggregate monitoring summary for required readiness booleans,
+  positive counts, no-raw-value flags, and unsupported-field rejection before
+  writing ready private evidence
 - [x] Production prediction fairness startup guard with metadata-only logging
   and fail-fast behavior when production starts before threshold calibration,
   continuous monitoring, and governance evidence are safe and ready
@@ -1901,8 +1908,10 @@ def validate_npi(npi: str) -> bool:
   the PHIplan production-readiness audit and startup guard, the local
   source-controlled monitoring runbook, calibration checklist, monitoring
   validation checklist, legal/privacy checklist, and private evidence renderer
-  sub-gates are ready, and the current evidence remains blocked until approved
-  outcome data and governance review exist.
+  sub-gates are ready; the private renderer now validates a private aggregate
+  monitoring summary before ready evidence can be written, and the current
+  evidence remains blocked until approved outcome data and governance review
+  exist.
 - [ ] Corpus-derived MLX fine-tuning remains blocked in `--run` mode until
   `llm-distill/scripts/validate_production_corpus_evidence.py` produces a safe
   ready report with approved non-synthetic paired denial/appeal examples.
