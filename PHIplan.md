@@ -1268,6 +1268,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   EDI 835 parsing now validates CARC group/reason and LQ remark codes without
   returning raw code values, segment payloads, claim text, patient identifiers,
   provider identifiers, PHI, or production document content.
+- Require and validate direct-claim place-of-service metadata before claim
+  submission. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now accepts `place_of_service_code`, `place_of_service`, `pos_code`, or
+  `pos`, validates the value through the local administrative healthcare-code
+  utility, and blocks submission before prediction, persistence, or audit-log
+  creation when the metadata is missing or invalid. The structured 400 response
+  includes field names, accepted metadata keys, safe blocker codes, and no raw
+  field values, claim payloads, patient identifiers, provider identifiers, PHI,
+  secrets, or production claim content.
 - Enforce local NPI check-digit validation at provider model assignment.
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/models/__init__.py`
   now normalizes `Provider.npi` and rejects invalid check digits before the
@@ -2066,3 +2075,16 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-183739-provider-npi-validation/`
 if rolling back the provider NPI validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_endpoints.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_coverage.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_high_risk_human_review.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_remaining_coverage.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-184515-place-of-service-required-field/`
+if rolling back the place-of-service required-field slice.

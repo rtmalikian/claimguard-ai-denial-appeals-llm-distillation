@@ -2,6 +2,57 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 18:48:10 PDT - Place-of-service required claim field
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: close the direct-claim place-of-service metadata gap by requiring and
+  validating POS metadata before claim submission prediction, persistence, or
+  audit-log creation, while keeping error responses and logs metadata-only.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `app/api/v1/claims.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py.bak` | Added submit-time place-of-service metadata aliases, missing/invalid POS blockers, and local POS code validation. | Restore backup over `app/api/v1/claims.py`. |
+| `tests/unit/test_required_claim_fields.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py.bak` | Added valid, missing, and invalid POS required-field coverage with raw-value redaction assertions. | Restore backup over `tests/unit/test_required_claim_fields.py`. |
+| `tests/unit/test_claims_endpoints.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_endpoints.py.bak` | Updated successful synthetic submit fixture with valid POS metadata. | Restore backup over `tests/unit/test_claims_endpoints.py`. |
+| `tests/unit/test_claims_coverage.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claims_coverage.py.bak` | Updated successful synthetic submit fixture with valid POS metadata. | Restore backup over `tests/unit/test_claims_coverage.py`. |
+| `tests/unit/test_high_risk_human_review.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_high_risk_human_review.py.bak` | Updated high-risk synthetic submit fixture with valid POS metadata. | Restore backup over `tests/unit/test_high_risk_human_review.py`. |
+| `tests/unit/test_remaining_coverage.py` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_remaining_coverage.py.bak` | Updated direct submit coverage fixture with valid POS metadata. | Restore backup over `tests/unit/test_remaining_coverage.py`. |
+| `../PHIplan.md` | `backups/20260601-184515-place-of-service-required-field/root/PHIplan.md.bak` | Documented submit-time POS enforcement and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated the missing required claim fields checklist and healthcare-code validation notes. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-184515-place-of-service-required-field/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-184515-place-of-service-required-field/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-184515-place-of-service-required-field -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/claims.py tests/unit/test_required_claim_fields.py tests/unit/test_claims_endpoints.py tests/unit/test_claims_coverage.py tests/unit/test_high_risk_human_review.py tests/unit/test_remaining_coverage.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_required_claim_fields.py tests/unit/test_claims_endpoints.py tests/unit/test_claims_coverage.py tests/unit/test_high_risk_human_review.py tests/unit/test_remaining_coverage.py -q`: passed, 53 tests with existing deprecation warnings and an existing unawaited `AsyncMock` runtime warning in the broader endpoint coverage set.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_healthcare_code_validation.py tests/unit/test_required_claim_fields.py -q`: passed, 20 tests with two existing deprecation warnings.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-place-of-service-required-field-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-place-of-service-required-field-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, and no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- New-lines-only token/SSN scan over changed files with `git diff -U0 ... | rg ...`: passed with no token-shaped secret or SSN matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided requiring POS metadata for prediction-only requests; this slice
+  matches the existing submit-time required-field gate.
+- Avoided logging or returning raw POS values, raw claim payloads, patient
+  identifiers, provider identifiers, PHI, secrets, or production claim content.
+- Avoided changing EDI parsing semantics, PHIplan production-readiness booleans,
+  student-default routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-184515-place-of-service-required-field/`.
+- This slice closes a direct-claim metadata integrity gap; it does not complete
+  the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 18:39:56 PDT - Provider NPI validation enforcement
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

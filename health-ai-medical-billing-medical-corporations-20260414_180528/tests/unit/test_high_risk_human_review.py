@@ -98,6 +98,7 @@ async def test_submit_claim_high_risk_requires_human_review_before_next_action(
             "payer_name": "Synthetic Health Plan",
             "subscriber_id": "SYN-SUB-303",
             "service_date": "2026-01-15",
+            "place_of_service_code": "11",
         },
         diagnosis_codes=["Z00.00"],
         procedure_codes=["99213"],

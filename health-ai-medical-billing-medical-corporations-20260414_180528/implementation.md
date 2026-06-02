@@ -1899,7 +1899,7 @@ STATE_TRANSITIONS = {
 | Subscriber ID | Missing - CRITICAL |
 | Group Number | Missing |
 | Service Date | Missing - CRITICAL |
-| Place of Service Code | Missing - CRITICAL |
+| Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Missing |
 | NDC Codes (drugs) | Missing |
 | Referring Provider NPI | Missing |
@@ -1913,6 +1913,12 @@ STATE_TRANSITIONS = {
   production data.
 
 ### 2.4 No ICD-10/CPT Validation
+- [x] Place-of-service metadata is now required for direct claim submission and
+  validated against the local administrative healthcare-code utility before
+  prediction, persistence, or audit-log creation; safe error details report
+  field names, accepted metadata keys, and blocker codes without raw field
+  values, raw claim data, patient identifiers, provider identifiers, PHI, or
+  production claim content.
 - [x] Diagnosis-code format validation before prediction, submission, and EDI
   837 review
 - [x] Procedure-code format validation before prediction, submission, and EDI

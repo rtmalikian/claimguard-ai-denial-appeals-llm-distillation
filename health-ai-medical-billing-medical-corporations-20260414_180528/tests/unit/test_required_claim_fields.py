@@ -12,6 +12,7 @@ def test_required_claim_field_validator_accepts_complete_synthetic_metadata():
             "payer": {"name": "Synthetic Health Plan"},
             "subscriber": {"id": "SYN-SUB-001"},
             "service_date": "2026-01-15",
+            "place_of_service_code": "11",
         }
     )
 
@@ -28,6 +29,7 @@ def test_required_claim_field_validator_returns_safe_missing_metadata_issues():
         "missing_payer_metadata",
         "missing_subscriber_metadata",
         "missing_service_date_metadata",
+        "missing_place_of_service_metadata",
     ]
     assert details[0]["safe_context"]["raw_claim_data_included"] is False
     assert "250" not in str(details)
@@ -41,11 +43,33 @@ def test_required_claim_field_validator_rejects_invalid_service_date_safely():
             "payer_name": "Synthetic Health Plan",
             "subscriber_id": "SYN-SUB-001",
             "service_date": "not-a-date",
+            "place_of_service_code": "11",
         }
     )
 
     assert [issue.error_code for issue in issues] == ["invalid_service_date_metadata"]
     assert "not-a-date" not in str([issue.safe_detail() for issue in issues])
+
+
+def test_required_claim_field_validator_rejects_invalid_place_of_service_safely():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "place_of_service_code": "30",
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == [
+        "invalid_place_of_service_metadata"
+    ]
+    assert details[0]["field"] == "place_of_service_code"
+    assert details[0]["safe_context"]["raw_field_value_included"] is False
+    assert "30" not in str(details)
 
 
 def test_claim_data_value_validator_rejects_negative_amounts_safely():
@@ -131,7 +155,7 @@ async def test_submit_claim_blocks_missing_required_metadata_before_prediction(m
     assert exc_info.value.status_code == 400
     detail = exc_info.value.detail
     assert detail["error_code"] == "missing_required_claim_fields"
-    assert detail["issue_count"] == 3
+    assert detail["issue_count"] == 4
     assert detail["safe_context"]["raw_claim_data_included"] is False
     assert "250" not in str(detail)
     mock_predict.assert_not_called()

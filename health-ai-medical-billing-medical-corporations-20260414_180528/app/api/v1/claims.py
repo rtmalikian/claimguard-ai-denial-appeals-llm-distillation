@@ -80,7 +80,10 @@ from app.utils.edi_parser import (
     parse_edi_837,
 )
 from app.utils.edi_835_parser import EDI835ClaimPayment, EDI835ParserError, parse_edi_835
-from app.utils.healthcare_codes import validate_claim_billing_codes
+from app.utils.healthcare_codes import (
+    is_valid_place_of_service_code,
+    validate_claim_billing_codes,
+)
 from datetime import datetime, date
 
 router = APIRouter(prefix="/claims", tags=["claims"])
@@ -275,6 +278,12 @@ class RequiredClaimFieldIssue:
 PAYER_METADATA_KEYS = ("payer", "payer_name", "payer_identifier")
 SUBSCRIBER_METADATA_KEYS = ("subscriber", "subscriber_id", "policy_number")
 SERVICE_DATE_METADATA_KEYS = ("service_date", "date_of_service")
+PLACE_OF_SERVICE_METADATA_KEYS = (
+    "place_of_service_code",
+    "place_of_service",
+    "pos_code",
+    "pos",
+)
 CLAIM_AMOUNT_METADATA_KEYS = (
     "amount",
     "claim_amount",
@@ -422,6 +431,27 @@ def validate_required_claim_submission_fields(
                 field="service_date",
                 error_code="invalid_service_date_metadata",
                 accepted_metadata_keys=SERVICE_DATE_METADATA_KEYS,
+            )
+        )
+
+    place_of_service_value = _first_present_metadata_value(
+        data,
+        PLACE_OF_SERVICE_METADATA_KEYS,
+    )
+    if place_of_service_value is None:
+        issues.append(
+            RequiredClaimFieldIssue(
+                field="place_of_service_code",
+                error_code="missing_place_of_service_metadata",
+                accepted_metadata_keys=PLACE_OF_SERVICE_METADATA_KEYS,
+            )
+        )
+    elif not is_valid_place_of_service_code(place_of_service_value):
+        issues.append(
+            RequiredClaimFieldIssue(
+                field="place_of_service_code",
+                error_code="invalid_place_of_service_metadata",
+                accepted_metadata_keys=PLACE_OF_SERVICE_METADATA_KEYS,
             )
         )
 
@@ -667,7 +697,8 @@ def _required_claim_fields_error_detail(
     return {
         "error_code": "missing_required_claim_fields",
         "message": (
-            "Claim submission requires payer, subscriber, and service date metadata."
+            "Claim submission requires payer, subscriber, service date, and "
+            "place-of-service metadata."
         ),
         "issue_count": len(issues),
         "issues": [issue.safe_detail() for issue in issues],

@@ -56,6 +56,7 @@ class TestClaimsEndpointsDirect:
                 "payer_name": "Synthetic Health Plan",
                 "subscriber_id": "SYN-SUB-001",
                 "service_date": "2026-01-15",
+                "place_of_service_code": "11",
             },
         )
 
