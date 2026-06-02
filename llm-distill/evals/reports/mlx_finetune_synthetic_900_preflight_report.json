@@ -1,7 +1,5 @@
 {
-  "blocked_reasons": [
-    "mlx_lm.lora cannot access a Metal device in this session"
-  ],
+  "blocked_reasons": [],
   "checks": {
     "adapter_output": {
       "exists_after_run": null,
@@ -68,12 +66,33 @@
     },
     "mlx_lm_lora": {
       "available": true,
-      "error": "mlx_lm.lora cannot access a Metal device in this session",
-      "help_returncode": 1,
+      "configured_executable": true,
+      "error": null,
+      "help_returncode": 0,
       "path": ".venv-mlx/bin/mlx_lm.lora",
-      "runtime_ready": false,
-      "stderr_tail": "Traceback (most recent call last):\n  File \".venv-mlx/bin/mlx_lm.lora\", line 4, in <module>\n    from mlx_lm.lora import main\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/__init__.py\", line 9, in <module>\n    from .convert import convert\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/convert.py\", line 8, in <module>\n    import mlx.nn as nn\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/__init__.py\", line 4, in <module>\n    from mlx.nn.layers import *\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/__init__.py\", line 3, in <module>\n    from mlx.nn.layers.activations import (\n    ...<52 lines>...\n    )\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/activations.py\", line 19, in <module>\n    @partial(mx.compile, shapeless=True)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\nException ignored in atexit callback <nanobind.nb_func object at 0x107e2a460>:\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\n",
-      "stdout_tail": ""
+      "path_source": "argument",
+      "runtime_ready": true,
+      "stderr_tail": "",
+      "stdout_tail": "usage: mlx_lm.lora [-h] [--model MODEL] [--train] [--data DATA]\n                   [--fine-tune-type {lora,dora,full}]\n                   [--optimizer {adam,adamw,muon,sgd,adafactor}]\n                   [--mask-prompt] [--num-layers NUM_LAYERS]\n                   [--batch-size BATCH_SIZE] [--iters ITERS]\n                   [--val-batches VAL_BATCHES] [--learning-rate LEARNING_RATE]\n                   [--steps-per-report STEPS_PER_REPORT]\n                   [--steps-per-eval STEPS_PER_EVAL]\n                   [--grad-accumulation-steps GRAD_ACCUMULATION_STEPS]\n                   [--resume-adapter-file RESUME_ADAPTER_FILE]\n                   [--adapter-path ADAPTER_PATH] [--save-every SAVE_EVERY]\n                   [--test] [--test-batches TEST_BATCHES]\n                   [--max-seq-length MAX_SEQ_LENGTH] [-c CONFIG]\n                   [--grad-checkpoint]\n                   [--clear-cache-threshold CLEAR_CACHE_THRESHOLD]\n                   [--report-to REPORT_TO] [--project-name PROJECT_NAME]\n                   [--seed SEED]\n\nLoRA or QLoRA finetuning.\n\noptions:\n  -h, --help            show this help message and exit\n  --model MODEL         The path to the local model directory or Hugging Face\n                        repo.\n  --train               Do training\n  --data DATA           Directory with {train, valid, test}.jsonl files or the\n                        name of a Hugging Face dataset (e.g., 'mlx-\n                        community/wikisql')\n  --fine-tune-type {lora,dora,full}\n                        Type of fine-tuning to perform: lora, dora, or full.\n  --optimizer {adam,adamw,muon,sgd,adafactor}\n                        Optimizer to use for training: adam, adamw, sgd, or\n                        adafactor.\n  --mask-prompt         Mask the prompt in the loss when training\n  --num-layers NUM_LAYERS\n                        Number of layers to fine-tune. Default is 16, use -1\n                        for all.\n  --batch-size BATCH_SIZE\n                        Minibatch size.\n  --iters ITERS         Iterations to train for.\n  --val-batches VAL_BATCHES\n                        Number of validation batches, -1 uses the entire\n                        validation set.\n  --learning-rate LEARNING_RATE\n                        Adam learning rate.\n  --steps-per-report STEPS_PER_REPORT\n                        Number of training steps between loss reporting.\n  --steps-per-eval STEPS_PER_EVAL\n                        Number of training steps between validations.\n  --grad-accumulation-steps GRAD_ACCUMULATION_STEPS\n                        Number of steps to accumulate before each optimizer\n                        update.\n  --resume-adapter-file RESUME_ADAPTER_FILE\n                        Load path to resume training from the given fine-tuned\n                        weights.\n  --adapter-path ADAPTER_PATH\n                        Save/load path for the fine-tuned weights.\n  --save-every SAVE_EVERY\n                        Save the model every N iterations.\n  --test                Evaluate on the test set after training\n  --test-batches TEST_BATCHES\n                        Number of test set batches, -1 uses the entire test\n                        set.\n  --max-seq-length MAX_SEQ_LENGTH\n                        Maximum sequence length.\n  -c, --config CONFIG   A YAML configuration file with the training options\n  --grad-checkpoint     Use gradient checkpointing to reduce memory use.\n  --clear-cache-threshold CLEAR_CACHE_THRESHOLD\n                        Clear the allocator cache between steps if it grows\n                        too large.\n  --report-to REPORT_TO\n                        Services to report logs to ('wandb', 'swanlab', or\n                        'wandb,swanlab').\n  --project-name PROJECT_NAME\n                        Project name for logging. Defaults to the name of the\n                        root directory.\n  --seed SEED           The PRNG seed\n"
+    },
+    "production_corpus_evidence": {
+      "blocked_requirement_ids": [],
+      "blockers": [],
+      "data_tier": "approved_deidentified_corpus",
+      "enforced": false,
+      "report_loaded": false,
+      "report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+      "report_ready": null,
+      "report_safe_to_review": null,
+      "required_for_run": true,
+      "safe_context": {
+        "approval_reference_value_included": false,
+        "raw_checksums_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_secret_included": false,
+        "raw_source_paths_included": false
+      }
     }
   },
   "command": [
@@ -99,17 +118,18 @@
     "--adapter-path",
     "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
   ],
-  "generated_at": "2026-05-30T23:46:53.691055+00:00",
+  "generated_at": "2026-06-02T01:29:52.524331+00:00",
   "manifest": "llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json",
   "mode": "preflight",
   "notes": [
     "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
     "Preflight mode does execute mlx_lm.lora --help to verify that the MLX runtime can import and access Metal in the current session.",
     "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+    "Run mode for corpus-derived data tiers also requires a ready and safe production corpus evidence report.",
     "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
   ],
   "preflight_errors": [],
-  "ready": false,
+  "ready": true,
   "training_attempted": false,
   "training_succeeded": null
 }

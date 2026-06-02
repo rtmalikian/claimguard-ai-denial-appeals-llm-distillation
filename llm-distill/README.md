@@ -354,9 +354,11 @@ python3 llm-distill/scripts/bootstrap_mlx_runtime.py
 
 The bootstrap creates or reuses `.venv-mlx`, installs `mlx-lm`, then runs the
 runtime preflight, fine-tune preflight, and readiness audit with the virtualenv
-on `PATH`. It does not download model weights, start `mlx_lm.server`, call a
-teacher endpoint, train, benchmark, quantize, or write adapter weights. Delete
-`.venv-mlx` to roll back the local environment.
+on `PATH`. The fine-tune preflight also passes `.venv-mlx/bin/mlx_lm.lora`
+explicitly so the report identifies whether LoRA discovery came from a
+configured executable or ambient PATH. It does not download model weights,
+start `mlx_lm.server`, call a teacher endpoint, train, benchmark, quantize, or
+write adapter weights. Delete `.venv-mlx` to roll back the local environment.
 
 Before running LoRA, validate the manifest and local training environment:
 
@@ -374,7 +376,17 @@ write adapter weights. It checks:
 - chat rows keep the ClaimGuard assistant JSON contract;
 - `human_review_required=true` and `draft_for_human_review` are preserved;
 - PHI/PII scan findings are absent;
-- `mlx_lm.lora` is available on `PATH`.
+- `mlx_lm.lora` is available on `PATH`, via `--mlx-lora-executable`, or via
+  `CLAIMGUARD_MLX_LORA_EXECUTABLE`.
+
+For project-local MLX environments that are not activated in the shell, use:
+
+```bash
+python3 llm-distill/scripts/run_mlx_finetune.py \
+  --manifest llm-distill/data/distillation/mlx_sft_seed/manifest.json \
+  --output llm-distill/evals/reports/mlx_finetune_preflight_report.json \
+  --mlx-lora-executable .venv-mlx/bin/mlx_lm.lora
+```
 
 The checked-in seed manifest is expected to report `ready=false` until real
 large-teacher or human-reviewed labels replace pending seed labels and MLX-LM

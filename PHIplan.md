@@ -879,6 +879,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/evals/reports/mlx_finetune_synthetic_900_run_report.json`
   shows the data is valid but training was not attempted because this session
   cannot access a Metal device; no synthetic-900 adapter files were written.
+- Extend the MLX fine-tune preflight so `mlx_lm.lora` can be discovered through
+  an explicit `--mlx-lora-executable` argument or
+  `CLAIMGUARD_MLX_LORA_EXECUTABLE` in addition to ambient `PATH`. The runner
+  records the discovery source in safe report metadata, and the bootstrap
+  runner now passes `.venv-mlx/bin/mlx_lm.lora` explicitly for deterministic
+  project-local preflight evidence without downloading models or writing
+  adapter weights.
 - Extend the top-level distillation readiness audit so the generated 900-pair
   stress corpus is enforced as current evidence. The audit now requires the
   synthetic corpus generation report, manifest, 1,800 letter files, file-level
@@ -2030,3 +2037,15 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/`
 if rolling back the public PHIplan completion-audit documentation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`, `llm-distill/README.md`,
+`llm-distill/docs/mlx-setup.md`, `llm-distill/docs/eval-rubric.md`,
+`llm-distill/scripts/run_mlx_finetune.py`,
+`llm-distill/scripts/bootstrap_mlx_runtime.py`,
+`llm-distill/evals/reports/mlx_finetune_synthetic_900_preflight_report.json`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/`
+if rolling back the MLX LoRA executable override slice.

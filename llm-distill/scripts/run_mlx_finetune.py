@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -26,6 +27,7 @@ DEFAULT_OUTPUT = (
 DEFAULT_PRODUCTION_CORPUS_REPORT = (
     REPO_ROOT / "llm-distill" / "evals" / "reports" / "production_corpus_evidence_report.json"
 )
+MLX_LORA_EXECUTABLE_ENV = "CLAIMGUARD_MLX_LORA_EXECUTABLE"
 REQUIRED_SPLITS = ("train", "valid", "test")
 REQUIRED_MANIFEST_KEYS = {
     "adapter_path",
@@ -370,18 +372,67 @@ def validate_data_dir(data_dir: Path | None, manifest: dict[str, Any]) -> tuple[
     }, errors
 
 
-def check_mlx_lora() -> tuple[dict[str, Any], list[str]]:
+def resolve_mlx_lora_executable(
+    executable_override: str | Path | None = None,
+) -> tuple[str | None, str, bool, str | None]:
+    raw_override = str(executable_override).strip() if executable_override else ""
+    source = "argument" if raw_override else ""
+    if not raw_override:
+        raw_override = os.environ.get(MLX_LORA_EXECUTABLE_ENV, "").strip()
+        source = "environment" if raw_override else "path"
+
+    if raw_override:
+        configured_path = Path(raw_override).expanduser()
+        if configured_path.is_absolute() or "/" in raw_override:
+            if configured_path.is_absolute():
+                candidates = [configured_path.resolve()]
+            else:
+                candidates = [
+                    (Path.cwd() / configured_path).resolve(),
+                    (REPO_ROOT / configured_path).resolve(),
+                ]
+            seen: set[Path] = set()
+            for resolved in candidates:
+                if resolved in seen:
+                    continue
+                seen.add(resolved)
+                if not resolved.exists():
+                    continue
+                if not resolved.is_file():
+                    return None, source, True, "configured mlx_lm.lora executable is not a file"
+                return str(resolved), source, True, None
+            if not any(path.exists() for path in seen):
+                return None, source, True, "configured mlx_lm.lora executable not found"
+            return None, source, True, "configured mlx_lm.lora executable is not a file"
+
+        executable = shutil.which(raw_override)
+        if not executable:
+            return None, source, True, "configured mlx_lm.lora executable not found on PATH"
+        return executable, source, True, None
+
     executable = shutil.which("mlx_lm.lora")
+    return executable, source, False, None
+
+
+def check_mlx_lora(
+    executable_override: str | Path | None = None,
+) -> tuple[dict[str, Any], list[str]]:
+    executable, executable_source, configured_executable, executable_error = (
+        resolve_mlx_lora_executable(executable_override)
+    )
     if not executable:
+        error = executable_error or "mlx_lm.lora not found on PATH"
         return {
             "available": False,
             "path": None,
+            "path_source": executable_source,
+            "configured_executable": configured_executable,
             "runtime_ready": False,
             "help_returncode": None,
             "stdout_tail": "",
             "stderr_tail": "",
-            "error": "mlx_lm.lora not found on PATH",
-        }, ["mlx_lm.lora is not installed or not on PATH"]
+            "error": error,
+        }, [error]
 
     try:
         result = subprocess.run(
@@ -395,6 +446,8 @@ def check_mlx_lora() -> tuple[dict[str, Any], list[str]]:
         report = {
             "available": True,
             "path": executable,
+            "path_source": executable_source,
+            "configured_executable": configured_executable,
             "runtime_ready": False,
             "help_returncode": None,
             "stdout_tail": tail_text(exc.stdout or ""),
@@ -406,6 +459,8 @@ def check_mlx_lora() -> tuple[dict[str, Any], list[str]]:
         report = {
             "available": True,
             "path": executable,
+            "path_source": executable_source,
+            "configured_executable": configured_executable,
             "runtime_ready": False,
             "help_returncode": None,
             "stdout_tail": "",
@@ -427,6 +482,8 @@ def check_mlx_lora() -> tuple[dict[str, Any], list[str]]:
     report = {
         "available": True,
         "path": executable,
+        "path_source": executable_source,
+        "configured_executable": configured_executable,
         "runtime_ready": runtime_ready,
         "help_returncode": result.returncode,
         "stdout_tail": stdout_tail,
@@ -438,6 +495,8 @@ def check_mlx_lora() -> tuple[dict[str, Any], list[str]]:
     return {
         "available": True,
         "path": executable,
+        "path_source": executable_source,
+        "configured_executable": configured_executable,
         "runtime_ready": True,
         "help_returncode": result.returncode,
         "stdout_tail": stdout_tail,
@@ -485,6 +544,13 @@ def main() -> int:
             "can train on corpus-derived SFT manifests."
         ),
     )
+    parser.add_argument(
+        "--mlx-lora-executable",
+        help=(
+            "Optional explicit mlx_lm.lora executable path or command name. "
+            f"Can also be supplied with {MLX_LORA_EXECUTABLE_ENV}."
+        ),
+    )
     args = parser.parse_args()
 
     manifest_payload, manifest_load_errors = load_manifest(args.manifest)
@@ -497,7 +563,7 @@ def main() -> int:
         adapter_path,
     ) = validate_manifest(manifest_payload, args.manifest)
     data_report, data_errors = validate_data_dir(data_dir, manifest)
-    mlx_report, mlx_errors = check_mlx_lora()
+    mlx_report, mlx_errors = check_mlx_lora(args.mlx_lora_executable)
     production_corpus_report, production_corpus_blockers = production_corpus_run_gate(
         manifest,
         report_path=args.production_corpus_report,

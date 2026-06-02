@@ -2,6 +2,64 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 18:25:48 PDT - MLX LoRA executable override
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: make MLX LoRA fine-tune preflight executable discovery deterministic
+  for the project-local `.venv-mlx` environment without attempting training,
+  writing adapter weights, enabling student default use, or bypassing PHIplan
+  production-corpus gates.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_mlx_finetune.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/scripts/run_mlx_finetune.py.bak` | Added `--mlx-lora-executable`, `CLAIMGUARD_MLX_LORA_EXECUTABLE`, discovery-source report metadata, and configured-executable missing-path blocking. | Restore backup over the same path. |
+| `llm-distill/scripts/bootstrap_mlx_runtime.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/scripts/bootstrap_mlx_runtime.py.bak` | Passes `.venv-mlx/bin/mlx_lm.lora` explicitly to fine-tune preflight during bootstrap. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py.bak` | Added regression coverage for PATH, argument, cwd-relative argument, environment, and missing configured executable discovery modes. | Restore backup over the same path. |
+| `llm-distill/evals/reports/mlx_finetune_synthetic_900_preflight_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/evals/reports/mlx_finetune_synthetic_900_preflight_report.json.bak` | Refreshed synthetic-900 preflight evidence with `ready=true`, `training_attempted=false`, `path_source=argument`, and `configured_executable=true`. | Restore backup over the same path. |
+| `llm-distill/README.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/README.md.bak` | Documented explicit LoRA executable discovery for project-local MLX preflight. | Restore backup over the same path. |
+| `llm-distill/docs/mlx-setup.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/docs/mlx-setup.md.bak` | Documented `--mlx-lora-executable` and environment override usage. | Restore backup over the same path. |
+| `llm-distill/docs/eval-rubric.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/llm-distill/docs/eval-rubric.md.bak` | Updated the preflight rubric to include configured executable and runtime import/help checks. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/root/PHIplan.md.bak` | Documented deterministic MLX LoRA discovery and rollback notes while keeping production readiness blocked. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated the current objective scratchpad and checklist for explicit LoRA discovery evidence. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_mlx_finetune.py llm-distill/scripts/bootstrap_mlx_runtime.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py -q`: passed, 14 tests with one existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/run_mlx_finetune.py --manifest llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json --output llm-distill/evals/reports/mlx_finetune_synthetic_900_preflight_report.json --mlx-lora-executable .venv-mlx/bin/mlx_lm.lora`: passed with `ready=true`, `training_attempted=false`, `path_source=argument`, `configured_executable=true`, `runtime_ready=true`, and no adapter output.
+- `python3 llm-distill/scripts/run_mlx_finetune.py --manifest llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json --output /private/tmp/claimguard-synthetic900-explicit-run-blocked.json --mlx-lora-executable .venv-mlx/bin/mlx_lm.lora --run`: returned expected exit code 2; training was not attempted because production-corpus evidence was enforced and not ready.
+- `python3 llm-distill/scripts/bootstrap_mlx_runtime.py --skip-install --runtime-report /private/tmp/claimguard-bootstrap-runtime.json --fine-tune-report /private/tmp/claimguard-bootstrap-finetune.json --audit-report /private/tmp/claimguard-bootstrap-audit.json --output /private/tmp/claimguard-bootstrap-report.json --timeout-seconds 30`: passed with `bootstrap_ready=true`; temp fine-tune preflight recorded `path_source=argument` and `runtime_ready=true`.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-mlx-lora-override-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-mlx-lora-override-phi-plan-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, `warning_item_count=1`, and `completion_status=not_complete_private_or_external_evidence_required`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- New-lines-only token/SSN scan over changed files with `git diff -U0 ... | rg ...`: passed with no token-shaped secret or SSN matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided relying on shell PATH mutation as the only way to use the project-local
+  `.venv-mlx/bin/mlx_lm.lora` executable.
+- Avoided running synthetic-900 LoRA training because the `--run` path correctly
+  enforced the production-corpus evidence gate and returned exit code 2.
+- Avoided writing adapter weights, downloading model weights, starting
+  `mlx_lm.server`, calling teacher endpoints, enabling student default use, or
+  changing PHIplan production-readiness booleans.
+- Avoided storing secrets, PHI, raw documents, approval values, vector values,
+  or production claim data.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/`.
+- This slice improves deterministic MLX preflight evidence; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 18:14:51 PDT - Public PHIplan completion-audit docs
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

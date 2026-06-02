@@ -54,7 +54,11 @@ coverage, required safety/use markers, zero PHI findings, and training
 exclusion. These notes remain retrieval/governance context while keeping MLX
 SFT export limited to approved paired denial/appeal examples, and the corpus
 SFT manifest has a guarded MLX fine-tune preflight report with no training
-attempted. Future automated
+attempted. Current objective: make MLX LoRA executable discovery deterministic
+for project-local `.venv-mlx` evidence by supporting an explicit
+`--mlx-lora-executable`/`CLAIMGUARD_MLX_LORA_EXECUTABLE` override while keeping
+training, adapter writes, and production student use blocked until the PHIplan
+corpus, runtime, and approval gates are satisfied. Future automated
 file-ingestion routes are now covered by an AST-based audit that inventories
 `UploadFile`/`File` endpoints and blocks readiness unless each endpoint has
 registered metadata-only surface inspection, governance, pre-processing size
@@ -143,10 +147,14 @@ generated denial notices, and zero PHI findings. The MLX fine-tune wrapper now
 verifies `mlx_lm.lora --help` before training so a headless session without
 Metal access is blocked before adapter writes; the current synthetic-900 run
 report records that no adapter was written because Metal is unavailable in this
-session. The MLX fine-tune runner now also blocks corpus-derived `--run`
-training unless the production corpus evidence report is safe and ready, so the
-current synthetic-only production corpus cannot write corpus-derived adapter
-weights. The top-level distillation readiness audit now also enforces the
+session. The MLX fine-tune runner can now use an explicit
+`--mlx-lora-executable` value or `CLAIMGUARD_MLX_LORA_EXECUTABLE`, records the
+discovery source in preflight evidence, and the bootstrap path passes the
+project-local `.venv-mlx/bin/mlx_lm.lora` explicitly. The MLX fine-tune runner
+now also blocks corpus-derived `--run` training unless the production corpus
+evidence report is safe and ready, so the current synthetic-only production
+corpus cannot write corpus-derived adapter weights. The top-level distillation
+readiness audit now also enforces the
 generated synthetic-900 corpus, its 1,800 letter files, file-level
 format/variation audit, documented format/layout/typography/length coverage,
 appeal-quality contract evidence, app document-analysis extraction evidence,
@@ -779,6 +787,8 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   and MLX fine-tune preflight evidence
 - [x] MLX fine-tune runtime gate blocks synthetic-900 adapter training before
   writes when the current session cannot access a Metal device
+- [x] MLX fine-tune preflight supports explicit `.venv-mlx/bin/mlx_lm.lora`
+  discovery through CLI/env override and records the discovery source
 - [x] Top-level readiness audit covers the synthetic-900 corpus, letter tree,
   file-level format/variation audit, SFT export, and no-Metal guarded run
   evidence

@@ -74,6 +74,10 @@ def venv_bin(venv_path: Path) -> Path:
     return venv_path / "bin"
 
 
+def venv_lora(venv_path: Path) -> Path:
+    return venv_bin(venv_path) / "mlx_lm.lora"
+
+
 def env_with_venv(venv_path: Path) -> dict[str, str]:
     env = os.environ.copy()
     current_path = env.get("PATH", "")
@@ -221,6 +225,8 @@ def main() -> int:
                         str(SCRIPT_DIR / "run_mlx_finetune.py"),
                         "--output",
                         str(args.fine_tune_report),
+                        "--mlx-lora-executable",
+                        str(venv_lora(args.venv_path)),
                     ],
                     env=env,
                     timeout_seconds=args.timeout_seconds,

@@ -412,6 +412,8 @@ def test_mlx_finetune_runtime_check_blocks_without_metal(monkeypatch):
     report, errors = run_mlx_finetune.check_mlx_lora()
 
     assert report["available"] is True
+    assert report["path_source"] == "path"
+    assert report["configured_executable"] is False
     assert report["runtime_ready"] is False
     assert report["help_returncode"] == 1
     assert "Metal device" in report["error"]
@@ -432,7 +434,101 @@ def test_mlx_finetune_runtime_check_accepts_help(monkeypatch):
     report, errors = run_mlx_finetune.check_mlx_lora()
 
     assert report["available"] is True
+    assert report["path_source"] == "path"
+    assert report["configured_executable"] is False
     assert report["runtime_ready"] is True
     assert report["help_returncode"] == 0
     assert report["error"] is None
     assert errors == []
+
+
+def test_mlx_finetune_runtime_check_accepts_explicit_executable(tmp_path, monkeypatch):
+    run_mlx_finetune = _load_script("run_mlx_finetune")
+    executable = tmp_path / "mlx_lm.lora"
+    executable.write_text("#!/bin/sh\n", encoding="utf-8")
+    captured: dict[str, list[str]] = {}
+
+    class Result:
+        returncode = 0
+        stdout = "usage: mlx_lm.lora"
+        stderr = ""
+
+    def fake_run(command, **_kwargs):
+        captured["command"] = command
+        return Result()
+
+    monkeypatch.setattr(run_mlx_finetune.subprocess, "run", fake_run)
+
+    report, errors = run_mlx_finetune.check_mlx_lora(executable)
+
+    assert captured["command"] == [str(executable.resolve()), "--help"]
+    assert report["available"] is True
+    assert report["path"] == str(executable.resolve())
+    assert report["path_source"] == "argument"
+    assert report["configured_executable"] is True
+    assert report["runtime_ready"] is True
+    assert errors == []
+
+
+def test_mlx_finetune_runtime_check_accepts_cwd_relative_executable(
+    tmp_path,
+    monkeypatch,
+):
+    run_mlx_finetune = _load_script("run_mlx_finetune")
+    executable_dir = tmp_path / "bin"
+    executable_dir.mkdir()
+    executable = executable_dir / "mlx_lm.lora"
+    executable.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    class Result:
+        returncode = 0
+        stdout = "usage: mlx_lm.lora"
+        stderr = ""
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(run_mlx_finetune.subprocess, "run", lambda *_, **__: Result())
+
+    report, errors = run_mlx_finetune.check_mlx_lora("bin/mlx_lm.lora")
+
+    assert report["available"] is True
+    assert report["path"] == str(executable.resolve())
+    assert report["path_source"] == "argument"
+    assert report["configured_executable"] is True
+    assert report["runtime_ready"] is True
+    assert errors == []
+
+
+def test_mlx_finetune_runtime_check_accepts_env_executable(tmp_path, monkeypatch):
+    run_mlx_finetune = _load_script("run_mlx_finetune")
+    executable = tmp_path / "mlx_lm.lora"
+    executable.write_text("#!/bin/sh\n", encoding="utf-8")
+
+    class Result:
+        returncode = 0
+        stdout = "usage: mlx_lm.lora"
+        stderr = ""
+
+    monkeypatch.setenv(run_mlx_finetune.MLX_LORA_EXECUTABLE_ENV, str(executable))
+    monkeypatch.setattr(run_mlx_finetune.subprocess, "run", lambda *_, **__: Result())
+
+    report, errors = run_mlx_finetune.check_mlx_lora()
+
+    assert report["available"] is True
+    assert report["path"] == str(executable.resolve())
+    assert report["path_source"] == "environment"
+    assert report["configured_executable"] is True
+    assert report["runtime_ready"] is True
+    assert errors == []
+
+
+def test_mlx_finetune_runtime_check_blocks_missing_explicit_executable(tmp_path):
+    run_mlx_finetune = _load_script("run_mlx_finetune")
+
+    report, errors = run_mlx_finetune.check_mlx_lora(tmp_path / "missing" / "mlx_lm.lora")
+
+    assert report["available"] is False
+    assert report["path_source"] == "argument"
+    assert report["configured_executable"] is True
+    assert report["runtime_ready"] is False
+    assert report["error"] == "configured mlx_lm.lora executable not found"
+    assert errors == ["configured mlx_lm.lora executable not found"]

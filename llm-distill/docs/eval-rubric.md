@@ -181,7 +181,10 @@ The runner must block training when any of these conditions fail:
   JSON;
 - `human_review_required=true` or `draft_for_human_review` is missing;
 - PHI scanner reports identifier-like content;
-- `mlx_lm.lora` is not installed or not on `PATH`.
+- `mlx_lm.lora` is not installed, not on `PATH`, and not supplied through
+  `--mlx-lora-executable` or `CLAIMGUARD_MLX_LORA_EXECUTABLE`;
+- a supplied `mlx_lm.lora` executable path is missing or cannot pass the
+  runtime import/help check.
 
 The preflight report belongs under `llm-distill/evals/reports/`. A
 `ready=false` report is useful environment evidence, but it is not proof of

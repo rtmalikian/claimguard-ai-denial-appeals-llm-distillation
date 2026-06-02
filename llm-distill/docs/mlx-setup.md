@@ -176,7 +176,19 @@ all of these are true:
 - assistant completions are valid ClaimGuard JSON with
   `human_review_required=true` and `draft_for_human_review`;
 - PHI/PII scanning has zero findings;
-- `mlx_lm.lora` is installed and discoverable on `PATH`.
+- `mlx_lm.lora` is installed and discoverable on `PATH`, through an explicit
+  `--mlx-lora-executable` value, or through
+  `CLAIMGUARD_MLX_LORA_EXECUTABLE`.
+
+When using the project-local bootstrap environment without activating it in
+the shell, run:
+
+```bash
+python3 llm-distill/scripts/run_mlx_finetune.py \
+  --manifest llm-distill/data/distillation/mlx_sft_seed/manifest.json \
+  --output llm-distill/evals/reports/mlx_finetune_preflight_report.json \
+  --mlx-lora-executable .venv-mlx/bin/mlx_lm.lora
+```
 
 The current checked-in seed manifest should remain blocked because labels are
 still `pending_large_teacher_review`. After real reviewed labels are exported to
