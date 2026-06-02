@@ -2,6 +2,59 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 22:22:45 PDT - Expanded claim-status workflow
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: expand the internal claim lifecycle state machine to cover intake,
+  scrubbing, payer acknowledgement/review, appeal outcomes, partial payment,
+  write-off, and timely-filing workflow states while preserving metadata-only
+  transition errors and database-backed canonical status constraints.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `app/services/claim_state.py` | `backups/20260601-222245-expanded-claim-status-workflow/health-ai-medical-billing-medical-corporations-20260414_180528/app/services/claim_state.py.bak` | Added canonical `scrubbing`, `accepted`, `in_review`, `appeal_approved`, `appeal_denied`, and `timely_filing` states plus allowed transitions. | Restore backup over `app/services/claim_state.py`. |
+| `tests/unit/test_claim_state_machine.py` | `backups/20260601-222245-expanded-claim-status-workflow/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claim_state_machine.py.bak` | Added expanded workflow transition coverage and safe audit/error checks. | Restore backup over `tests/unit/test_claim_state_machine.py`. |
+| `tests/unit/test_claim_status_db_constraints.py` | `backups/20260601-222245-expanded-claim-status-workflow/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claim_status_db_constraints.py.bak` | Added coverage for the expanded status check-constraint migration. | Restore backup over `tests/unit/test_claim_status_db_constraints.py`. |
+| `../PHIplan.md` | `backups/20260601-222245-expanded-claim-status-workflow/root/PHIplan.md.bak` | Documented expanded claim-status workflow and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260601-222245-expanded-claim-status-workflow/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Replaced stale missing-state tracker text with implemented expanded workflow state tracking. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-222245-expanded-claim-status-workflow/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-222245-expanded-claim-status-workflow/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `alembic/versions/20260601_222245_expand_claim_status_workflow.py`
+
+### Validation
+- `find backups/20260601-222245-expanded-claim-status-workflow -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/services/claim_state.py tests/unit/test_claim_state_machine.py tests/unit/test_claim_status_db_constraints.py alembic/versions/20260601_222245_expand_claim_status_workflow.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_claim_state_machine.py tests/unit/test_claim_status_db_constraints.py -q`: passed, 11 tests with four existing/deprecation warnings.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-expanded-claim-status-workflow-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-expanded-claim-status-workflow-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, and no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- Avoided claiming clearinghouse submission, payer acknowledgement, payment,
+  appeal success, or timely-filing compliance automation from local status
+  labels alone.
+- Avoided accepting legacy readable aliases such as `approved` as write targets.
+- Avoided logging transition-note text, raw claim data, raw document text,
+  patient identifiers, provider identifiers, PHI, secrets, or production claim
+  content in transition errors or audit details.
+- Avoided changing PHIplan production-readiness booleans, student-default
+  routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-222245-expanded-claim-status-workflow/` and remove
+  `alembic/versions/20260601_222245_expand_claim_status_workflow.py`.
+- This slice expands internal claim workflow state safety; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 22:15:54 PDT - Direct claim revenue-code validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

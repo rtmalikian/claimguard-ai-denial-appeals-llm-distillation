@@ -1864,10 +1864,11 @@ ip_address = request.client.host if request.client else None
 - [x] Formal API/service state transitions added in
   `app/services/claim_state.py` and `/api/v1/claims/{claim_id}/status`; direct
   `pending` to `paid` transition is blocked with a safe structured 409 error
-- [x] Canonical write states `draft`, `pending`, `submitted`, `denied`,
-  `appealed`, `paid`, `partially_paid`, and `write_off` are enforced for
-  status updates, with legacy read/filter aliases retained for historical
-  analytics compatibility
+- [x] Canonical write states `draft`, `pending`, `scrubbing`, `submitted`,
+  `accepted`, `in_review`, `denied`, `appealed`, `appeal_approved`,
+  `appeal_denied`, `paid`, `partially_paid`, `write_off`, and
+  `timely_filing` are enforced for status updates, with legacy read/filter
+  aliases retained for historical analytics compatibility
 - [x] Invalid or non-canonical status changes return structured safe errors
   with allowed statuses, allowed next statuses, blocker codes, and no raw claim
   data, document text, transition-note text, patient identifiers, or provider
@@ -1875,17 +1876,25 @@ ip_address = request.client.host if request.client else None
 - [x] `claims.status` is non-null and protected by the
   `ck_claims_status_canonical` database check constraint, with Alembic
   migration `20260531_004528_add_claim_status_constraint.py` normalizing known
-  legacy readable statuses before enforcement
+  legacy readable statuses before enforcement and migration
+  `20260601_222245_expand_claim_status_workflow.py` expanding the constraint
+  for intake, payer-review, appeal-outcome, and timely-filing workflow states
 
 **Required States:**
 ```python
-VALID_STATES = ["draft", "pending", "submitted", "denied", "appealed", "paid", "partially_paid", "write_off"]
+VALID_STATES = [
+    "draft", "pending", "scrubbing", "submitted", "accepted", "in_review",
+    "denied", "appealed", "appeal_approved", "appeal_denied", "paid",
+    "partially_paid", "write_off", "timely_filing",
+]
 STATE_TRANSITIONS = {
-    "draft": ["pending", "submitted", "write_off"],
-    "pending": ["submitted", "write_off"],
-    "submitted": ["denied", "paid", "partially_paid", "write_off"],
-    "denied": ["appealed", "write_off"],
-    "appealed": ["denied", "paid", "partially_paid", "write_off"],
+    "draft": ["pending", "scrubbing", "submitted", "write_off"],
+    "pending": ["scrubbing", "submitted", "write_off"],
+    "submitted": ["accepted", "in_review", "denied", "paid", "partially_paid", "write_off"],
+    "accepted": ["in_review", "denied", "paid", "partially_paid", "write_off"],
+    "in_review": ["denied", "paid", "partially_paid", "write_off"],
+    "denied": ["appealed", "timely_filing", "write_off"],
+    "appealed": ["appeal_approved", "appeal_denied", "paid", "partially_paid", "write_off"],
     "partially_paid": ["appealed", "paid", "write_off"],
     "paid": [],  # Terminal
     "write_off": [],  # Terminal
@@ -2037,25 +2046,14 @@ STATE_TRANSITIONS = {
 
 ## Claim Lifecycle & Workflow Gaps
 
-### Missing Claim States
-```python
-VALID_CLAIM_STATES = [
-    "draft",           # Created but not ready
-    "pending",         # Awaiting submission
-    "scrubbing",      # Being validated
-    "submitted",      # Sent to payer
-    "accepted",       # Received by payer
-    "in_review",      # Payer reviewing
-    "denied",         # Rejected by payer
-    "appealed",       # Appeal in progress
-    "appeal_approved",# Appeal successful
-    "appeal_denied",  # Appeal rejected
-    "paid",           # Fully paid
-    "partially_paid", # Partial payment
-    "write_off",      # Balance written off
-    "timely_filing",  # Past deadline
-]
-```
+### Claim States
+- [x] `app/services/claim_state.py` now implements the expanded lifecycle
+  states: `draft`, `pending`, `scrubbing`, `submitted`, `accepted`,
+  `in_review`, `denied`, `appealed`, `appeal_approved`, `appeal_denied`,
+  `paid`, `partially_paid`, `write_off`, and `timely_filing`.
+- [x] `20260601_222245_expand_claim_status_workflow.py` expands the database
+  check constraint to the same canonical statuses and maps expanded statuses
+  back to safe prior equivalents during downgrade.
 
 ### Missing Appeal Deadline Tracking
 ```python

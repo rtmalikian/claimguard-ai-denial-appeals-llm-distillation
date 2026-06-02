@@ -16,6 +16,22 @@ MIGRATION_PATH = (
     / "versions"
     / "20260531_004528_add_claim_status_constraint.py"
 )
+EXPANDED_MIGRATION_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "alembic"
+    / "versions"
+    / "20260601_222245_expand_claim_status_workflow.py"
+)
+INITIAL_CANONICAL_STATUSES = (
+    "draft",
+    "pending",
+    "submitted",
+    "denied",
+    "appealed",
+    "paid",
+    "partially_paid",
+    "write_off",
+)
 
 
 def test_claim_model_declares_canonical_status_check_constraint():
@@ -43,7 +59,7 @@ def test_claim_status_check_constraint_blocks_noncanonical_status():
             patient_id=1,
             provider_id=1,
             claim_data={"synthetic": True},
-            status="draft",
+            status="in_review",
         )
     )
     session.commit()
@@ -69,5 +85,19 @@ def test_claim_status_migration_normalizes_legacy_statuses_before_constraint():
     assert "op.alter_column(" in migration_text
     assert '"analyzed": "draft"' in migration_text
     assert '"approved": "paid"' in migration_text
+    for status in INITIAL_CANONICAL_STATUSES:
+        assert f'"{status}"' in migration_text
+
+
+def test_claim_status_expansion_migration_updates_constraint_for_full_workflow():
+    migration_text = EXPANDED_MIGRATION_PATH.read_text(encoding="utf-8")
+
+    assert 'down_revision = "20260531_033507"' in migration_text
+    assert f'CLAIM_STATUS_CHECK_NAME = "{CLAIM_STATUS_CHECK_NAME}"' in migration_text
+    assert "op.drop_constraint(" in migration_text
+    assert "op.create_check_constraint(" in migration_text
+    assert '"scrubbing": "pending"' in migration_text
+    assert '"accepted": "submitted"' in migration_text
+    assert '"appeal_approved": "paid"' in migration_text
     for status in CANONICAL_CLAIM_STATUSES:
         assert f'"{status}"' in migration_text

@@ -696,6 +696,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   claim states, and the migration normalizes known legacy readable statuses
   before adding the check constraint. This prevents direct database writes from
   bypassing the application state-machine contract.
+- Expand claim lifecycle states without adding payer-submission automation.
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/claim_state.py`
+  now treats `scrubbing`, `accepted`, `in_review`, `appeal_approved`,
+  `appeal_denied`, and `timely_filing` as canonical write states with allowed
+  transitions, while preserving metadata-only transition errors and legacy
+  read aliases. The new Alembic migration
+  `health-ai-medical-billing-medical-corporations-20260414_180528/alembic/versions/20260601_222245_expand_claim_status_workflow.py`
+  replaces the status check constraint with the expanded canonical workflow
+  and maps expanded states back to safe prior equivalents on downgrade. This
+  does not submit claims to payers, clearhouse systems, EHR/RCM systems, or
+  production workflows.
 - Add record-level soft-delete support and query indexes in
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/models/__init__.py`,
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
@@ -2218,3 +2229,15 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-221554-direct-claim-revenue-code-validation/`
 if rolling back the direct-claim revenue-code metadata validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/services/claim_state.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claim_state_machine.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_claim_status_db_constraints.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-222245-expanded-claim-status-workflow/`
+and remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/alembic/versions/20260601_222245_expand_claim_status_workflow.py`
+if rolling back the expanded claim-status workflow slice.
