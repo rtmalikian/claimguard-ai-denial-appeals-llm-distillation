@@ -2,6 +2,57 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 18:56:47 PDT - Referring provider NPI metadata validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: validate optional direct-claim referring, ordering, and supervising
+  provider NPI metadata when supplied, blocking invalid values before
+  prediction, persistence, or audit-log creation while keeping all error
+  responses metadata-only.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py.bak` | Added optional referring, ordering, and supervising provider NPI alias validation for direct claim metadata and service lines. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py.bak` | Added validator and prediction-blocking coverage for invalid supplied referring or ordering provider NPI metadata with raw-value redaction assertions. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/root/PHIplan.md.bak` | Documented supplied direct-claim referring provider NPI validation and rollback notes. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated the required-field/NPI checklist to reflect optional supplied referring-provider NPI validation. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/claims.py tests/unit/test_required_claim_fields.py`: passed from the application directory.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_required_claim_fields.py tests/unit/test_healthcare_code_validation.py -q`: passed, 22 tests with two existing deprecation warnings.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-referring-provider-npi-validation-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-referring-provider-npi-validation-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`; the GitHub README link to the technical distillation breakdown remains covered by this validator.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided making referring provider NPI universally required because not every
+  claim requires a referring, ordering, or supervising provider; this slice only
+  validates the optional metadata when supplied.
+- Avoided logging or returning raw NPI values, raw claim payloads, patient
+  identifiers, provider identifiers, PHI, secrets, or production claim content.
+- Avoided external NPI registry calls and used the existing local NPI
+  validation utility.
+- Corrected the initial backup copy race before editing and verified the full
+  backup inventory before implementation continued.
+- Avoided changing EDI parsing semantics, PHIplan production-readiness booleans,
+  student-default routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/`.
+- This slice closes a source-controlled metadata validation gap; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 18:48:10 PDT - Place-of-service required claim field
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

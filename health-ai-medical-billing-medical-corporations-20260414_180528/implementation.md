@@ -1902,7 +1902,7 @@ STATE_TRANSITIONS = {
 | Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Missing |
 | NDC Codes (drugs) | Missing |
-| Referring Provider NPI | Missing |
+| Referring Provider NPI | Validated when supplied in direct claim metadata |
 
 ### 2.3 No NPI Validation
 - [x] `Provider.npi` now normalizes whitespace and validates the 10-digit NPI
@@ -1911,6 +1911,12 @@ STATE_TRANSITIONS = {
   `tests/unit/test_models.py` covers valid, invalid, and normalized NPI
   assignment without logging or returning raw claim, patient, document, PHI, or
   production data.
+- [x] Direct claim metadata now rejects invalid supplied referring, ordering,
+  or supervising provider NPI aliases before prediction, persistence, or
+  audit-log creation. The field remains optional because not every claim
+  requires a referring provider, but invalid supplied NPIs return metadata-only
+  structured errors without raw field values, raw claim data, PHI, or production
+  claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and

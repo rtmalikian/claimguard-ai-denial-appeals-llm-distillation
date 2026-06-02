@@ -81,6 +81,7 @@ from app.utils.edi_parser import (
 )
 from app.utils.edi_835_parser import EDI835ClaimPayment, EDI835ParserError, parse_edi_835
 from app.utils.healthcare_codes import (
+    is_valid_npi,
     is_valid_place_of_service_code,
     validate_claim_billing_codes,
 )
@@ -283,6 +284,12 @@ PLACE_OF_SERVICE_METADATA_KEYS = (
     "place_of_service",
     "pos_code",
     "pos",
+)
+REFERRING_PROVIDER_NPI_METADATA_KEYS = (
+    "referring_provider_npi",
+    "referring_npi",
+    "ordering_provider_npi",
+    "supervising_provider_npi",
 )
 CLAIM_AMOUNT_METADATA_KEYS = (
     "amount",
@@ -523,9 +530,49 @@ def _claim_amount_value_issues_for_mapping(
     return issues
 
 
+def _referring_provider_npi_value_issues_for_mapping(
+    data: dict,
+    *,
+    prefix: str | None = None,
+) -> list[ClaimDataValueIssue]:
+    issues: list[ClaimDataValueIssue] = []
+    for key in REFERRING_PROVIDER_NPI_METADATA_KEYS:
+        if key not in data or not _metadata_value_present(data.get(key)):
+            continue
+        if not is_valid_npi(data.get(key)):
+            issues.append(
+                ClaimDataValueIssue(
+                    field=key,
+                    field_path=f"{prefix}.{key}" if prefix else key,
+                    error_code="invalid_referring_provider_npi",
+                )
+            )
+
+    for collection_key in CLAIM_SERVICE_LINE_COLLECTION_KEYS:
+        collection = data.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+        for index, item in enumerate(collection):
+            if isinstance(item, dict):
+                issues.extend(
+                    _referring_provider_npi_value_issues_for_mapping(
+                        item,
+                        prefix=(
+                            f"{prefix}.{collection_key}[{index}]"
+                            if prefix
+                            else f"{collection_key}[{index}]"
+                        ),
+                    )
+                )
+    return issues
+
+
 def validate_claim_data_values(claim_data: object) -> list[ClaimDataValueIssue]:
     data = claim_data if isinstance(claim_data, dict) else {}
-    return _claim_amount_value_issues_for_mapping(data)
+    return (
+        _claim_amount_value_issues_for_mapping(data)
+        + _referring_provider_npi_value_issues_for_mapping(data)
+    )
 
 
 def _non_empty_sequence_count(values: object) -> int:

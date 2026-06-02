@@ -1284,6 +1284,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   identifier. Tests cover valid, invalid, and whitespace-normalized synthetic
   NPIs without introducing PHI, raw claim data, production provider records, or
   secrets.
+- Validate supplied direct-claim referring provider NPI metadata before model
+  calls or persistence. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now checks `referring_provider_npi`, `referring_npi`,
+  `ordering_provider_npi`, and `supervising_provider_npi` at the top level and
+  inside service lines when those optional fields are present. Invalid values
+  are blocked with metadata-only structured errors that omit raw NPI values,
+  raw claim payloads, patient identifiers, provider identifiers, PHI, secrets,
+  and production claim content.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2088,3 +2096,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-184515-place-of-service-required-field/`
 if rolling back the place-of-service required-field slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/`
+if rolling back the direct-claim referring provider NPI validation slice.
