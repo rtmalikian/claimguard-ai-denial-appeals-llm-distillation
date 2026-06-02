@@ -21,6 +21,9 @@ REQUIRED_GUARD_ENV_VARS = {
     "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE",
     "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT",
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT",
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED",
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL",
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT",
     "RETRIEVAL_EMBEDDING_BACKEND",
     "RETRIEVAL_EMBEDDING_MODEL",
     "RETRIEVAL_EMBEDDING_MODEL_APPROVED",
@@ -73,6 +76,8 @@ def test_production_compose_keeps_gate_defaults_conservative():
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_ENABLED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED"].endswith(":-false}")
+    assert env_values["CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED"].endswith(":-false}")
+    assert env_values["CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL"].endswith(":-true}")
     assert env_values["RETRIEVAL_EMBEDDING_BACKEND"].endswith(":-hash}")
     assert env_values["RETRIEVAL_VECTOR_BACKEND"].endswith(":-encrypted_local_metadata}")
     assert env_values["RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED"].endswith(":-false}")

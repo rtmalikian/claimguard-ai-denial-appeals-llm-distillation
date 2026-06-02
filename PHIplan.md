@@ -697,6 +697,19 @@ plan plus the active ClaimGuard `AGENTS.md`.
   outside source control. The PHIplan production-readiness audit consumes this
   report as a private/external production blocker without changing the
   conservative current runtime state.
+- Add a production startup guard for clearinghouse submission enablement.
+  FastAPI startup now consumes
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED`,
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL`, and
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT`; production startup
+  fails fast if submission is enabled before the evidence report is safe,
+  ready, unblocked, and rollback-to-manual mode is disabled. The guard logs
+  and reports metadata-only booleans and blocker IDs without raw EDI payloads,
+  claim content, endpoint URLs, payer portal credentials, clearinghouse
+  credentials, approval-reference values, PHI, secrets, or evidence-report
+  paths. The production compose file forwards these settings with conservative
+  disabled/rollback defaults, and the PHIplan readiness audit verifies those
+  defaults as part of current-state safety.
 - Add public GitHub documentation drift validation with
   `llm-distill/scripts/validate_public_repo_docs.py`. The validator checks that
   `README.md` links to
@@ -967,7 +980,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   backend configuration, non-synthetic approved denial/appeal training pairs,
   production threshold/fairness monitoring evidence, backup/disaster recovery
   evidence, dependency security evidence, and clearinghouse submission evidence
-  are complete. The manual packet requirement now carries only
+  are complete. The audit also verifies the conservative production compose
+  defaults for clearinghouse submission startup gating so submission remains
+  disabled with rollback-to-manual mode enabled unless private evidence is
+  complete and operators explicitly change those settings. The manual packet
+  requirement now carries only
   metadata-level `blocked_requirement_ids` so reviewers can see which manual
   gates remain open without reading approval values, PHI, secrets, source
   paths, vectors, or document content. Approval references are recorded only as
@@ -1541,6 +1558,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   control numbers, claim control numbers, endpoint URLs, payer portal
   credentials, clearinghouse credentials, approval references, PHI, secrets,
   or production documents.
+- Keep `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED=false` in production until
+  the clearinghouse evidence report is safe, ready, and unblocked. If private
+  evidence is later complete, production operators must also set
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL=false`; otherwise
+  FastAPI startup will reject the enablement request before claim-submission
+  automation can run. Do not commit the private report path, raw report
+  payload, endpoint values, approval-reference values, PHI, secrets, or
+  production claim data.
 - Obtain and configure real legal approval reference, BAA confirmation, and
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before enabling
@@ -2377,3 +2402,19 @@ remove
 `llm-distill/evals/reports/clearinghouse_submission_evidence_report.json`, and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_evidence.py`
 if rolling back the clearinghouse submission evidence gate slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-232529-clearinghouse-submission-startup-guard/`;
+remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/clearinghouse_submission_config.py`
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_startup_config.py`
+if rolling back the clearinghouse submission startup guard slice.

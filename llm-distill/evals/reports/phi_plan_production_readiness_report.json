@@ -310,7 +310,7 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T06:23:35.522793+00:00",
+  "generated_at": "2026-06-02T06:34:16.455151+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -349,14 +349,14 @@
         "api_environment_found": true,
         "approval_reference_values_included": false,
         "compose_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml",
-        "configured_guard_env_var_count": 19,
+        "configured_guard_env_var_count": 22,
         "forbidden_guard_env_vars": [],
         "missing_guard_env_vars": [],
         "non_conservative_default_guard_env_vars": [],
         "non_self_referenced_guard_env_vars": [],
         "raw_env_values_included": false,
         "raw_secrets_included": false,
-        "required_guard_env_var_count": 19
+        "required_guard_env_var_count": 22
       },
       "name": "Production compose forwards startup guard settings with conservative defaults",
       "requirement_id": "production_compose_startup_guard_env",

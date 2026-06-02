@@ -96,6 +96,11 @@ class Settings(BaseSettings):
     PREDICTION_FAIRNESS_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
     )
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED: bool = False
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL: bool = True
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT: str = (
+        "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
+    )
     RETRIEVAL_EMBEDDING_BACKEND: str = "hash"
     RETRIEVAL_EMBEDDING_MODEL: str = "claimguard-hash-embedding-v1"
     RETRIEVAL_EMBEDDING_MODEL_APPROVED: bool = False

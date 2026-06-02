@@ -62,6 +62,11 @@ DEFAULT_SETTINGS = SimpleNamespace(
     RETRIEVAL_VECTOR_BACKEND="encrypted_local_metadata",
     RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=False,
     RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=False,
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED=False,
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL=True,
+    CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT=(
+        "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
+    ),
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -103,6 +108,11 @@ REQUIRED_PRODUCTION_COMPOSE_GUARD_DEFAULTS = {
     ),
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT": (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
+    ),
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED": "false",
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL": "true",
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT": (
+        "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
     ),
     "RETRIEVAL_EMBEDDING_BACKEND": "hash",
     "RETRIEVAL_EMBEDDING_MODEL": HASH_EMBEDDING_MODEL,

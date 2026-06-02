@@ -2,6 +2,75 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 23:30:54 PDT - Clearinghouse submission startup guard
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a production startup guard so
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED=true` cannot start ClaimGuard in
+  production until the clearinghouse evidence report is safe, ready, unblocked,
+  and rollback-to-manual mode is disabled. Keep current runtime defaults
+  conservative, keep the PHIplan production-readiness state blocked for private
+  evidence, and avoid emitting raw EDI payloads, endpoint URLs, payer portal
+  credentials, clearinghouse credentials, approval-reference values, PHI,
+  secrets, report paths, or production claim content.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-232529-clearinghouse-submission-startup-guard/root/PHIplan.md.bak` | Documented the clearinghouse submission startup guard, conservative production defaults, remaining private production work, and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260601-232529-clearinghouse-submission-startup-guard/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `implementation.md` | `backups/20260601-232529-clearinghouse-submission-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and operational-security checklist for clearinghouse startup gating. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-232529-clearinghouse-submission-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `app/core/config.py` | `backups/20260601-232529-clearinghouse-submission-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py.bak` | Added conservative clearinghouse submission startup settings. | Restore backup over `app/core/config.py`. |
+| `app/main.py` | `backups/20260601-232529-clearinghouse-submission-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py.bak` | Runs the clearinghouse submission startup guard during FastAPI startup. | Restore backup over `app/main.py`. |
+| `docker-compose.production.yml` | `backups/20260601-232529-clearinghouse-submission-startup-guard/root/docker-compose.production.yml.bak` | Forwards clearinghouse submission guard settings with conservative disabled/rollback defaults. | Restore backup over `docker-compose.production.yml`. |
+| `tests/unit/test_production_compose_env.py` | `backups/20260601-232529-clearinghouse-submission-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py.bak` | Added production compose assertions for the clearinghouse submission guard defaults. | Restore backup over `tests/unit/test_production_compose_env.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-232529-clearinghouse-submission-startup-guard/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added clearinghouse startup guard settings to default-state and production compose guard checks. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-232529-clearinghouse-submission-startup-guard/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence after adding the compose guard settings. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Files Added
+- `app/utils/clearinghouse_submission_config.py`
+- `tests/unit/test_clearinghouse_submission_startup_config.py`
+
+### Validation
+- `find backups/20260601-232529-clearinghouse-submission-startup-guard -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_clearinghouse_submission_startup_config.py tests/unit/test_production_compose_env.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 25 tests with one existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/clearinghouse_submission_config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_startup_config.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-clearinghouse-startup-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-clearinghouse-startup-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`; README links to `docs/technical-llm-distillation-analysis.md`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided enabling live clearinghouse submission, payer gateway calls,
+  production EHR/RCM integration, or claim transmission.
+- Avoided storing or logging raw EDI payloads, claim batches, endpoint URLs,
+  payer portal credentials, clearinghouse credentials, approval-reference
+  values, PHI, secrets, production claim content, raw report paths, or raw
+  evidence values.
+- Avoided marking PHIplan production readiness complete; private clearinghouse
+  evidence remains incomplete and `production_ready=false`.
+- Avoided changing `README.md` because the requested link to the technical LLM
+  distillation breakdown with analysis statistics and tools used already
+  exists and is enforced by `validate_public_repo_docs.py`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-232529-clearinghouse-submission-startup-guard/` and remove
+  the two added startup guard files listed above.
+- This slice strengthens production startup safety only; it does not approve
+  clearinghouse submission, payer gateway calls, production EHR/RCM
+  integration, student default routing, user-data model improvement,
+  production vector retrieval, non-synthetic corpus training, production
+  fairness monitoring, backup/DR readiness, or dependency security remediation
+  status.
+
 ## 2026-06-01 23:21:53 PDT - Clearinghouse submission evidence gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -501,6 +501,14 @@ aggregate summary counts are complete outside source control. Raw EDI payloads,
 production claim batches, endpoint URLs, payer portal credentials,
 clearinghouse credentials, approval references, PHI, secrets, and production
 documents must remain outside source control.
+FastAPI startup now also fails fast in production if
+`CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED=true` before the clearinghouse
+evidence report is safe, ready, unblocked, and rollback-to-manual mode is
+disabled. Production compose forwards the submission guard settings with
+conservative disabled/rollback defaults, and the startup guard reports only
+metadata-level booleans and blocker IDs without raw EDI, endpoint,
+credential, approval-reference, PHI, secret, claim-content, report-path, or
+raw-evidence values.
 The public GitHub-facing README now links to a technical LLM distillation
 breakdown with analysis statistics and tools used, and the repository includes
 a public-doc validator that checks the link, section headings, report links,
@@ -1166,6 +1174,13 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   enrollment, test-mode credential, encrypted-transit, EDI 837 contract,
   acknowledgement, retry/duplicate, rollback, audit, access, retention,
   governance, and no-raw-value evidence
+- [x] Clearinghouse submission production startup guard, conservative
+  production compose defaults, and PHIplan audit coverage for
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED`,
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL`, and
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT`, with metadata-only
+  logging and production fail-fast behavior until evidence is safe, ready,
+  unblocked, and rollback-to-manual mode is disabled
 - [x] Public GitHub README link to a technical LLM distillation breakdown with
   analysis statistics and tools used, plus validator coverage for link
   presence, report links, aggregate stats, tool markers, attribution, and
@@ -2219,6 +2234,13 @@ seed can be treated as comprehensive.
   credential, encrypted-transit, EDI 837 submission-contract,
   acknowledgement, retry/duplicate, rollback, metadata-only audit, access,
   retention, and governance evidence.
+- [x] Production startup guard added for
+  `CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED`. Production startup now rejects
+  enabled clearinghouse submission until the evidence report is safe, ready,
+  unblocked, and rollback-to-manual mode is disabled; production compose keeps
+  conservative disabled/rollback defaults and the guard omits raw report paths,
+  EDI, endpoints, credentials, approval references, PHI, secrets, and claim
+  content from logs and responses.
 - [ ] Production clearinghouse submission remains blocked until private
   enrollment/connectivity evidence, synthetic or de-identified transaction
   tests, acknowledgement handling, control-number management, duplicate
