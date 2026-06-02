@@ -1900,7 +1900,7 @@ STATE_TRANSITIONS = {
 | Group Number | Missing |
 | Service Date | Missing - CRITICAL |
 | Place of Service Code | Required and validated for direct claim submission |
-| Authorization Number | Missing |
+| Authorization Number | Required when direct claim metadata explicitly marks prior authorization as required |
 | NDC Codes (drugs) | Validated when supplied in direct claim metadata |
 | Referring Provider NPI | Validated when supplied in direct claim metadata |
 
@@ -1923,6 +1923,11 @@ STATE_TRANSITIONS = {
   is format-only rather than payer-specific coverage or medical-necessity
   validation. Safe errors omit raw NDC values, raw claim data, PHI, and
   production claim content.
+- [x] Direct claim submission now requires an authorization number when the
+  claim or service-line metadata explicitly marks prior authorization as
+  required. The rule does not infer authorization requirements from payer,
+  procedure, diagnosis, or clinical facts; safe missing-field errors omit raw
+  authorization values, raw claim data, PHI, and production claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and

@@ -2,6 +2,62 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 19:11:03 PDT - Conditional authorization-number claim metadata
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: require direct-claim authorization-number metadata when claim or
+  service-line metadata explicitly marks prior authorization as required,
+  blocking submission before prediction, persistence, or audit-log creation
+  while keeping all errors and logs metadata-only.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `app/api/v1/claims.py` | `backups/20260601-190901-authorization-metadata-required/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py.bak` | Added prior-authorization-required metadata aliases and conditional authorization-number required-field enforcement for direct claim submission. | Restore backup over `app/api/v1/claims.py`. |
+| `tests/unit/test_required_claim_fields.py` | `backups/20260601-190901-authorization-metadata-required/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py.bak` | Added validator and submit-claim coverage for authorization-required metadata with and without authorization-number aliases. | Restore backup over `tests/unit/test_required_claim_fields.py`. |
+| `../PHIplan.md` | `backups/20260601-190901-authorization-metadata-required/root/PHIplan.md.bak` | Documented conditional authorization-number enforcement and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260601-190901-authorization-metadata-required/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated required claim-field tracking for explicit prior-authorization metadata. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-190901-authorization-metadata-required/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-190901-authorization-metadata-required/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-190901-authorization-metadata-required -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/claims.py tests/unit/test_required_claim_fields.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_required_claim_fields.py tests/unit/test_healthcare_code_validation.py -q`: passed, 27 tests with two existing deprecation warnings after correcting an overbroad raw-value assertion.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-authorization-metadata-required-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-authorization-metadata-required-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, and no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- Initial focused pytest run failed because a test asserted that the word
+  `required` was absent from the whole safe detail payload, but that word is
+  part of the safe parser-stage label. The assertion was changed to check a
+  synthetic flag value instead, and the focused suite passed.
+- Avoided making authorization-number metadata universally required because not
+  every claim requires prior authorization; this slice only requires it when
+  the claim data explicitly marks authorization as required.
+- Avoided inferring authorization requirements from payer, procedure, diagnosis,
+  clinical facts, or denial-risk logic.
+- Avoided validating authorization-number format because payer authorization
+  identifiers vary and false negatives could block valid synthetic or
+  de-identified claim metadata.
+- Avoided logging or returning raw authorization values, raw claim payloads,
+  patient identifiers, provider identifiers, PHI, secrets, or production claim
+  content.
+- Avoided changing EDI parsing semantics, PHIplan production-readiness booleans,
+  student-default routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-190901-authorization-metadata-required/`.
+- This slice closes a conditional direct-claim required-field gap; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 19:04:08 PDT - Direct-claim NDC metadata validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

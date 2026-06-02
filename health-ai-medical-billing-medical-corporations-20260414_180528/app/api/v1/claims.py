@@ -286,6 +286,25 @@ PLACE_OF_SERVICE_METADATA_KEYS = (
     "pos_code",
     "pos",
 )
+AUTHORIZATION_REQUIRED_METADATA_KEYS = (
+    "prior_authorization_required",
+    "authorization_required",
+    "auth_required",
+    "requires_authorization",
+    "requires_prior_authorization",
+    "prior_auth_required",
+)
+AUTHORIZATION_NUMBER_METADATA_KEYS = (
+    "authorization_number",
+    "auth_number",
+    "prior_authorization_number",
+    "prior_auth_number",
+    "preauthorization_number",
+    "authorization_reference",
+    "auth_reference",
+    "authorization_id",
+    "auth_id",
+)
 REFERRING_PROVIDER_NPI_METADATA_KEYS = (
     "referring_provider_npi",
     "referring_npi",
@@ -391,6 +410,63 @@ def _first_present_metadata_value(claim_data: dict, keys: tuple[str, ...]) -> ob
     return None
 
 
+def _metadata_flag_enabled(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "y",
+            "required",
+            "requires_authorization",
+            "authorization_required",
+            "prior_authorization_required",
+            "prior_auth_required",
+        }
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, dict):
+        return any(_metadata_flag_enabled(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_metadata_flag_enabled(item) for item in value)
+    return False
+
+
+def _authorization_required_for_mapping(data: dict) -> bool:
+    for key in AUTHORIZATION_REQUIRED_METADATA_KEYS:
+        if key in data and _metadata_flag_enabled(data.get(key)):
+            return True
+
+    for collection_key in CLAIM_SERVICE_LINE_COLLECTION_KEYS:
+        collection = data.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+        for item in collection:
+            if isinstance(item, dict) and _authorization_required_for_mapping(item):
+                return True
+    return False
+
+
+def _first_authorization_number_value(data: dict) -> object | None:
+    value = _first_present_metadata_value(data, AUTHORIZATION_NUMBER_METADATA_KEYS)
+    if value is not None:
+        return value
+
+    for collection_key in CLAIM_SERVICE_LINE_COLLECTION_KEYS:
+        collection = data.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+        for item in collection:
+            if not isinstance(item, dict):
+                continue
+            value = _first_authorization_number_value(item)
+            if value is not None:
+                return value
+    return None
+
+
 def _is_valid_service_date_metadata(value: object) -> bool:
     if isinstance(value, (datetime, date)):
         return True
@@ -469,6 +545,18 @@ def validate_required_claim_submission_fields(
                 field="place_of_service_code",
                 error_code="invalid_place_of_service_metadata",
                 accepted_metadata_keys=PLACE_OF_SERVICE_METADATA_KEYS,
+            )
+        )
+
+    if (
+        _authorization_required_for_mapping(data)
+        and _first_authorization_number_value(data) is None
+    ):
+        issues.append(
+            RequiredClaimFieldIssue(
+                field="authorization_number",
+                error_code="missing_authorization_number_metadata",
+                accepted_metadata_keys=AUTHORIZATION_NUMBER_METADATA_KEYS,
             )
         )
 

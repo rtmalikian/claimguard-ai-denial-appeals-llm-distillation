@@ -72,6 +72,44 @@ def test_required_claim_field_validator_rejects_invalid_place_of_service_safely(
     assert "30" not in str(details)
 
 
+def test_required_claim_field_validator_requires_auth_number_when_flagged_safely():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+            "service_lines": [{"prior_authorization_required": "yes"}],
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == [
+        "missing_authorization_number_metadata"
+    ]
+    assert details[0]["field"] == "authorization_number"
+    assert "yes" not in str(details)
+
+
+def test_required_claim_field_validator_accepts_required_auth_with_number():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+            "prior_authorization_required": "yes",
+            "authorization_number": "SYN-AUTH-001",
+        }
+    )
+
+    assert issues == []
+
+
 def test_claim_data_value_validator_rejects_negative_amounts_safely():
     from app.api.v1.claims import validate_claim_data_values
 
@@ -208,6 +246,47 @@ async def test_submit_claim_blocks_missing_required_metadata_before_prediction(m
     assert detail["issue_count"] == 4
     assert detail["safe_context"]["raw_claim_data_included"] is False
     assert "250" not in str(detail)
+    mock_predict.assert_not_called()
+    db.add.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("app.services.prediction.PredictionService.predict_denial", new_callable=AsyncMock)
+async def test_submit_claim_blocks_required_auth_without_number_before_prediction(
+    mock_predict,
+):
+    from app.api.v1.claims import submit_claim
+    from app.schemas.claim import ClaimSubmitRequest
+
+    db = MagicMock()
+    request = ClaimSubmitRequest(
+        patient_id=1,
+        provider_id=1,
+        claim_data={
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+            "prior_authorization_required": True,
+        },
+        diagnosis_codes=["Z00.00"],
+        procedure_codes=["99213"],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await submit_claim(
+            request=request,
+            current_user={"id": 42, "role": "billing_staff"},
+            db=db,
+        )
+
+    assert exc_info.value.status_code == 400
+    detail = exc_info.value.detail
+    assert detail["error_code"] == "missing_required_claim_fields"
+    assert detail["issues"][0]["error_code"] == "missing_authorization_number_metadata"
+    assert detail["safe_context"]["raw_field_values_included"] is False
+    assert "yes" not in str(detail)
     mock_predict.assert_not_called()
     db.add.assert_not_called()
     db.commit.assert_not_called()

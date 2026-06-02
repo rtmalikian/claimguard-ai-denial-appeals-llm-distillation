@@ -1301,6 +1301,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   patient identifiers, provider identifiers, PHI, secrets, and production claim
   content. The check is local and format-only; it does not assert drug identity,
   payer-specific coverage, reimbursement, or medical necessity.
+- Require direct-claim authorization-number metadata when prior authorization is
+  explicitly marked required. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now checks `prior_authorization_required`, `authorization_required`,
+  `auth_required`, `requires_authorization`, `requires_prior_authorization`,
+  and `prior_auth_required` at the claim and service-line level. When any such
+  flag is enabled, claim submission requires one of the accepted authorization
+  number aliases before prediction, persistence, or audit-log creation. The
+  rule does not infer payer-specific authorization requirements, coverage,
+  reimbursement, or medical necessity; missing-field errors omit raw
+  authorization values, raw claim payloads, patient identifiers, provider
+  identifiers, PHI, secrets, and production claim content.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2125,3 +2136,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/`
 if rolling back the direct-claim NDC metadata validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190901-authorization-metadata-required/`
+if rolling back the conditional authorization-number metadata slice.
