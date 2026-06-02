@@ -6,6 +6,14 @@ from types import ModuleType
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SANITIZER_SCRIPT = REPO_ROOT / "llm-distill" / "scripts" / "report_output_sanitizer.py"
+PHI_PLAN_EVIDENCE_VALIDATOR_SCRIPTS = (
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_mlx_runtime_supervisor.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_model_improvement_evidence.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_phi_plan_manual_gate_packet.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_prediction_fairness_evidence.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_production_corpus_evidence.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "validate_retrieval_vector_backend.py",
+)
 
 
 def _load_sanitizer() -> ModuleType:
@@ -115,3 +123,15 @@ def test_write_source_controlled_report_json_preserves_scratch_outputs(tmp_path)
         repo_root / "llm-distill" / "evals" / "reports" / "report.json"
     )
     assert report["external_path"] == str(output)
+
+
+def test_phi_plan_evidence_validators_use_source_controlled_report_writer():
+    for script_path in PHI_PLAN_EVIDENCE_VALIDATOR_SCRIPTS:
+        text = script_path.read_text(encoding="utf-8")
+
+        assert (
+            "from report_output_sanitizer import "
+            "write_source_controlled_report_json"
+        ) in text
+        assert "write_source_controlled_report_json(args.report, safe_report, REPO_ROOT)" in text
+        assert "args.report.write_text(json.dumps(safe_report" not in text

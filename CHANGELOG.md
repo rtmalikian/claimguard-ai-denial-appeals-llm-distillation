@@ -2,6 +2,59 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 17:37:25 PDT - PHIplan evidence validator writer boundary
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route the dependent PHIplan evidence validators through the shared
+  source-control-aware JSON writer so the manual gate, runtime supervisor,
+  model-improvement, retrieval-vector, production-corpus, and
+  prediction-fairness report family has one public report write boundary.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/validate_mlx_runtime_supervisor.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_mlx_runtime_supervisor.py.bak` | Writes the already-sanitized MLX runtime supervisor report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_model_improvement_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_model_improvement_evidence.py.bak` | Writes the already-sanitized model-improvement evidence report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py.bak` | Writes the already-sanitized manual production-gate packet report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_prediction_fairness_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_prediction_fairness_evidence.py.bak` | Writes the already-sanitized prediction-fairness evidence report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_production_corpus_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_production_corpus_evidence.py.bak` | Writes the already-sanitized production-corpus evidence report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_retrieval_vector_backend.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/llm-distill/scripts/validate_retrieval_vector_backend.py.bak` | Writes the already-sanitized retrieval-vector backend report through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py.bak` | Added static regression coverage that the PHIplan evidence validators use the shared writer and do not reintroduce direct safe-report writes. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/root/PHIplan.md.bak` | Documented the shared writer boundary for dependent PHIplan evidence validators. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/app/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_prediction_fairness_evidence.py llm-distill/scripts/validate_retrieval_vector_backend.py llm-distill/scripts/validate_model_improvement_evidence.py llm-distill/scripts/validate_production_corpus_evidence.py llm-distill/scripts/validate_mlx_runtime_supervisor.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_mlx_runtime_supervisor.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_model_improvement_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_prediction_fairness_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_retrieval_vector_backend_evidence.py -q`: passed, 127 tests.
+- Six validator smoke runs to `/private/tmp/claimguard-validator-writer-*.json`: passed and each temporary report parsed with `python3 -m json.tool`.
+- `if rg -n "args\\.report\\.write_text\\(json.dumps\\(safe_report" llm-distill/scripts/validate_prediction_fairness_evidence.py llm-distill/scripts/validate_retrieval_vector_backend.py llm-distill/scripts/validate_model_improvement_evidence.py llm-distill/scripts/validate_production_corpus_evidence.py llm-distill/scripts/validate_mlx_runtime_supervisor.py llm-distill/scripts/validate_phi_plan_manual_gate_packet.py; then exit 1; else echo 'no direct safe_report writes remain in PHIplan evidence validators'; fi`: passed.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-validator-writer-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- Strict secret/PII-like token scan over the six changed validators, `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py`, `PHIplan.md`, `CHANGELOG.md`, and `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing PHIplan readiness booleans, dependent report readiness
+  semantics, private approval gates, corpus evidence, fairness evidence,
+  runtime evidence, or student-default settings.
+- Avoided writing raw evidence reports or approval references; the validators
+  still build sanitized report payloads before handing them to the shared
+  writer.
+- Avoided rewriting checked-in evidence report JSON artifacts in this slice.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-173521-phi-evidence-validator-writer-boundary/`.
+- This slice improves PHIplan evidence report writer hygiene; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:30:20 PDT - PHIplan readiness source-controlled writer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

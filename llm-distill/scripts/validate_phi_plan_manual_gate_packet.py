@@ -15,6 +15,12 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DISTILL_DIR = REPO_ROOT / "llm-distill"
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
+
 DEFAULT_PACKET = DISTILL_DIR / "data" / "production_gate_evidence" / "manual_gate_packet.template.json"
 DEFAULT_REPORT = DISTILL_DIR / "evals" / "reports" / "phi_plan_manual_gate_packet_report.json"
 DEFAULT_MANUAL_GATE_CHECKLIST = (
@@ -895,9 +901,8 @@ def main() -> int:
     args = parser.parse_args()
 
     report = build_report(args.packet)
-    args.report.parent.mkdir(parents=True, exist_ok=True)
     safe_report = sanitize_report_value(report, REPO_ROOT)
-    args.report.write_text(json.dumps(safe_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_source_controlled_report_json(args.report, safe_report, REPO_ROOT)
     print(
         f"Wrote {args.report} production_gate_ready={report['production_gate_ready']} "
         f"safe_to_review={report['safe_to_review']} blocked={report['blocked_item_count']}"

@@ -913,7 +913,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production-corpus evidence, prediction-fairness monitoring, and the manual
   production-gate packet now apply the same report-output sanitizer before
   writing their checked-in JSON reports, while still validating real filesystem
-  paths internally.
+  paths internally. Those dependent validators now also route their sanitized
+  report payloads through `write_source_controlled_report_json(...)` instead
+  of direct JSON file writes, giving the PHIplan evidence report family one
+  shared source-control boundary for future public JSON output.
 - Add `llm-distill/scripts/sanitize_public_eval_reports.py` so checked-in
   evaluation report JSON artifacts can be sanitized in one pass before public
   release or commit. The command rewrites only report payload paths, preserving
