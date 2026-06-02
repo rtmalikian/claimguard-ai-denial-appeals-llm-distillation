@@ -14,6 +14,11 @@ PHI_PLAN_EVIDENCE_VALIDATOR_SCRIPTS = (
     REPO_ROOT / "llm-distill" / "scripts" / "validate_production_corpus_evidence.py",
     REPO_ROOT / "llm-distill" / "scripts" / "validate_retrieval_vector_backend.py",
 )
+TEACHER_REVIEW_PIPELINE_REPORT_SCRIPTS = (
+    REPO_ROOT / "llm-distill" / "scripts" / "run_reviewed_distillation_pipeline.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "run_teacher_label_batch.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "run_teacher_review_packet.py",
+)
 
 
 def _load_sanitizer() -> ModuleType:
@@ -135,3 +140,11 @@ def test_phi_plan_evidence_validators_use_source_controlled_report_writer():
         ) in text
         assert "write_source_controlled_report_json(args.report, safe_report, REPO_ROOT)" in text
         assert "args.report.write_text(json.dumps(safe_report" not in text
+
+
+def test_teacher_review_pipeline_reports_use_source_controlled_writer():
+    for script_path in TEACHER_REVIEW_PIPELINE_REPORT_SCRIPTS:
+        text = script_path.read_text(encoding="utf-8")
+
+        assert "write_source_controlled_report_json" in text
+        assert "write_sanitized_report_json" not in text

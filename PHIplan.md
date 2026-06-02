@@ -933,7 +933,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   public-source-note coverage, generated-corpus format audit, and generated
   denial extraction audit through the shared sanitized report writer. Future
   regeneration of those public eval reports now applies repository-relative
-  path serialization at the source write boundary.
+  path serialization at the source write boundary. The teacher-label preflight,
+  offline teacher-review packet, and reviewed distillation pipeline reports now
+  use the source-control-aware writer too, so checked-in outputs stay sanitized
+  while out-of-repo scratch reports can keep local diagnostic paths.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at

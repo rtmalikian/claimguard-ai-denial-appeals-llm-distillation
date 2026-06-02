@@ -2,6 +2,57 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 17:49:36 PDT - Teacher review report writer boundary
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route teacher-label preflight, offline teacher-review packet, and
+  reviewed distillation pipeline reports through the shared source-control-aware
+  JSON writer so checked-in outputs stay sanitized while temporary scratch
+  reports can preserve local diagnostic paths.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260601-174748-teacher-review-report-writer-boundary/llm-distill/scripts/run_teacher_label_batch.py.bak` | Writes teacher-label batch reports through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_teacher_review_packet.py` | `backups/20260601-174748-teacher-review-report-writer-boundary/llm-distill/scripts/run_teacher_review_packet.py.bak` | Writes offline teacher-review packet reports through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_reviewed_distillation_pipeline.py` | `backups/20260601-174748-teacher-review-report-writer-boundary/llm-distill/scripts/run_reviewed_distillation_pipeline.py.bak` | Writes reviewed distillation pipeline reports through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `tests/unit/test_report_output_sanitizer.py` | `backups/20260601-174748-teacher-review-report-writer-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py.bak` | Added static regression coverage that those teacher-review pipeline scripts use the shared writer and no longer import the older always-sanitize writer. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-174748-teacher-review-report-writer-boundary/root/PHIplan.md.bak` | Documented source-control-aware writer coverage for teacher-label/review pipeline reports. | Restore backup over `../PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260601-174748-teacher-review-report-writer-boundary/app/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-174748-teacher-review-report-writer-boundary/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-174748-teacher-review-report-writer-boundary -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_teacher_label_batch.py ../llm-distill/scripts/run_teacher_review_packet.py ../llm-distill/scripts/run_reviewed_distillation_pipeline.py tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_report_output_sanitizer.py -q`: passed, 6 tests.
+- `python3 ../llm-distill/scripts/run_teacher_label_batch.py --report-output /private/tmp/claimguard-teacher-label-batch-source-writer.json`: passed and the report parsed with `python3 -m json.tool`.
+- `python3 ../llm-distill/scripts/run_teacher_review_packet.py --packet-output /private/tmp/claimguard-teacher-review-packet-source-writer.jsonl --report-output /private/tmp/claimguard-teacher-review-packet-source-writer.json`: passed and the report parsed with `python3 -m json.tool`.
+- `python3 ../llm-distill/scripts/run_reviewed_distillation_pipeline.py --report-output /private/tmp/claimguard-reviewed-distillation-pipeline-source-writer.json`: passed and the report parsed with `python3 -m json.tool`.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-teacher-review-writer-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-teacher-review-writer-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- Strict secret/PII-like token scan over `../llm-distill/scripts/run_teacher_label_batch.py`, `../llm-distill/scripts/run_teacher_review_packet.py`, `../llm-distill/scripts/run_reviewed_distillation_pipeline.py`, `tests/unit/test_report_output_sanitizer.py`, `../PHIplan.md`, `../CHANGELOG.md`, and `CHANGELOG.md`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing teacher-label validation, review approval, pipeline
+  readiness, teacher endpoint behavior, model-training evidence, or PHIplan
+  readiness semantics.
+- Avoided running teacher endpoints, approving labels, training adapters, or
+  writing source-controlled teacher response JSONL.
+- Avoided rewriting checked-in evidence report JSON artifacts in this slice.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-174748-teacher-review-report-writer-boundary/`.
+- This slice improves teacher-label/review report writer hygiene; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:43:45 PDT - Distillation readiness source-controlled writer
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
