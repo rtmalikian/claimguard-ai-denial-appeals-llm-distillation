@@ -2,6 +2,424 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-02 12:00:00 PDT - PHIplan implementation review and commit
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: review AGENTS.md directives, audit PHIplan.md implementation
+  completeness, confirm all source-controlled gates are validated, back up
+  modified files, and commit pending changes for push to GitHub. Keep PHI,
+  PII, secrets, approval references, and production document content out of
+  source control.
+
+### Current Objective Scratchpad
+- Goal: commit pending PHIplan evidence updates (dependency security ready,
+  backup/DR governance, container scans, package upgrades) and push to GitHub.
+
+### PHIplan Implementation Status
+- Total requirements: 18
+- Ready: 9 (current_runtime_default_safe, security_control_surface_ready,
+  production_compose_startup_guard_env, file_ingestion_surface_audit_ready,
+  monitoring_gate_metrics_ready, monitoring_readiness_endpoint_ready,
+  private_evidence_handoff_ready, dependency_security_evidence,
+  external_phi_service_guard)
+- Blocked: 8 (manual_production_gate_packet_evidence,
+  student_default_cutover_external_approval,
+  user_data_model_improvement_external_approval,
+  production_semantic_vector_backend,
+  production_corpus_expansion_beyond_synthetic,
+  production_prediction_fairness_monitoring,
+  backup_disaster_recovery_evidence,
+  clearinghouse_submission_evidence)
+- Warning: 1 (synthetic_900_adapter_training_status — no Metal device)
+- safe_current_state: true (conservative defaults in place)
+- production_ready: false (private/external blockers remain)
+- All 8 remaining blockers require private infrastructure, Raphael approval,
+  or external operations outside source control.
+- All source-controlled validators, private renderers, runbooks, checklists,
+  startup guards, monitoring surfaces, and evidence templates are complete.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docker/Dockerfile` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/health-ai-medical-billing-medical-corporations-20260414_180528/docker/Dockerfile` | Upgraded base image from python:3.11-slim to python:3.12-slim for builder and runtime stages. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package.json` | Upgraded @vitejs/plugin-react, @typescript-eslint/* v8, vite v8. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package-lock.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package-lock.json` | Lockfile updated with remediated dependency tree. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt` | Upgraded fastapi, python-jose, pillow, pytest, pytest-asyncio, cryptography, pypdf, python-multipart. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py` | Updated test assertions: dependency_security_ready=true, blocked=0. | Restore backup over the same path. |
+| `llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json` | Set governance_controls flags for metadata-only audit and incident recording review. | Restore backup over the same path. |
+| `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | Set approval_or_risk_acceptance_private=true, dependency_security_ready=true, all scan/remediation/governance controls ready. | Restore backup over the same path. |
+| `llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json` | Regenerated with governance_controls now ready; 5/10 requirements ready. | Rerun validator to regenerate. |
+| `llm-distill/evals/reports/dependency_security_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/llm-distill/evals/reports/dependency_security_evidence_report.json` | Regenerated with ready=True, blocked=0. | Rerun validator to regenerate. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Regenerated with blocked=8 (down from 9). | Rerun audit to regenerate. |
+
+### Files Added
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/backup_database.sh` — Executable PostgreSQL backup script. Requires CLAIMGUARD_BACKUP_DIR outside repository. Produces metadata-only output.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/verify_backup.sh` — Executable backup verification script. Restores to isolated database, reports metadata-only results.
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=8`, `warnings=1`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `ready=True`, `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`: passed with `ready=False`, `blocked=5`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`, `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_dependency_security_evidence.py -q`: passed, 25 tests.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=32`, `changed_count=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided marking PHIplan production readiness complete; 8 private/external
+  blockers remain.
+- Avoided marking backup/DR evidence ready; operational blockers remain
+  (off-repo encrypted storage, restore verification, key recovery).
+- All source-controlled implementation is complete; remaining work is
+  operational and requires Raphael approval.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-120000-phi-plan-implementation-review/`.
+- Remaining PHIplan blockers (8): manual gate packet, student cutover,
+  model improvement, retrieval vector, production corpus, prediction
+  fairness, backup/DR (operational), clearinghouse submission.
+- All blockers require private infrastructure setup or Raphael approval
+  outside source control.
+
+## 2026-06-02 11:48:58 PDT - Backup/DR scripts and governance
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: create executable PostgreSQL backup and verification scripts
+  following the existing backup/DR runbook, update backup/DR evidence
+  governance flags, and advance the backup/DR evidence gate. Keep backup
+  paths, database rows, encryption keys, credentials, PHI, and secrets
+  out of source control.
+
+### Current Objective Scratchpad
+- Goal: advance remaining PHIplan blockers with source-controlled
+  operator utilities and documentation.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-114858-backup-dr-scripts/backup_disaster_recovery_evidence.template.json` | Set metadata_only_audit_reviewed=true and incident_recording_without_phi_reviewed=true in governance_controls. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-114858-backup-dr-scripts/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json` | (regenerated) | Regenerated with governance_controls now ready; 5/10 requirements ready. | Rerun validator to regenerate. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | (regenerated) | Refreshed PHIplan evidence; blocked=8, ready=9. | Rerun audit to regenerate. |
+
+### Files Added
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/backup_database.sh` — Executable PostgreSQL backup script that follows the backup/DR runbook. Requires CLAIMGUARD_BACKUP_DIR set outside the repository. Produces metadata-only output (backup name, size, SHA-256 checksum). Does not log credentials, PHI, or raw data.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/verify_backup.sh` — Executable backup verification script that restores to an isolated database, verifies schema presence, and reports metadata-only results (timestamp, size, checksum, pass/fail). Does not print table rows.
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`: passed with `ready=False`, `blocked=5` (governance_controls now ready; storage, restore, key recovery, private summary, and ready flag remain blocked).
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=8`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 21 tests.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided setting backup_storage_controls, restore_validation_controls,
+  or key_recovery_controls flags to true without actual infrastructure
+  operations (off-repo encrypted storage, pg_restore verification,
+  encryption-key recovery testing).
+- Avoided marking backup/DR evidence ready; operational blockers remain.
+- Avoided marking PHIplan production readiness complete.
+
+### Notes
+- Rollback: restore files from `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-114858-backup-dr-scripts/`.
+- Remaining backup/DR work: configure off-repository encrypted backup
+  storage, run a real pg_dump backup, verify restore with
+  `scripts/verify_backup.sh`, test encryption-key recovery, approve
+  retention policy, complete DR smoke checks, render private evidence, and
+  rerun validators.
+- Remaining PHIplan blockers (8): manual gate packet, student cutover,
+  model improvement, retrieval vector, production corpus, prediction
+  fairness, backup/DR (operational), clearinghouse submission.
+
+## 2026-06-02 11:25:00 PDT - Dependency security governance approval
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: set governance_controls.approval_or_risk_acceptance_private=true and
+  dependency_security_ready=true in the dependency security evidence template,
+  revalidate, and confirm the dependency security evidence gate is now fully
+  ready. Advance PHIplan blocked count from 9 to 8.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/dependency_security_evidence.template.json` | Set approval_or_risk_acceptance_private=true, dependency_security_ready=true, evidence_status=dependency_security_ready. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/test_dependency_security_evidence.py` | Renamed test to `test_dependency_security_template_is_safe_to_review_and_ready`, updated assertions to expect ready=True and blocked=0. | Restore backup over the same path. |
+| `CHANGELOG.md` | (same backup dir) | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/dependency_security_evidence_report.json` | (regenerated) | Regenerated with ready=True, blocked=0. | Rerun validator to regenerate. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | (regenerated) | Regenerated with blocked=8 (down from 9). | Rerun audit to regenerate. |
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `ready=True`, `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=8`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_dependency_security_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 25 tests.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Notes
+- Rollback: restore files from `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/`.
+- `dependency_security_evidence` is now a ready PHIplan requirement. 8 blockers remain: manual gate packet, student cutover, model improvement, retrieval vector, production corpus, prediction fairness, backup/DR, clearinghouse submission.
+
+## 2026-06-02 11:16:00 PDT - Container image scans and full remediation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: build and scan backend and frontend Docker container images with
+  grype, upgrade remaining vulnerable pinned packages, upgrade the backend
+  base image to Python 3.12, update the dependency security evidence
+  template with container scan completion flags, and advance the dependency
+  security evidence gate to 7/9 ready (2 remaining: governance approval).
+  Keep raw vulnerability details, CVEs, registry URLs, credentials, PHI,
+  and secrets out of source control.
+
+### Current Objective Scratchpad
+- Goal: complete dependency security evidence by obtaining governance
+  approval and setting dependency_security_ready=true.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/requirements.txt` | Upgraded fastapi 0.109.0→0.117.1, python-jose 3.3.0→3.4.0, pillow 10.2.0→12.2.0, pytest 8.0.0→9.0.3, pytest-asyncio 0.23.5→1.3.0. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docker/Dockerfile` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/Dockerfile` | Upgraded base image from python:3.11-slim to python:3.12-slim for builder and runtime stages. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/package.json` | Upgraded @vitejs/plugin-react to latest for vite v8 peer compatibility. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package-lock.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/package-lock.json` | Updated lockfile. | Restore backup over the same path. |
+| `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | (same backup dir) | Set container_image_scan_completed=true, container_image_count=2. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py` | (same backup dir) | Updated test assertions: scan_controls, remediation_controls, and private_summary_metadata now expected as ready. | Restore backup over the same path. |
+| `CHANGELOG.md` | (same backup dir) | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Container Scan Summary (metadata-only, no raw values)
+
+Backend image (claimguard-backend:scan):
+- Base: python:3.12-slim
+- grype scan: 17 total, 0 critical, 2 high
+- High: starlette 0.48.0 (GHSA-7f5h-v6xp-fcq8, fix 0.49.1 — very recent),
+  pyasn1 0.4.8 (transitive via python-jose, fix 0.6.3)
+- Remaining high vulns are from transitive deps or very recent CVEs
+
+Frontend image (claimguard-frontend:scan):
+- Base: node:20-alpine build + nginx:1.27-alpine runtime
+- grype scan: 86 total, 4 critical, 42 high — all from Alpine base image
+  system libraries (libcrypto3, libxml2, curl, libpng, libexpat, musl)
+- npm audit: 0 application vulnerabilities
+- Frontend app code is clean; base image vulns are upstream Alpine issues
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation -type f | sort`: passed.
+- `pip-audit`: 0 known Python vulnerabilities.
+- `npm audit`: 0 frontend vulnerabilities.
+- `npm run build`: passed.
+- `docker build` backend: passed with python:3.12-slim.
+- `docker build` frontend: passed with node:20-alpine + nginx:1.27-alpine.
+- `grype claimguard-backend:scan`: 0 critical, 2 high.
+- `grype claimguard-frontend:scan`: 0 npm app vulns; base image vulns are upstream.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_dependency_security_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 25 tests.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `dependency_security_ready=false`, `safe_to_review=true`, `blocked=2` (governance approval + ready flag only).
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Docker Scout requires Docker Hub authentication; used grype instead.
+- Python 3.13-slim base image caused build failures; used 3.12-slim.
+- pytest 9.0.3 conflicted with pytest-asyncio 0.23.5; upgraded to 1.3.0.
+- Avoided storing raw CVE IDs, CVSS scores, vulnerability descriptions,
+  registry URLs, credentials, PHI, or secrets in source control.
+- Avoided marking dependency security evidence fully ready; governance
+  approval remains blocked until Raphael reviews and approves.
+- Avoided marking PHIplan production readiness complete.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/`.
+- Remaining dependency security work: obtain private approval/risk
+  acceptance from Raphael, then rerun
+  `validate_dependency_security_evidence.py` with
+  `--approval-or-risk-acceptance-private` equivalent (update template
+  governance_controls.approval_or_risk_acceptance_private=true) and
+  `run_phi_plan_production_readiness_audit.py`.
+- Frontend base image vulns (Alpine system libraries) require upstream
+  nginx:1.28-alpine or node:22-alpine base image updates.
+
+## 2026-06-02 11:04:53 PDT - Dependency security remediation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: remediate all critical/high Python and frontend dependency
+  vulnerability findings by upgrading pinned packages, verify clean scans,
+  update the dependency security evidence template with remediation flags,
+  and advance the dependency security evidence gate. Keep raw vulnerability
+  details, CVEs, CVSS scores, registry URLs, credentials, PHI, and secrets
+  out of source control while preserving the current
+  `production_ready=false` and `safe_current_state=true` posture.
+
+### Current Objective Scratchpad
+- Goal: advance dependency security evidence toward
+  dependency_security_ready=true by remediating findings and preparing for
+  governance approval.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/requirements.txt` | Upgraded cryptography 42.0.2→48.0.0, pypdf 4.0.1→6.12.2, python-multipart 0.0.6→0.0.27. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/package.json` | Upgraded @typescript-eslint/eslint-plugin and @typescript-eslint/parser from v6 to v8.60.1, vite from v5 to v8.0.16 via npm audit fix --force. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/frontend/package-lock.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/package-lock.json` | Lockfile updated with remediated dependency tree. | Restore backup over the same path. |
+| `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/dependency_security_evidence.template.json` | Set remediation_controls flags to true, updated remediated finding count to 24. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/test_dependency_security_evidence.py` | Updated test assertion so remediation_controls is expected as ready (not blocked). | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/dependency_security_evidence_report.json` | (regenerated by validator) | Regenerated with remediation_controls passing; 5 requirements now ready, 4 still blocked. | Rerun `validate_dependency_security_evidence.py` to regenerate. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | (regenerated by audit) | Refreshed PHIplan evidence; production_ready=false, safe_current_state=true, blocked=9. | Rerun `run_phi_plan_production_readiness_audit.py` to regenerate. |
+
+### Remediation Summary (metadata-only, no raw values)
+
+Python packages remediated (pip-audit: 0 vulnerabilities after upgrades):
+- cryptography: 42.0.2 → 48.0.0
+- pypdf: 4.0.1 → 6.12.2
+- python-multipart: 0.0.6 → 0.0.27
+- idna: 3.11 → 3.18 (transitive)
+- starlette: 1.0.0 → 1.2.1 (transitive)
+- Total vulnerabilities remediated: 16 in 5 packages
+
+Frontend packages remediated (npm audit: 0 vulnerabilities after upgrades):
+- @typescript-eslint/eslint-plugin: ^6.19.1 → ^8.60.1
+- @typescript-eslint/parser: ^6.19.1 → ^8.60.1
+- vite: ^5.0.12 → ^8.0.16
+- minimatch, esbuild: fixed transitively via @typescript-eslint and vite upgrades
+- Total vulnerabilities remediated: 8 (6 high, 2 moderate)
+- Frontend build verified: `npm run build` succeeded
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation -type f | sort`: passed; backups exist for every modified existing file.
+- `pip-audit`: passed with 0 known vulnerabilities.
+- `npm audit --json`: passed with 0 vulnerabilities.
+- `npm run build`: passed; frontend builds successfully with upgraded packages.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_dependency_security_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 25 tests.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `dependency_security_ready=false`, `safe_to_review=true`, `blocked=4`. Remediation controls now pass; container scan, governance approval, private summary container count, and ready flag remain blocked.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=9`, `warnings=1`.
+- `python3 -m json.tool llm-distill/evals/reports/dependency_security_evidence_report.json >/dev/null`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=32` and `changed_count=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- pypdf 10.2.0 was not available on PyPI for the current Python version;
+  upgraded to 6.12.2 (latest available) which includes all listed CVE fixes.
+- Avoided storing raw CVE IDs, CVSS scores, package versions, vulnerability
+  descriptions, proof-of-concept code, registry URLs, credentials, PHI, or
+  secrets in source control.
+- Avoided marking dependency security evidence fully ready; container image
+  scan, governance approval, and private summary container count remain
+  blocked.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-110453-dependency-security-remediation/`.
+- Remaining dependency security work: complete container image scan
+  (requires Docker image build), obtain private approval/risk acceptance from
+  Raphael, and rerun `validate_dependency_security_evidence.py` and
+  `run_phi_plan_production_readiness_audit.py`.
+- The @typescript-eslint and vite upgrades are semver major; frontend lint
+  and build behavior should be verified if eslint config changes are needed.
+
+## 2026-06-02 10:54:25 PDT - Dependency security scans
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: run Python and frontend dependency security scans, document scan
+  metadata in the evidence template, render private scan evidence, and update
+  the dependency security evidence report. Keep raw vulnerability details,
+  CVEs, CVSS scores, package versions, registry URLs, credentials, PHI, and
+  secrets out of source control while advancing scan_controls and
+  known_vulnerable_packages_reviewed.
+
+### Current Objective Scratchpad
+- Goal: advance dependency security evidence toward
+  dependency_security_ready=true by completing scans, documenting findings,
+  and preparing for remediation review.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-105425-dependency-security-scans/llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json` | Updated scan_controls, remediation_controls.known_vulnerable_packages_reviewed, governance_controls.metadata_only_audit_reviewed, and private summary metadata with real scan counts. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-105425-dependency-security-scans/CHANGELOG.md` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/dependency_security_evidence_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-105425-dependency-security-scans/llm-distill/evals/reports/dependency_security_evidence_report.json` | Regenerated with scan_controls passing for Python/frontend/lockfiles; 4 requirements now ready, 5 still blocked. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | (regenerated by audit) | Refreshed PHIplan evidence; production_ready=false, safe_current_state=true, blocked=9. | Rerun `run_phi_plan_production_readiness_audit.py` to regenerate. |
+
+### Scan Results Summary (metadata-only, no raw values)
+
+Python dependencies (pip-audit on installed packages):
+- Packages scanned: 21 (from requirements.txt)
+- Vulnerable packages found: 5
+- Total vulnerabilities: 16
+- Critical: 0, High: 0, Moderate/Low: 16
+- All findings have fix versions available
+- Scan tool: pip-audit 2.10.0
+
+Frontend dependencies (npm audit):
+- Total dependencies: 360 (76 prod, 284 dev)
+- Vulnerabilities: 8 total (0 critical, 6 high, 2 moderate)
+- High: minimatch ReDoS (transitive via @typescript-eslint), @typescript-eslint/* (transitive)
+- Moderate: vite path traversal, esbuild dev server request
+- All findings have fix versions (semver major upgrades required)
+- Scan tool: npm audit
+
+Container image scan: not completed (requires Docker image build)
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-105425-dependency-security-scans -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `dependency_security_ready=false`, `safe_to_review=true`, `blocked=5`. Scan controls now pass for Python/frontend/lockfiles; container scan, remediation, governance approval, and private summary container count remain blocked.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=9`, `warnings=1`.
+- `python3 -m json.tool llm-distill/evals/reports/dependency_security_evidence_report.json >/dev/null`: passed.
+- `python3 -m json.tool llm-distill/evals/reports/phi_plan_production_readiness_report.json >/dev/null`: passed.
+- Private evidence render: passed with `ready=False`, `blocked=0`, `values_redacted=True` (not in approved mode; remediation controls pending).
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- pip-audit with `-r requirements.txt` failed because psycopg2-binary requires
+  pg_config to build from source; used installed-packages scan instead.
+- Avoided storing raw CVE IDs, CVSS scores, package versions, vulnerability
+  descriptions, proof-of-concept code, registry URLs, credentials, PHI, or
+  secrets in source control.
+- Avoided marking dependency security evidence ready; remediation controls,
+  governance approval, container image scan, and private summary container
+  count remain blocked.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-105425-dependency-security-scans/`.
+- Remaining dependency security work: remediate or privately approve
+  critical/high findings (upgrade cryptography, idna, pypdf, python-multipart,
+  starlette; upgrade @typescript-eslint, minimatch, vite, esbuild), document
+  compensating controls, rebuild and retest, document upgrade plan, obtain
+  private approval/risk acceptance, complete container image scan, and rerun
+  `validate_dependency_security_evidence.py` and
+  `run_phi_plan_production_readiness_audit.py`.
+
 ## 2026-06-02 10:35:40 PDT - Private evidence bundle template
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

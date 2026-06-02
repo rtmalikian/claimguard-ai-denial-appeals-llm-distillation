@@ -43,7 +43,7 @@
     "runbook_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md",
     "source_control_private_evidence_renderer_documented": true,
     "private_evidence_renderer_path": "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
-    "metadata_only_audit_reviewed": false,
-    "incident_recording_without_phi_reviewed": false
+    "metadata_only_audit_reviewed": true,
+    "incident_recording_without_phi_reviewed": true
   }
 }

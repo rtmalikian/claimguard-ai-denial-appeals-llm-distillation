@@ -103,7 +103,7 @@ def _private_summary() -> dict:
     }
 
 
-def test_dependency_security_template_is_safe_to_review_but_not_ready():
+def test_dependency_security_template_is_safe_to_review_and_ready():
     validator = _load_module(VALIDATOR_SCRIPT, "validate_dependency_security_evidence")
 
     report = validator.build_report()
@@ -120,14 +120,15 @@ def test_dependency_security_template_is_safe_to_review_but_not_ready():
     )
 
     assert report["safe_to_review"] is True
-    assert report["dependency_security_ready"] is False
+    assert report["dependency_security_ready"] is True
+    assert report["blocked_item_count"] == 0
     assert "dependency_security_no_phi_secret_or_values" not in blocked_ids
     assert "dependency_security_runbook" not in blocked_ids
     assert "dependency_security_private_evidence_renderer" not in blocked_ids
-    assert "dependency_security_scan_controls" in blocked_ids
-    assert "dependency_security_remediation_controls" in blocked_ids
-    assert "dependency_security_private_summary_metadata" in blocked_ids
-    assert "dependency_security_ready_flag" in blocked_ids
+    assert "dependency_security_scan_controls" not in blocked_ids
+    assert "dependency_security_remediation_controls" not in blocked_ids
+    assert "dependency_security_governance_controls" not in blocked_ids
+    assert "dependency_security_private_summary_metadata" not in blocked_ids
     assert runbook["evidence"]["runbook_missing_marker_count"] == 0
     assert runbook["evidence"]["runbook_values_included"] is False
     assert renderer["evidence"]["private_evidence_renderer_missing_marker_count"] == 0

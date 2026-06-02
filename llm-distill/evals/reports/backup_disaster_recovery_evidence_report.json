@@ -1,7 +1,7 @@
 {
   "artifact": "backup_disaster_recovery_evidence_validation_report",
   "backup_disaster_recovery_ready": false,
-  "blocked_item_count": 6,
+  "blocked_item_count": 5,
   "blocked_items": [
     {
       "blockers": [
@@ -63,21 +63,6 @@
     },
     {
       "blockers": [
-        "metadata_only_audit_not_reviewed",
-        "incident_recording_without_phi_not_reviewed"
-      ],
-      "evidence": {
-        "incident_recording_without_phi_reviewed": false,
-        "metadata_only_audit_reviewed": false,
-        "values_redacted": true
-      },
-      "name": "Backup/DR audit and incident-recording governance controls are ready",
-      "requirement_id": "backup_disaster_recovery_governance_controls",
-      "status": "blocked",
-      "warnings": []
-    },
-    {
-      "blockers": [
         "private_backup_summary_path_not_configured",
         "private_backup_summary_not_checked",
         "private_backup_summary_private_reference_count_missing",
@@ -123,7 +108,7 @@
     "runbook": "health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md",
     "values_redacted": true
   },
-  "generated_at": "2026-06-02T05:47:44.468997+00:00",
+  "generated_at": "2026-06-02T20:18:55.981318+00:00",
   "requirements": [
     {
       "blockers": [],
@@ -251,18 +236,15 @@
       "warnings": []
     },
     {
-      "blockers": [
-        "metadata_only_audit_not_reviewed",
-        "incident_recording_without_phi_not_reviewed"
-      ],
+      "blockers": [],
       "evidence": {
-        "incident_recording_without_phi_reviewed": false,
-        "metadata_only_audit_reviewed": false,
+        "incident_recording_without_phi_reviewed": true,
+        "metadata_only_audit_reviewed": true,
         "values_redacted": true
       },
       "name": "Backup/DR audit and incident-recording governance controls are ready",
       "requirement_id": "backup_disaster_recovery_governance_controls",
-      "status": "blocked",
+      "status": "ready",
       "warnings": []
     },
     {

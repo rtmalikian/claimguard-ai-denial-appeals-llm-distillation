@@ -1,5 +1,5 @@
 {
-  "blocked_item_count": 9,
+  "blocked_item_count": 8,
   "blocked_items": [
     {
       "blockers": [
@@ -182,7 +182,6 @@
       ],
       "evidence": {
         "backup_disaster_recovery_blocked_requirement_ids": [
-          "backup_disaster_recovery_governance_controls",
           "backup_disaster_recovery_key_recovery",
           "backup_disaster_recovery_private_summary_metadata",
           "backup_disaster_recovery_ready_flag",
@@ -196,28 +195,6 @@
       },
       "name": "Backup and disaster-recovery evidence is ready",
       "requirement_id": "backup_disaster_recovery_evidence",
-      "status": "blocked",
-      "warnings": []
-    },
-    {
-      "blockers": [
-        "dependency_security_evidence_report_not_ready"
-      ],
-      "evidence": {
-        "dependency_security_blocked_requirement_ids": [
-          "dependency_security_governance_controls",
-          "dependency_security_private_summary_metadata",
-          "dependency_security_ready_flag",
-          "dependency_security_remediation_controls",
-          "dependency_security_scan_controls"
-        ],
-        "dependency_security_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
-        "dependency_security_report_ready": false,
-        "dependency_security_report_safe_to_review": true,
-        "values_redacted": true
-      },
-      "name": "Dependency security scan and remediation evidence is ready",
-      "requirement_id": "dependency_security_evidence",
       "status": "blocked",
       "warnings": []
     },
@@ -247,11 +224,10 @@
   ],
   "completion_audit": {
     "artifact": "phi_plan_completion_audit_matrix",
-    "blocked_requirement_count": 9,
+    "blocked_requirement_count": 8,
     "blocked_requirement_ids": [
       "backup_disaster_recovery_evidence",
       "clearinghouse_submission_evidence",
-      "dependency_security_evidence",
       "manual_production_gate_packet_evidence",
       "production_corpus_expansion_beyond_synthetic",
       "production_prediction_fairness_monitoring",
@@ -262,11 +238,10 @@
     "completion_proven": false,
     "completion_status": "not_complete_private_or_external_evidence_required",
     "non_completion_reason": "PHIplan production readiness is blocked by private/manual or external production evidence that must remain outside source control.",
-    "private_or_external_blocker_count": 9,
+    "private_or_external_blocker_count": 8,
     "private_or_external_blocker_ids": [
       "backup_disaster_recovery_evidence",
       "clearinghouse_submission_evidence",
-      "dependency_security_evidence",
       "manual_production_gate_packet_evidence",
       "production_corpus_expansion_beyond_synthetic",
       "production_prediction_fairness_monitoring",
@@ -279,9 +254,10 @@
     "raw_evidence_values_included": false,
     "raw_phi_or_secret_values_included": false,
     "raw_report_paths_included": false,
-    "ready_requirement_count": 8,
+    "ready_requirement_count": 9,
     "ready_requirement_ids": [
       "current_runtime_default_safe",
+      "dependency_security_evidence",
       "external_phi_service_guard",
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
@@ -319,7 +295,7 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T17:39:30.468027+00:00",
+  "generated_at": "2026-06-02T20:18:48.578286+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, prediction fairness monitoring, backup/disaster-recovery, dependency-security, clearinghouse submission, and file-ingestion surface gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, PHI, secrets, raw report paths, and production document content outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -328,7 +304,6 @@
     "Add approved non-synthetic denial/appeal training pairs only after public/government licensing or Raphael-approved de-identification review is complete, then validate boolean-only evidence with validate_production_corpus_evidence.py.",
     "Keep production threshold calibration and continuous fairness monitoring blocked until approved real-world outcome data, minimum sample size, threshold review, demographic grouping review, monitoring ownership, latest run evidence, legal/privacy review, and boolean-only evidence from validate_prediction_fairness_evidence.py are complete.",
     "Keep PHIplan production readiness blocked until off-repository encrypted backup storage, metadata-only restore verification, encryption-key recovery, retention approval, disaster-recovery smoke evidence, and boolean-only evidence from validate_backup_disaster_recovery_evidence.py are complete.",
-    "Keep PHIplan production readiness blocked until Python, frontend, and container dependency scans, critical/high finding remediation or private approval, rebuild/retest evidence, and boolean-only evidence from validate_dependency_security_evidence.py are complete.",
     "Keep PHIplan production readiness blocked until clearinghouse or payer enrollment, private test-mode credentials, encrypted-transit validation, EDI 837 submission-contract testing, 999/277CA acknowledgement handling, retry/duplicate controls, rollback, metadata-only audit logging, access controls, retention review, and boolean-only evidence from validate_clearinghouse_submission_evidence.py are complete.",
     "Rerun the guarded synthetic-900 MLX LoRA command from a local macOS session with Metal access before promoting a synthetic-900 adapter."
   ],
@@ -692,7 +667,6 @@
       ],
       "evidence": {
         "backup_disaster_recovery_blocked_requirement_ids": [
-          "backup_disaster_recovery_governance_controls",
           "backup_disaster_recovery_key_recovery",
           "backup_disaster_recovery_private_summary_metadata",
           "backup_disaster_recovery_ready_flag",
@@ -710,25 +684,17 @@
       "warnings": []
     },
     {
-      "blockers": [
-        "dependency_security_evidence_report_not_ready"
-      ],
+      "blockers": [],
       "evidence": {
-        "dependency_security_blocked_requirement_ids": [
-          "dependency_security_governance_controls",
-          "dependency_security_private_summary_metadata",
-          "dependency_security_ready_flag",
-          "dependency_security_remediation_controls",
-          "dependency_security_scan_controls"
-        ],
+        "dependency_security_blocked_requirement_ids": [],
         "dependency_security_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
-        "dependency_security_report_ready": false,
+        "dependency_security_report_ready": true,
         "dependency_security_report_safe_to_review": true,
         "values_redacted": true
       },
       "name": "Dependency security scan and remediation evidence is ready",
       "requirement_id": "dependency_security_evidence",
-      "status": "blocked",
+      "status": "ready",
       "warnings": []
     },
     {

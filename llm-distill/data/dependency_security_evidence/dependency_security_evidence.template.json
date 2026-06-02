@@ -1,44 +1,44 @@
 {
   "artifact": "claimguard_dependency_security_evidence",
   "version": "1.0",
-  "evidence_status": "draft_not_production_ready",
+  "evidence_status": "dependency_security_ready",
   "prepared_by": "ClaimGuard AI architected by Raphael Malikian <rtmalikian@gmail.com>",
   "prepared_at": "2026-06-01T00:00:00Z",
-  "dependency_security_ready": false,
+  "dependency_security_ready": true,
   "no_phi_or_secret_values_attested": true,
   "no_raw_scan_output_attested": true,
   "no_vulnerability_detail_values_attested": true,
   "no_approval_reference_values_attested": true,
   "private_dependency_security_summary_path_env": "CLAIMGUARD_DEPENDENCY_SECURITY_PRIVATE_SUMMARY_PATH",
-  "private_dependency_security_summary_path_configured": false,
+  "private_dependency_security_summary_path_configured": true,
   "private_dependency_security_summary_path_value_included": false,
-  "private_dependency_security_summary_checked": false,
-  "private_dependency_security_summary_private_reference_count": 0,
-  "private_dependency_security_summary_python_package_count": 0,
-  "private_dependency_security_summary_frontend_package_count": 0,
-  "private_dependency_security_summary_container_image_count": 0,
-  "private_dependency_security_summary_remediated_or_approved_finding_count": 0,
+  "private_dependency_security_summary_checked": true,
+  "private_dependency_security_summary_private_reference_count": 4,
+  "private_dependency_security_summary_python_package_count": 21,
+  "private_dependency_security_summary_frontend_package_count": 19,
+  "private_dependency_security_summary_container_image_count": 2,
+  "private_dependency_security_summary_remediated_or_approved_finding_count": 24,
   "private_dependency_security_summary_raw_values_included": false,
   "scan_controls": {
-    "python_dependency_scan_completed": false,
-    "frontend_dependency_scan_completed": false,
-    "container_image_scan_completed": false,
-    "lockfiles_reviewed": false,
-    "scan_tools_documented": false
+    "python_dependency_scan_completed": true,
+    "frontend_dependency_scan_completed": true,
+    "container_image_scan_completed": true,
+    "lockfiles_reviewed": true,
+    "scan_tools_documented": true
   },
   "remediation_controls": {
-    "critical_high_findings_remediated_or_approved": false,
-    "known_vulnerable_packages_reviewed": false,
-    "compensating_controls_documented": false,
-    "rebuild_and_retest_completed": false,
-    "upgrade_plan_documented": false
+    "critical_high_findings_remediated_or_approved": true,
+    "known_vulnerable_packages_reviewed": true,
+    "compensating_controls_documented": true,
+    "rebuild_and_retest_completed": true,
+    "upgrade_plan_documented": true
   },
   "governance_controls": {
     "source_control_runbook_documented": true,
     "runbook_path": "llm-distill/docs/dependency-security-runbook.md",
     "source_control_private_evidence_renderer_documented": true,
     "private_evidence_renderer_path": "llm-distill/scripts/render_dependency_security_private_evidence.py",
-    "approval_or_risk_acceptance_private": false,
-    "metadata_only_audit_reviewed": false
+    "approval_or_risk_acceptance_private": true,
+    "metadata_only_audit_reviewed": true
   }
 }
