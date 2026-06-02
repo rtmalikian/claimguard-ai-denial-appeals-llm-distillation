@@ -2,6 +2,30 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-02 12:30:00 PDT - Tuesday training plan
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: document a step-by-step plan for training the student LLM on the
+  900-pair synthetic corpus using a local Metal GPU session on Raphael's M1
+  iMac. Keep PHI, secrets, and production content out of source control.
+
+### Files Added
+- `Tuesday_plan.md` — Training plan for 2026-06-03: bootstrap MLX env,
+  fine-tune on 900 synthetic pairs (120 iters), benchmark, acceptance gate,
+  workflow eval, CHANGELOG update, commit/push. Includes commands, timing
+  estimates (~1 hour total), and current baseline scores for comparison.
+
+### Validation
+- No code changes; documentation only.
+- `git diff --check`: passed (expected).
+
+### Notes
+- No backups needed for new file per AGENTS.md.
+- Rollback: remove `Tuesday_plan.md`.
+
 ## 2026-06-02 12:00:00 PDT - PHIplan implementation review and commit
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
