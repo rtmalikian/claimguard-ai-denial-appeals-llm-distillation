@@ -2,6 +2,54 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 18:14:51 PDT - Public PHIplan completion-audit docs
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: make the README-linked technical LLM distillation breakdown expose the
+  PHIplan completion-audit matrix, and enforce that public docs cannot pass if
+  they omit completion status, private/external blocker counts,
+  source-control-ready counts, or raw-value inclusion flags.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/docs/technical-llm-distillation-analysis.md.bak` | Added a public PHIplan Completion Audit Matrix section with checked-in status, counts, safe flags, source-control-ready IDs, and private/external blocker IDs. | Restore backup over the same path. |
+| `llm-distill/scripts/validate_public_repo_docs.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/llm-distill/scripts/validate_public_repo_docs.py.bak` | Added required completion-audit markers and string/stat validation for the linked technical breakdown. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py.bak` | Asserted the completion-audit marker count, expanded expected stats, and required completion status. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/root/PHIplan.md.bak` | Documented the public-doc completion-audit validation boundary and rollback note. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/app/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_public_repo_docs.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py`: passed.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --json`: passed with `ready=true`, `blocker_count=0`, `readme_links_technical_breakdown=true`, `expected_stat_count=38`, `required_completion_audit_marker_count=7`, and `completion_status=not_complete_private_or_external_evidence_required`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py -q`: passed, 1 test.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- New-lines-only token/SSN scan over changed files with `git diff -U0 ... | rg ...`: passed with no token-shaped secret or SSN matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing the README link target because `README.md` already links to
+  `docs/technical-llm-distillation-analysis.md`; this slice strengthens the
+  linked breakdown and validator instead.
+- Avoided publishing approval references, raw evidence values, local report
+  paths, PHI, secrets, source text, vectors, demographic values, production
+  documents, or production-ready claims.
+- Avoided changing PHIplan readiness status; completion remains
+  `not_complete_private_or_external_evidence_required`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/`.
+- This slice improves public documentation enforcement; it does not complete
+  the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 18:07:47 PDT - PHIplan completion audit matrix
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -28,5 +28,10 @@ def test_public_readme_links_technical_distillation_breakdown_with_stats_and_too
     assert report["evidence"]["readme_screenshot_count"] == 3
     assert report["evidence"]["public_generated_artifact_count"] == 4
     assert report["evidence"]["required_tool_marker_count"] >= 10
-    assert report["evidence"]["expected_stat_count"] >= 20
+    assert report["evidence"]["required_completion_audit_marker_count"] >= 7
+    assert report["evidence"]["expected_stat_count"] >= 30
+    assert (
+        report["evidence"]["completion_status"]
+        == "not_complete_private_or_external_evidence_required"
+    )
     assert report["evidence"]["values_redacted"] is True

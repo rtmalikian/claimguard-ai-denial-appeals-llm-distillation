@@ -658,6 +658,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   present, and that public docs do not expose raw local paths, secret-shaped
   values, PHI-like identifiers, source text, prompts, approval references, or
   production document content.
+- Extend the public GitHub documentation drift validation so
+  `docs/technical-llm-distillation-analysis.md` must include the PHIplan
+  completion-audit matrix. The validator now requires
+  `completion_proven=false`,
+  `completion_status=not_complete_private_or_external_evidence_required`,
+  private/external blocker counts, source-control-ready counts, and raw-value
+  inclusion flags before public docs can pass.
 - Add local AI safety guardrails at
   `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/ai_safety.py`.
   Document analysis now treats denial-letter text as untrusted source evidence,
@@ -2014,3 +2021,12 @@ Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
 `backups/20260601-180615-phi-completion-audit-matrix/` if rolling back the
 PHIplan completion-audit matrix slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`docs/technical-llm-distillation-analysis.md`,
+`llm-distill/scripts/validate_public_repo_docs.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-181229-public-doc-completion-audit-matrix/`
+if rolling back the public PHIplan completion-audit documentation slice.

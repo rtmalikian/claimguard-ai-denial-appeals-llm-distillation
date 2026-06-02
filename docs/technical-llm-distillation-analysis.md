@@ -190,6 +190,46 @@ Performance details from the checked-in live benchmark reports:
 | Complete approved production pair count | 0 |
 | Prediction fairness report ready | false |
 
+#### PHIplan Completion Audit Matrix
+
+The checked-in PHIplan report includes a derived `completion_audit` matrix. It
+is an audit surface, not an approval record, and it intentionally keeps raw
+approval references, raw evidence values, report paths, PHI, and secrets out of
+the public repository.
+
+| Matrix field | Checked-in value |
+|---|---:|
+| PHIplan completion proven | false |
+| Completion status | not_complete_private_or_external_evidence_required |
+| Total requirement count | 13 |
+| Ready requirement count | 6 |
+| Blocked requirement count | 6 |
+| Warning requirement count | 1 |
+| Private/external blocker count | 6 |
+| Source-control ready requirement count | 6 |
+| Raw approval values included | false |
+| Raw evidence values included | false |
+| Raw report paths included | false |
+| Raw PHI or secret values included | false |
+
+Source-control-ready requirement IDs:
+
+- `current_runtime_default_safe`
+- `external_phi_service_guard`
+- `file_ingestion_surface_audit_ready`
+- `monitoring_gate_metrics_ready`
+- `monitoring_readiness_endpoint_ready`
+- `production_compose_startup_guard_env`
+
+Private/external blocker IDs:
+
+- `manual_production_gate_packet_evidence`
+- `production_corpus_expansion_beyond_synthetic`
+- `production_prediction_fairness_monitoring`
+- `production_semantic_vector_backend`
+- `student_default_cutover_external_approval`
+- `user_data_model_improvement_external_approval`
+
 The top-level PHIplan production-readiness report uses repository-relative
 paths for source-controlled evidence and redacts outside paths from load-error
 evidence. This keeps public readiness metadata useful without publishing local

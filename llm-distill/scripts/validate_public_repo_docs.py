@@ -55,6 +55,16 @@ REQUIRED_REPORT_LINKS = (
     "../llm-distill/evals/reports/phi_plan_production_readiness_report.json",
 )
 
+REQUIRED_COMPLETION_AUDIT_MARKERS = (
+    "PHIplan Completion Audit Matrix",
+    "PHIplan completion proven",
+    "not_complete_private_or_external_evidence_required",
+    "Private/external blocker count",
+    "Source-control ready requirement count",
+    "Raw approval values included",
+    "Raw PHI or secret values included",
+)
+
 REQUIRED_TOOL_MARKERS = (
     "FastAPI",
     "React",
@@ -118,7 +128,7 @@ def _has_architect_attribution(text: str) -> bool:
     )
 
 
-def _collect_expected_stats(repo_root: Path) -> dict[str, int | float | bool]:
+def _collect_expected_stats(repo_root: Path) -> dict[str, int | float | bool | str]:
     synthetic_audit = _load_json(
         repo_root,
         "llm-distill/evals/reports/synthetic_denial_appeal_corpus_format_audit_report.json",
@@ -144,6 +154,9 @@ def _collect_expected_stats(repo_root: Path) -> dict[str, int | float | bool]:
         repo_root,
         "llm-distill/evals/reports/phi_plan_production_readiness_report.json",
     )
+    completion = production.get("completion_audit", {})
+    if not isinstance(completion, dict):
+        completion = {}
     corpus_manifest = _load_json(
         repo_root,
         "llm-distill/data/distillation/mlx_sft_corpus/manifest.json",
@@ -187,6 +200,18 @@ def _collect_expected_stats(repo_root: Path) -> dict[str, int | float | bool]:
         "production_ready": bool(production.get("production_ready", True)),
         "production_blocked_items": int(production.get("blocked_item_count", 0)),
         "production_warning_items": int(production.get("warning_item_count", 0)),
+        "completion_proven": bool(completion.get("completion_proven", True)),
+        "completion_status": str(completion.get("completion_status", "")),
+        "completion_total_requirements": int(completion.get("total_requirement_count", 0)),
+        "completion_ready_requirements": int(completion.get("ready_requirement_count", 0)),
+        "completion_blocked_requirements": int(completion.get("blocked_requirement_count", 0)),
+        "completion_warning_requirements": int(completion.get("warning_requirement_count", 0)),
+        "completion_private_external_blockers": int(
+            completion.get("private_or_external_blocker_count", 0)
+        ),
+        "completion_source_control_ready_requirements": int(
+            completion.get("source_control_ready_requirement_count", 0)
+        ),
     }
 
 
@@ -282,6 +307,12 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
         REQUIRED_TOOL_MARKERS,
         f"{TECHNICAL_DOC_PATH}:missing_tool_marker",
     )
+    _append_missing_markers(
+        blockers,
+        technical_text,
+        REQUIRED_COMPLETION_AUDIT_MARKERS,
+        f"{TECHNICAL_DOC_PATH}:missing_completion_audit_marker",
+    )
 
     _validate_no_sensitive_values(blockers, README_PATH, readme_text)
     _validate_no_sensitive_values(blockers, TECHNICAL_DOC_PATH, technical_text)
@@ -289,6 +320,10 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
 
     expected_stats = _collect_expected_stats(repo_root)
     for stat_name, expected_value in expected_stats.items():
+        if isinstance(expected_value, str):
+            if not expected_value or expected_value not in technical_text:
+                blockers.append(f"{TECHNICAL_DOC_PATH}:missing_string_stat:{stat_name}")
+            continue
         if isinstance(expected_value, bool):
             if str(expected_value).lower() not in technical_text.lower():
                 blockers.append(f"{TECHNICAL_DOC_PATH}:missing_boolean_stat:{stat_name}")
@@ -310,7 +345,9 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
             "readme_screenshot_count": len(README_SCREENSHOT_PATHS),
             "public_generated_artifact_count": public_generated_artifact_count,
             "required_tool_marker_count": len(REQUIRED_TOOL_MARKERS),
+            "required_completion_audit_marker_count": len(REQUIRED_COMPLETION_AUDIT_MARKERS),
             "expected_stat_count": len(expected_stats),
+            "completion_status": expected_stats.get("completion_status"),
             "values_redacted": True,
         },
     }
