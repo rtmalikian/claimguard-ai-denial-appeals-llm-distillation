@@ -1194,6 +1194,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   improvement is enabled, and logs booleans plus blocker IDs without approval
   values, consent-version values, raw report evidence, PHI, secrets, or user
   data.
+- Add a production startup guard for the manual PHIplan production-gate packet.
+  FastAPI consumes `PHI_PLAN_MANUAL_GATE_PACKET_REPORT` and fails fast in
+  production if the manual packet report is missing, unsafe, not ready, or has
+  blocked requirements. The guard logs metadata booleans, counts, and blocker
+  IDs only, and omits approval references, private summary paths, manifest
+  record ids, raw documents, raw dependent-report evidence, PHI, secrets, and
+  raw report paths. Production compose forwards a repository-relative default,
+  and the PHIplan production-readiness audit verifies the setting as part of the
+  startup guard environment.
 - Add a boolean-only production corpus evidence template at
   `llm-distill/data/production_corpus_evidence/corpus_evidence.template.json`
   and a validator at
@@ -1706,6 +1715,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   production calibrated-threshold/fairness-monitoring promotion. The private
   manual gate renderer now refuses a ready packet if any configured dependent
   report is missing, unsafe, blocked, or not ready.
+- Keep production API startup blocked until the manual PHIplan production-gate
+  packet report is safe, ready, and unblocked. Operators may configure
+  `PHI_PLAN_MANUAL_GATE_PACKET_REPORT` privately, but the runtime guard must not
+  log approval-reference values, private summary paths, manifest record ids, raw
+  documents, raw dependent-report evidence, PHI, secrets, or raw report paths.
 
 ## Rollback
 
@@ -2073,6 +2087,21 @@ remove
 and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_corpus_startup_config.py`
 if rolling back the production corpus startup guard slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-000212-manual-gate-startup-guard/`;
+remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/manual_production_gate_config.py`
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_manual_production_gate_startup_config.py`
+if rolling back the manual production-gate startup guard slice.
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/data/production_corpus_evidence/corpus_evidence.template.json`,
 `llm-distill/scripts/validate_production_corpus_evidence.py`,

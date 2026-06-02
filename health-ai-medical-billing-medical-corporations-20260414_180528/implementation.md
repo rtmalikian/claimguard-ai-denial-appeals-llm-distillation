@@ -397,6 +397,12 @@ ready, validates private summary booleans, positive aggregate counts, and
 explicit no-raw-value flags before writing a ready packet, rejects unsupported
 private summary fields, writes `0600` private output, and reports redacted
 booleans/counts while preserving all external manual-gate blockers.
+The FastAPI startup path now consumes the checked-in manual gate report through
+`PHI_PLAN_MANUAL_GATE_PACKET_REPORT` and fails fast in production if the report
+is missing, unsafe, not ready, or still has blocked requirements. The guard
+emits metadata-level readiness booleans and blocker IDs only, with no approval
+references, private summary paths, manifest record ids, raw dependent-report
+evidence, PHI, secrets, or raw report paths.
 The manual production-gate packet now also carries the boolean
 `model_improvement_evidence_report_ready` flag so the packet cannot pass
 user-data model-improvement approval unless the dedicated evidence report has
@@ -893,6 +899,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   a ready packet unless the configured supervisor, model-improvement,
   production-corpus, retrieval-vector, prediction-fairness, and file-ingestion
   surface reports are safe or otherwise metadata-ready, ready, and unblocked
+- [x] Manual production-gate packet startup guard, conservative production
+  compose default, and PHIplan audit coverage for
+  `PHI_PLAN_MANUAL_GATE_PACKET_REPORT`, with metadata-only logging and
+  production fail-fast behavior until the manual packet is safe, ready, and
+  unblocked
 - [x] Boolean-only MLX runtime supervisor template, validator, and report wired
   into manual gate and PHIplan production-readiness blockers
 - [x] MLX runtime supervisor operator-control evidence attests restart-policy

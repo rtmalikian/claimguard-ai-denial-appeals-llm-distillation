@@ -96,6 +96,9 @@ class Settings(BaseSettings):
     PREDICTION_FAIRNESS_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
     )
+    PHI_PLAN_MANUAL_GATE_PACKET_REPORT: str = (
+        "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json"
+    )
     PRODUCTION_CORPUS_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/production_corpus_evidence_report.json"
     )

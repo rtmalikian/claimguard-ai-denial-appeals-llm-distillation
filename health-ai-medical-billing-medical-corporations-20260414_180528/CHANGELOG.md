@@ -2,6 +2,74 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 00:11:17 PDT - Manual production-gate startup guard
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a production startup guard so ClaimGuard cannot start in production
+  while the manual PHIplan production-gate packet is missing, unsafe, not
+  ready, or blocked. Keep approval-reference values, private summary paths,
+  manifest record ids, raw documents, raw dependent-report evidence, PHI,
+  secrets, raw report paths, and production documents outside source control
+  while preserving the current `production_ready=false` and
+  `safe_current_state=true` posture.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-000212-manual-gate-startup-guard/root/PHIplan.md.bak` | Documented the manual production-gate startup guard, remaining private manual-packet evidence, and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-000212-manual-gate-startup-guard/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and manual production-gate checklist for startup gating. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `app/core/config.py` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py.bak` | Added the `PHI_PLAN_MANUAL_GATE_PACKET_REPORT` setting. | Restore backup over `app/core/config.py`. |
+| `app/main.py` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py.bak` | Runs the manual production-gate startup guard during FastAPI startup. | Restore backup over `app/main.py`. |
+| `docker-compose.production.yml` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/docker-compose.production.yml.bak` | Forwards `PHI_PLAN_MANUAL_GATE_PACKET_REPORT` with a repository-relative default. | Restore backup over `docker-compose.production.yml`. |
+| `tests/unit/test_production_compose_env.py` | `backups/20260602-000212-manual-gate-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py.bak` | Added production compose assertions for the manual gate packet report default. | Restore backup over `tests/unit/test_production_compose_env.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-000212-manual-gate-startup-guard/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added the manual gate packet report setting to default-state and production compose guard checks. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-000212-manual-gate-startup-guard/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence after adding the compose guard setting; guarded env var count is now 26. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Files Added
+- `app/utils/manual_production_gate_config.py`
+- `tests/unit/test_manual_production_gate_startup_config.py`
+
+### Validation
+- `find backups/20260602-000212-manual-gate-startup-guard -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_manual_production_gate_startup_config.py tests/unit/test_production_compose_env.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 25 tests with one existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/manual_production_gate_config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_manual_production_gate_startup_config.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-manual-gate-startup-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report /private/tmp/claimguard-manual-gate-packet-report.json`: passed with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=6`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-manual-gate-startup-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`, confirming the GitHub README link to `docs/technical-llm-distillation-analysis.md` remains present with required analysis statistics, tools used, attribution, and redacted public documentation posture.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided adding or committing approval-reference values, private summary
+  paths, manifest record ids, raw documents, raw dependent-report evidence,
+  PHI, secrets, raw report paths, or production document content.
+- Avoided marking the manual PHIplan production-gate packet ready; private
+  student cutover, model-improvement, production corpus, retrieval-vector,
+  prediction-fairness, file-ingestion, and dependent-report gates remain
+  incomplete outside source control.
+- Avoided changing private packet rendering, MLX training, adapter promotion,
+  or production runtime defaults in this startup-guard slice.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-000212-manual-gate-startup-guard/` and remove the two
+  added manual production-gate startup guard files listed above.
+- This slice strengthens production startup safety only; it does not complete
+  manual production approval, student default routing, user-data model
+  improvement, production vector retrieval, non-synthetic corpus approval,
+  backup setup, dependency remediation, clearinghouse submission, payer gateway
+  calls, production EHR/RCM integration, or production fairness monitoring.
+
 ## 2026-06-01 23:57:37 PDT - Production corpus startup guard
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

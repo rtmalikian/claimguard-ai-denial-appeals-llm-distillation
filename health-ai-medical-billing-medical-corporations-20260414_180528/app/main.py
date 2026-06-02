@@ -21,6 +21,9 @@ from app.utils.clearinghouse_submission_config import (
 from app.utils.dependency_security_config import (
     validate_dependency_security_startup_config,
 )
+from app.utils.manual_production_gate_config import (
+    validate_manual_production_gate_startup_config,
+)
 from app.utils.model_improvement import validate_model_improvement_startup_config
 from app.utils.prediction_fairness_config import validate_prediction_fairness_startup_config
 from app.utils.production_corpus_config import (
@@ -75,6 +78,7 @@ async def startup_event():
     validate_nvidia_startup_config()
     validate_model_improvement_startup_config()
     validate_prediction_fairness_startup_config()
+    validate_manual_production_gate_startup_config()
     validate_production_corpus_startup_config()
     validate_backup_disaster_recovery_startup_config()
     validate_dependency_security_startup_config()

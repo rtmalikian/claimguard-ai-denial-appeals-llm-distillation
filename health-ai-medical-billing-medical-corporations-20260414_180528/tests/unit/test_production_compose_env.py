@@ -21,6 +21,7 @@ REQUIRED_GUARD_ENV_VARS = {
     "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE",
     "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT",
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT",
+    "PHI_PLAN_MANUAL_GATE_PACKET_REPORT",
     "PRODUCTION_CORPUS_EVIDENCE_REPORT",
     "BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT",
     "DEPENDENCY_SECURITY_EVIDENCE_REPORT",
@@ -79,6 +80,9 @@ def test_production_compose_keeps_gate_defaults_conservative():
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_ENABLED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED"].endswith(":-false}")
+    assert env_values["PHI_PLAN_MANUAL_GATE_PACKET_REPORT"].endswith(
+        ":-llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json}"
+    )
     assert env_values["PRODUCTION_CORPUS_EVIDENCE_REPORT"].endswith(
         ":-llm-distill/evals/reports/production_corpus_evidence_report.json}"
     )
