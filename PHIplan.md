@@ -618,6 +618,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `monitoring_readiness_endpoint_ready` by checking endpoint source markers,
   runtime payload keys, safe-context flags, and sentinel raw-value
   non-emission.
+- Add a PHIplan security-control surface requirement in
+  `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. The audit
+  now verifies source markers for JWT middleware, role dependencies, production
+  encryption-key enforcement, and audit-detail sanitization, then runs a
+  metadata-only runtime check that production rejects missing/placeholder
+  Fernet keys, accepts a valid persistent key, and redacts synthetic sentinel
+  audit values. This records `security_control_surface_ready` as a
+  source-controlled current-state gate and blocks `safe_current_state` if the
+  surface drifts, without emitting raw tokens, keys, PHI, document text,
+  secrets, approval references, or sentinel values.
 - Add metadata-only denial prediction accuracy tracking at
   `/api/v1/analytics/prediction-accuracy`. The endpoint uses existing claim
   outcome status and denial-prediction score fields to produce aggregate
@@ -2554,3 +2564,17 @@ remove
 and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_startup_config.py`
 if rolling back the clearinghouse submission startup guard slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`docs/technical-llm-distillation-analysis.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/core/auth.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/core/security.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/middleware/auth.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/audit.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/`
+if rolling back the security-control surface audit slice.

@@ -276,14 +276,15 @@
     "raw_evidence_values_included": false,
     "raw_phi_or_secret_values_included": false,
     "raw_report_paths_included": false,
-    "ready_requirement_count": 6,
+    "ready_requirement_count": 7,
     "ready_requirement_ids": [
       "current_runtime_default_safe",
       "external_phi_service_guard",
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
-      "production_compose_startup_guard_env"
+      "production_compose_startup_guard_env",
+      "security_control_surface_ready"
     ],
     "safe_current_state": true,
     "schema_version": "1.0",
@@ -293,24 +294,26 @@
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
-      "production_compose_startup_guard_env"
+      "production_compose_startup_guard_env",
+      "security_control_surface_ready"
     ],
-    "source_control_ready_requirement_count": 6,
+    "source_control_ready_requirement_count": 7,
     "source_control_ready_requirement_ids": [
       "current_runtime_default_safe",
       "external_phi_service_guard",
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
-      "production_compose_startup_guard_env"
+      "production_compose_startup_guard_env",
+      "security_control_surface_ready"
     ],
-    "total_requirement_count": 16,
+    "total_requirement_count": 17,
     "warning_requirement_count": 1,
     "warning_requirement_ids": [
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T07:17:36.857540+00:00",
+  "generated_at": "2026-06-02T07:29:21.977385+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -340,6 +343,36 @@
       },
       "name": "Current base runtime remains NVIDIA while student routing is separately gated",
       "requirement_id": "current_runtime_default_safe",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "audit_sanitizer_redacts_sensitive_values": true,
+        "missing_source_files": [],
+        "missing_source_markers": {},
+        "production_encryption_key_required": true,
+        "production_placeholder_key_rejected": true,
+        "production_valid_key_persistent": true,
+        "raw_auth_token_included": false,
+        "raw_document_text_included": false,
+        "raw_phi_included": false,
+        "raw_secret_included": false,
+        "raw_sentinel_values_included": false,
+        "required_source_marker_count": 22,
+        "runtime_check_performed": true,
+        "runtime_error_type": null,
+        "source_marker_count": 22,
+        "source_paths": {
+          "audit_utils": "health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/audit.py",
+          "auth_middleware": "health-ai-medical-billing-medical-corporations-20260414_180528/app/middleware/auth.py",
+          "core_auth": "health-ai-medical-billing-medical-corporations-20260414_180528/app/core/auth.py",
+          "core_security": "health-ai-medical-billing-medical-corporations-20260414_180528/app/core/security.py"
+        }
+      },
+      "name": "JWT, RBAC, encryption-key, and audit-sanitizer control surfaces are source-verified",
+      "requirement_id": "security_control_surface_ready",
       "status": "ready",
       "warnings": []
     },

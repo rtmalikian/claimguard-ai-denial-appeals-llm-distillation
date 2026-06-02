@@ -2,6 +2,68 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-02 00:31:13 PDT - Security control surface audit
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a source-controlled PHIplan production-readiness requirement for
+  JWT middleware, role dependencies, production encryption-key enforcement, and
+  audit-detail sanitization. Keep raw tokens, keys, PHI, document text,
+  approval references, secrets, sentinel values, and production documents
+  outside source control while preserving the current `production_ready=false`
+  and `safe_current_state=true` posture.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/root/PHIplan.md.bak` | Documented `security_control_surface_ready` and rollback notes. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/root/docs/technical-llm-distillation-analysis.md.bak` | Updated PHIplan completion matrix totals to match the new requirement count. | Restore backup over `docs/technical-llm-distillation-analysis.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and corrected stale production-blocked security notes. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added security-control source marker fixtures, blocker coverage, and safe-state dependency coverage. | Restore backup over the same path. |
+| `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added `security_control_surface_ready`, CLI source path overrides, runtime encryption/sanitizer checks, completion-matrix integration, and safe-state gating. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence with 17 requirements, 7 ready/source-control-ready requirements, 9 blocked items, and 1 warning. | Restore backup over the same path. |
+
+### Files Added
+- None.
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit -type f | sort`: passed; backups exist for every modified existing file and the audited-but-unmodified security source files.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_encryption_keys.py tests/unit/test_audit.py tests/unit/test_auth.py -q`: passed from the application directory, 44 tests with existing SQLAlchemy, SlowAPI, FastAPI, and datetime deprecation warnings.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-security-control-surface-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-security-control-surface-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided changing the runtime JWT/RBAC, encryption, or audit logging source
+  implementations in this slice; the work added source-control verification
+  and bounded runtime checks only.
+- Avoided emitting or logging raw tokens, encryption keys, authorization
+  headers, approval references, PHI, document text, production documents,
+  sentinel values, or raw audit payloads.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/`.
+- The audited source files `app/core/auth.py`, `app/core/security.py`,
+  `app/middleware/auth.py`, and `app/utils/audit.py` were backed up for
+  rollback reference before inspection but were not modified in this slice.
+- This slice improves source-controlled safety evidence only; it does not
+  complete manual production approval, student default routing, user-data model
+  improvement, production vector retrieval, non-synthetic corpus approval,
+  backup setup, dependency remediation, clearinghouse submission, payer gateway
+  calls, production EHR/RCM integration, or production fairness monitoring.
+
 ## 2026-06-02 00:18:38 PDT - Monitoring evidence-report metrics
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

@@ -42,6 +42,10 @@ DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT = (
 )
 DEFAULT_PRODUCTION_COMPOSE = APP_ROOT / "docker-compose.production.yml"
 DEFAULT_MONITORING_MODULE = APP_ROOT / "app" / "api" / "v1" / "monitoring.py"
+DEFAULT_AUTH_MIDDLEWARE_MODULE = APP_ROOT / "app" / "middleware" / "auth.py"
+DEFAULT_CORE_AUTH_MODULE = APP_ROOT / "app" / "core" / "auth.py"
+DEFAULT_CORE_SECURITY_MODULE = APP_ROOT / "app" / "core" / "security.py"
+DEFAULT_AUDIT_UTILS_MODULE = APP_ROOT / "app" / "utils" / "audit.py"
 
 DEFAULT_SETTINGS = SimpleNamespace(
     LLM_PROVIDER="nvidia_nim",
@@ -220,6 +224,43 @@ MONITORING_READINESS_RUNTIME_SENTINELS = {
     "raw_approval_reference": "synthetic-approval-reference-not-for-endpoint",
     "raw_evidence_value": "synthetic-raw-evidence-not-for-endpoint",
 }
+SECURITY_CONTROL_SOURCE_MARKERS = {
+    "auth_middleware": {
+        "class JWTAuthMiddleware",
+        "PUBLIC_API_PATHS",
+        "decode_token",
+        "request.state.user",
+        "invalid_token_claims",
+        "json_error_response",
+    },
+    "core_auth": {
+        "ADMIN_ROLES",
+        "READ_ROLES",
+        "WRITE_ROLES",
+        "authenticate_user",
+        "create_user_access_token",
+        "require_roles",
+    },
+    "core_security": {
+        "EncryptionService",
+        "ENCRYPTION_KEYS must contain at least one valid Fernet key in production",
+        "Placeholder encryption keys are forbidden in production",
+        "MultiFernet",
+        "create_access_token",
+        "decode_token",
+    },
+    "audit_utils": {
+        "SENSITIVE_AUDIT_DETAIL_KEYS",
+        "sanitize_audit_details",
+        "scan_text_for_phi",
+        "log_audit",
+    },
+}
+SECURITY_CONTROL_RUNTIME_SENTINELS = {
+    "patient_name": "synthetic-patient-name-sentinel-not-for-report",
+    "document_text": "synthetic-document-text-sentinel-not-for-report",
+    "api_key": "synthetic-api-key-sentinel-not-for-report",
+}
 PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS = {
     "manual_production_gate_packet_evidence",
     "student_default_cutover_external_approval",
@@ -237,6 +278,7 @@ SOURCE_CONTROL_READY_REQUIREMENT_IDS = {
     "file_ingestion_surface_audit_ready",
     "monitoring_gate_metrics_ready",
     "monitoring_readiness_endpoint_ready",
+    "security_control_surface_ready",
     "external_phi_service_guard",
 }
 COMPOSE_ENV_INTERPOLATION_RE = re.compile(
@@ -671,6 +713,145 @@ def monitoring_readiness_endpoint_requirement(
             "raw_secret_included": False,
             "raw_evidence_included": False,
             "raw_report_paths_included": False,
+        },
+    )
+
+
+def security_control_surface_requirement(
+    auth_middleware_module_path: Path = DEFAULT_AUTH_MIDDLEWARE_MODULE,
+    core_auth_module_path: Path = DEFAULT_CORE_AUTH_MODULE,
+    core_security_module_path: Path = DEFAULT_CORE_SECURITY_MODULE,
+    audit_utils_module_path: Path = DEFAULT_AUDIT_UTILS_MODULE,
+) -> dict[str, Any]:
+    module_paths = {
+        "auth_middleware": auth_middleware_module_path,
+        "core_auth": core_auth_module_path,
+        "core_security": core_security_module_path,
+        "audit_utils": audit_utils_module_path,
+    }
+    default_module_paths = {
+        "auth_middleware": DEFAULT_AUTH_MIDDLEWARE_MODULE,
+        "core_auth": DEFAULT_CORE_AUTH_MODULE,
+        "core_security": DEFAULT_CORE_SECURITY_MODULE,
+        "audit_utils": DEFAULT_AUDIT_UTILS_MODULE,
+    }
+    blockers: list[str] = []
+    missing_source_files: list[str] = []
+    missing_source_markers: dict[str, list[str]] = {}
+    present_source_markers: dict[str, list[str]] = {}
+    required_source_marker_count = sum(
+        len(markers) for markers in SECURITY_CONTROL_SOURCE_MARKERS.values()
+    )
+
+    for module_name, module_path in module_paths.items():
+        required_markers = SECURITY_CONTROL_SOURCE_MARKERS[module_name]
+        if not module_path.exists():
+            missing_source_files.append(module_name)
+            missing_source_markers[module_name] = sorted(required_markers)
+            present_source_markers[module_name] = []
+            continue
+        source = module_path.read_text(encoding="utf-8")
+        present_markers = sorted(marker for marker in required_markers if marker in source)
+        missing_markers = sorted(required_markers - set(present_markers))
+        present_source_markers[module_name] = present_markers
+        if missing_markers:
+            missing_source_markers[module_name] = missing_markers
+
+    if missing_source_files:
+        blockers.append("security_control_source_missing")
+    if missing_source_markers:
+        blockers.append("security_control_source_markers_missing")
+
+    runtime_check_performed = all(
+        module_paths[name].resolve() == default_module_paths[name].resolve()
+        for name in module_paths
+    )
+    runtime_error_type: str | None = None
+    production_encryption_key_required = False
+    production_placeholder_key_rejected = False
+    production_valid_key_persistent = False
+    audit_sanitizer_redacts_sensitive_values = False
+    raw_sentinel_values_included = False
+
+    if runtime_check_performed:
+        if str(APP_ROOT) not in sys.path:
+            sys.path.insert(0, str(APP_ROOT))
+        try:
+            security_module = importlib.import_module("app.core.security")
+            audit_module = importlib.import_module("app.utils.audit")
+            try:
+                security_module.EncryptionService(keys=[], app_env="production")
+            except security_module.EncryptionConfigurationError:
+                production_encryption_key_required = True
+            try:
+                security_module.EncryptionService(
+                    keys=["your-encryption-key-change-in-production-32-chars"],
+                    app_env="production",
+                )
+            except security_module.EncryptionConfigurationError:
+                production_placeholder_key_rejected = True
+            valid_key = security_module.generate_fernet_key()
+            encryption_service = security_module.EncryptionService(
+                keys=[valid_key],
+                app_env="production",
+            )
+            production_valid_key_persistent = not encryption_service.uses_ephemeral_key
+
+            sanitized_details = audit_module.sanitize_audit_details(
+                {
+                    **SECURITY_CONTROL_RUNTIME_SENTINELS,
+                    "safe_count": 2,
+                }
+            )
+            serialized_details = json.dumps(sanitized_details, sort_keys=True)
+            raw_sentinel_values_included = any(
+                value in serialized_details
+                for value in SECURITY_CONTROL_RUNTIME_SENTINELS.values()
+            )
+            audit_sanitizer_redacts_sensitive_values = not raw_sentinel_values_included
+        except Exception as exc:  # pragma: no cover - defensive production audit path
+            runtime_error_type = type(exc).__name__
+            blockers.append("security_control_runtime_check_failed")
+
+    if runtime_check_performed and runtime_error_type is None:
+        if not production_encryption_key_required:
+            blockers.append("security_control_encryption_key_not_required_in_production")
+        if not production_placeholder_key_rejected:
+            blockers.append("security_control_placeholder_key_not_rejected_in_production")
+        if not production_valid_key_persistent:
+            blockers.append("security_control_valid_production_key_not_persistent")
+        if not audit_sanitizer_redacts_sensitive_values:
+            blockers.append("security_control_audit_sanitizer_not_redacting_sensitive_values")
+        if raw_sentinel_values_included:
+            blockers.append("security_control_runtime_emits_raw_values")
+
+    source_marker_count = sum(len(markers) for markers in present_source_markers.values())
+
+    return requirement(
+        requirement_id="security_control_surface_ready",
+        name="JWT, RBAC, encryption-key, and audit-sanitizer control surfaces are source-verified",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "source_paths": {
+                module_name: safe_report_path(module_path)
+                for module_name, module_path in module_paths.items()
+            },
+            "required_source_marker_count": required_source_marker_count,
+            "source_marker_count": source_marker_count,
+            "missing_source_files": missing_source_files,
+            "missing_source_markers": missing_source_markers,
+            "runtime_check_performed": runtime_check_performed,
+            "runtime_error_type": runtime_error_type,
+            "production_encryption_key_required": production_encryption_key_required,
+            "production_placeholder_key_rejected": production_placeholder_key_rejected,
+            "production_valid_key_persistent": production_valid_key_persistent,
+            "audit_sanitizer_redacts_sensitive_values": audit_sanitizer_redacts_sensitive_values,
+            "raw_sentinel_values_included": raw_sentinel_values_included,
+            "raw_phi_included": False,
+            "raw_document_text_included": False,
+            "raw_secret_included": False,
+            "raw_auth_token_included": False,
         },
     )
 
@@ -1396,6 +1577,12 @@ def build_next_required_actions(requirements: list[dict[str, Any]]) -> list[str]
             "readiness counts, requirement IDs, and blocker tokens without emitting raw report "
             "paths, evidence, approval references, PHI, secrets, source text, vectors, or raw documents."
         )
+    if "security_control_surface_ready" in blocked_ids:
+        actions.append(
+            "Restore the JWT middleware, role dependencies, production encryption-key enforcement, "
+            "and audit-detail sanitizer markers consumed by run_phi_plan_production_readiness_audit.py "
+            "before treating the current runtime as safe."
+        )
     if "synthetic_900_adapter_training_status" in warning_ids:
         actions.append(
             "Rerun the guarded synthetic-900 MLX LoRA command from a local macOS session with Metal access "
@@ -1500,9 +1687,19 @@ def build_report(
     clearinghouse_submission_report_path: Path | None = DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT,
     production_compose_path: Path = DEFAULT_PRODUCTION_COMPOSE,
     monitoring_module_path: Path = DEFAULT_MONITORING_MODULE,
+    auth_middleware_module_path: Path = DEFAULT_AUTH_MIDDLEWARE_MODULE,
+    core_auth_module_path: Path = DEFAULT_CORE_AUTH_MODULE,
+    core_security_module_path: Path = DEFAULT_CORE_SECURITY_MODULE,
+    audit_utils_module_path: Path = DEFAULT_AUDIT_UTILS_MODULE,
 ) -> dict[str, Any]:
     requirements = [
         current_runtime_default_requirement(settings_like),
+        security_control_surface_requirement(
+            auth_middleware_module_path,
+            core_auth_module_path,
+            core_security_module_path,
+            audit_utils_module_path,
+        ),
         production_compose_startup_guard_env_requirement(production_compose_path),
         file_ingestion_surface_requirement(file_ingestion_surface_report_path),
         monitoring_gate_metrics_requirement(monitoring_module_path),
@@ -1572,9 +1769,15 @@ def build_report(
         and item["status"] == "blocked"
         for item in requirements
     )
+    security_control_surface_safe = not any(
+        item["requirement_id"] == "security_control_surface_ready"
+        and item["status"] == "blocked"
+        for item in requirements
+    )
 
     safe_current_state = (
         runtime_safe
+        and security_control_surface_safe
         and (not student_default_requested or student_cutover_ready)
         and (not student_auto_launch_requested or student_cutover_ready)
         and (not model_improvement_enabled or model_improvement_ready)
@@ -1643,6 +1846,18 @@ def main() -> int:
     )
     parser.add_argument("--production-compose", type=Path, default=DEFAULT_PRODUCTION_COMPOSE)
     parser.add_argument("--monitoring-module", type=Path, default=DEFAULT_MONITORING_MODULE)
+    parser.add_argument(
+        "--auth-middleware-module",
+        type=Path,
+        default=DEFAULT_AUTH_MIDDLEWARE_MODULE,
+    )
+    parser.add_argument("--core-auth-module", type=Path, default=DEFAULT_CORE_AUTH_MODULE)
+    parser.add_argument(
+        "--core-security-module",
+        type=Path,
+        default=DEFAULT_CORE_SECURITY_MODULE,
+    )
+    parser.add_argument("--audit-utils-module", type=Path, default=DEFAULT_AUDIT_UTILS_MODULE)
     parser.add_argument("--fail-on-blocked", action="store_true")
     args = parser.parse_args()
 
@@ -1663,6 +1878,10 @@ def main() -> int:
         clearinghouse_submission_report_path=args.clearinghouse_submission_report,
         production_compose_path=args.production_compose,
         monitoring_module_path=args.monitoring_module,
+        auth_middleware_module_path=args.auth_middleware_module,
+        core_auth_module_path=args.core_auth_module,
+        core_security_module_path=args.core_security_module,
+        audit_utils_module_path=args.audit_utils_module,
     )
     write_source_controlled_report_json(args.report, report, REPO_ROOT)
     print(

@@ -53,6 +53,77 @@ def _write_compose(path: Path, api_environment: dict[str, str]) -> None:
     )
 
 
+def _write_security_control_sources(app_dir: Path) -> dict[str, Path]:
+    auth_middleware = app_dir / "app" / "middleware" / "auth.py"
+    core_auth = app_dir / "app" / "core" / "auth.py"
+    core_security = app_dir / "app" / "core" / "security.py"
+    audit_utils = app_dir / "app" / "utils" / "audit.py"
+    auth_middleware.parent.mkdir(parents=True, exist_ok=True)
+    core_auth.parent.mkdir(parents=True, exist_ok=True)
+    core_security.parent.mkdir(parents=True, exist_ok=True)
+    audit_utils.parent.mkdir(parents=True, exist_ok=True)
+    auth_middleware.write_text(
+        "\n".join(
+            [
+                "class JWTAuthMiddleware: pass",
+                "PUBLIC_API_PATHS = set()",
+                "decode_token",
+                "request.state.user",
+                "invalid_token_claims",
+                "json_error_response",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    core_auth.write_text(
+        "\n".join(
+            [
+                "ADMIN_ROLES = ('admin',)",
+                "READ_ROLES = ('admin', 'billing_staff', 'viewer')",
+                "WRITE_ROLES = ('admin', 'billing_staff')",
+                "def authenticate_user(): pass",
+                "def create_user_access_token(): pass",
+                "def require_roles(): pass",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    core_security.write_text(
+        "\n".join(
+            [
+                "class EncryptionService: pass",
+                "ENCRYPTION_KEYS must contain at least one valid Fernet key in production",
+                "Placeholder encryption keys are forbidden in production",
+                "MultiFernet",
+                "def create_access_token(): pass",
+                "def decode_token(): pass",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    audit_utils.write_text(
+        "\n".join(
+            [
+                "SENSITIVE_AUDIT_DETAIL_KEYS = set()",
+                "def sanitize_audit_details(): pass",
+                "scan_text_for_phi",
+                "def log_audit(): pass",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return {
+        "auth_middleware_module_path": auth_middleware,
+        "core_auth_module_path": core_auth,
+        "core_security_module_path": core_security,
+        "audit_utils_module_path": audit_utils,
+    }
+
+
 def _settings(**overrides):
     defaults = {
         "LLM_PROVIDER": "nvidia_nim",
@@ -380,6 +451,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         "monitoring_gate_metrics_ready",
         "monitoring_readiness_endpoint_ready",
         "production_compose_startup_guard_env",
+        "security_control_surface_ready",
     ]
     assert completion["raw_approval_values_included"] is False
     assert completion["raw_evidence_values_included"] is False
@@ -396,6 +468,22 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     assert "dependency_security_evidence" in blocked_ids
     assert "clearinghouse_submission_evidence" in blocked_ids
     assert "production_compose_startup_guard_env" not in blocked_ids
+    assert "security_control_surface_ready" not in blocked_ids
+    security_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "security_control_surface_ready"
+    )
+    assert security_requirement["status"] == "ready"
+    assert security_requirement["evidence"]["production_encryption_key_required"] is True
+    assert security_requirement["evidence"]["production_placeholder_key_rejected"] is True
+    assert security_requirement["evidence"]["production_valid_key_persistent"] is True
+    assert (
+        security_requirement["evidence"]["audit_sanitizer_redacts_sensitive_values"]
+        is True
+    )
+    assert security_requirement["evidence"]["raw_sentinel_values_included"] is False
+    assert security_requirement["evidence"]["raw_auth_token_included"] is False
     compose_requirement = next(
         item
         for item in report["requirements"]
@@ -720,6 +808,7 @@ def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
     clearinghouse_submission_report = report_dir / "clearinghouse_submission_report.json"
     production_compose = app_dir / "docker-compose.production.yml"
     monitoring_module = app_dir / "app" / "api" / "v1" / "monitoring.py"
+    security_source_paths = _write_security_control_sources(app_dir)
     outside_missing_report = tmp_path / "outside" / "private-report.json"
 
     monkeypatch.setattr(audit, "REPO_ROOT", repo_root)
@@ -786,6 +875,7 @@ def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
         clearinghouse_submission_report_path=clearinghouse_submission_report,
         production_compose_path=production_compose,
         monitoring_module_path=monitoring_module,
+        **security_source_paths,
     )
     serialized = json.dumps(report, sort_keys=True)
     _, missing_errors = audit.load_json(outside_missing_report)
@@ -823,6 +913,7 @@ def test_production_audit_cli_sanitizes_source_controlled_report_output(
     clearinghouse_submission_report = report_dir / "clearinghouse_submission_report.json"
     production_compose = app_dir / "docker-compose.production.yml"
     monitoring_module = app_dir / "app" / "api" / "v1" / "monitoring.py"
+    security_source_paths = _write_security_control_sources(app_dir)
 
     monkeypatch.setattr(audit, "REPO_ROOT", repo_root)
     monkeypatch.setattr(audit, "load_runtime_settings", lambda: _settings())
@@ -907,6 +998,14 @@ def test_production_audit_cli_sanitizes_source_controlled_report_output(
             str(production_compose),
             "--monitoring-module",
             str(monitoring_module),
+            "--auth-middleware-module",
+            str(security_source_paths["auth_middleware_module_path"]),
+            "--core-auth-module",
+            str(security_source_paths["core_auth_module_path"]),
+            "--core-security-module",
+            str(security_source_paths["core_security_module_path"]),
+            "--audit-utils-module",
+            str(security_source_paths["audit_utils_module_path"]),
         ],
     )
 
@@ -983,6 +1082,28 @@ def test_production_audit_blocks_missing_monitoring_readiness_endpoint(tmp_path)
     assert requirement["evidence"]["runtime_check_performed"] is False
     assert requirement["evidence"]["raw_evidence_included"] is False
     assert requirement["evidence"]["raw_report_paths_included"] is False
+
+
+def test_production_audit_blocks_missing_security_control_markers(tmp_path):
+    audit = _load_audit()
+    security_source_paths = _write_security_control_sources(tmp_path / "app")
+    security_source_paths["core_security_module_path"].write_text(
+        "class EncryptionService: pass\n",
+        encoding="utf-8",
+    )
+
+    requirement = audit.security_control_surface_requirement(**security_source_paths)
+
+    assert requirement["status"] == "blocked"
+    assert "security_control_source_markers_missing" in requirement["blockers"]
+    assert "MultiFernet" in requirement["evidence"]["missing_source_markers"]["core_security"]
+    assert (
+        "Placeholder encryption keys are forbidden in production"
+        in requirement["evidence"]["missing_source_markers"]["core_security"]
+    )
+    assert requirement["evidence"]["runtime_check_performed"] is False
+    assert requirement["evidence"]["raw_sentinel_values_included"] is False
+    assert requirement["evidence"]["raw_secret_included"] is False
 
 
 def test_production_audit_safe_state_depends_on_file_ingestion_gate(tmp_path):
@@ -1262,6 +1383,103 @@ def test_production_audit_safe_state_depends_on_monitoring_readiness_endpoint(tm
     assert report["safe_current_state"] is False
     assert report["production_ready"] is False
     assert blocked_ids == {"monitoring_readiness_endpoint_ready"}
+
+
+def test_production_audit_safe_state_depends_on_security_control_surface(tmp_path):
+    audit = _load_audit()
+    distillation_report = tmp_path / "distillation.json"
+    corpus_manifest = tmp_path / "manifest.json"
+    synthetic_run = tmp_path / "synthetic_900_run.json"
+    manual_gate_packet_report = tmp_path / "manual_gate_packet_report.json"
+    runtime_supervisor_report = tmp_path / "runtime_supervisor_report.json"
+    vector_backend_report = tmp_path / "vector_backend_report.json"
+    production_corpus_report = tmp_path / "production_corpus_report.json"
+    model_improvement_report = tmp_path / "model_improvement_report.json"
+    file_ingestion_surface_report = tmp_path / "file_ingestion_surface_report.json"
+    prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
+    backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
+    dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
+    security_source_paths = _write_security_control_sources(tmp_path / "app")
+    security_source_paths["auth_middleware_module_path"].write_text(
+        "\n".join(
+            [
+                "class JWTAuthMiddleware: pass",
+                "PUBLIC_API_PATHS = set()",
+                "decode_token",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    _write_json(distillation_report, {"release_ready": True})
+    _write_json(
+        corpus_manifest,
+        {
+            "records": [
+                _manifest_record(
+                    pair_id="PAIR-REAL-1",
+                    role="denial_letter",
+                    source_type="real_deidentified_pair",
+                ),
+                _manifest_record(
+                    pair_id="PAIR-REAL-1",
+                    role="appeal_letter",
+                    source_type="real_deidentified_pair",
+                ),
+            ]
+        },
+    )
+    _write_json(synthetic_run, {"training_attempted": True, "training_succeeded": True, "checks": {}})
+    _write_json(manual_gate_packet_report, _manual_gate_packet_report(True))
+    _write_json(runtime_supervisor_report, _runtime_supervisor_report(True))
+    _write_json(vector_backend_report, _vector_backend_report(True))
+    _write_json(production_corpus_report, _production_corpus_evidence_report(True))
+    _write_json(model_improvement_report, _model_improvement_evidence_report(True))
+    _write_json(file_ingestion_surface_report, _file_ingestion_surface_report(True))
+    _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
+    _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
+    _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
+
+    report = audit.build_report(
+        settings_like=_settings(
+            CLAIMGUARD_STUDENT_USE_BY_DEFAULT=True,
+            CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=True,
+            CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE="student-approval-ref",
+            CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=True,
+            USER_DATA_MODEL_IMPROVEMENT_ENABLED=True,
+            USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED=True,
+            USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED=True,
+            USER_DATA_MODEL_IMPROVEMENT_CONSENT_NOTICE_VERSION="notice-v1",
+            USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE="model-improvement-ref",
+            RETRIEVAL_EMBEDDING_BACKEND="semantic",
+            RETRIEVAL_EMBEDDING_MODEL="synthetic-semantic-embedding-v1",
+            RETRIEVAL_EMBEDDING_MODEL_APPROVED=True,
+            RETRIEVAL_VECTOR_BACKEND="pgvector",
+            RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=True,
+            RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=True,
+        ),
+        corpus_manifest_path=corpus_manifest,
+        distillation_report_path=distillation_report,
+        synthetic_900_run_report_path=synthetic_run,
+        manual_gate_packet_report_path=manual_gate_packet_report,
+        runtime_supervisor_report_path=runtime_supervisor_report,
+        vector_backend_report_path=vector_backend_report,
+        production_corpus_report_path=production_corpus_report,
+        model_improvement_report_path=model_improvement_report,
+        file_ingestion_surface_report_path=file_ingestion_surface_report,
+        prediction_fairness_report_path=prediction_fairness_report,
+        backup_disaster_recovery_report_path=backup_disaster_recovery_report,
+        dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
+        **security_source_paths,
+    )
+
+    blocked_ids = {item["requirement_id"] for item in report["blocked_items"]}
+    assert report["safe_current_state"] is False
+    assert report["production_ready"] is False
+    assert blocked_ids == {"security_control_surface_ready"}
 
 
 def test_production_audit_safe_state_blocks_unapproved_student_auto_launch(tmp_path):

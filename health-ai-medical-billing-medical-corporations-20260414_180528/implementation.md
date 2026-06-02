@@ -136,7 +136,11 @@ local auth state and redirects to login without extending the backend JWT
 expiry. PHI access audit
 logging now redacts sensitive audit detail keys and PHI/PII-like values at the
 utility boundary while adding metadata-only access events for patient, claim,
-analytics, and appeal flows. The safe training corpus
+analytics, and appeal flows. The PHIplan production-readiness audit now also
+source-verifies the JWT middleware, role dependencies, production
+encryption-key enforcement, and audit-detail sanitizer surface as
+`security_control_surface_ready` without emitting raw tokens, keys, PHI,
+document text, secrets, approval references, or sentinel values. The safe training corpus
 now also includes a generated 900-pair synthetic denial/appeal stress corpus
 with documented format families, layout profiles, typography profiles, length
 profiles, file-level format/variation audit evidence, train/valid/test SFT
@@ -1193,6 +1197,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Admin-only PHIplan readiness JSON endpoint with sanitized requirement
   IDs, counts, statuses, safe blocker tokens, no raw evidence/report paths, and
   PHIplan production-readiness audit coverage
+- [x] PHIplan production-readiness audit now includes
+  `security_control_surface_ready` for JWT middleware markers, role dependency
+  markers, production encryption-key enforcement, and audit-detail sanitizer
+  sentinel redaction, and it blocks `safe_current_state` if that
+  source-controlled security surface drifts
 - [x] Metadata-only denial prediction accuracy tracking endpoint with
   aggregate time buckets, confusion-matrix metrics, finalized-outcome
   filtering, safe audit counters, and no claim IDs, patient/provider
@@ -1318,13 +1327,19 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   configured dependent evidence reports and validates a private aggregate
   manual-gate summary before writing a ready packet.
 
-### ❌ Not Implemented (Required for Production)
-- JWT Authentication & RBAC
-- EDI 837 clearinghouse claim submission
-- EDI 835 remittance parser
-- PHI encryption at rest
-- Comprehensive audit logging
-- Production charge master feed integration
+### ❌ Production-Blocked / External Evidence Still Required
+- EDI 837 clearinghouse claim submission remains blocked until payer or
+  clearinghouse enrollment, private test credentials, encrypted-transit
+  validation, 999/277CA acknowledgement handling, rollback, access controls,
+  retention review, and metadata-only audit evidence are complete outside
+  source control.
+- Production charge master feed integration remains blocked until approved
+  private rate/feed configuration, ownership, refresh cadence, rollback, and
+  metadata-only validation evidence are complete.
+- JWT/RBAC, PHI encryption-key enforcement, and comprehensive audit logging now
+  have source-controlled control surfaces and PHIplan audit coverage, but
+  production deployment still requires private secrets, access reviews,
+  operator evidence, and environment validation outside source control.
 
 ---
 

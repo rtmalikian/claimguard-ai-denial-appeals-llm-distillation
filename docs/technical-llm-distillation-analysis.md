@@ -201,12 +201,12 @@ the public repository.
 |---|---:|
 | PHIplan completion proven | false |
 | Completion status | not_complete_private_or_external_evidence_required |
-| Total requirement count | 16 |
-| Ready requirement count | 6 |
+| Total requirement count | 17 |
+| Ready requirement count | 7 |
 | Blocked requirement count | 9 |
 | Warning requirement count | 1 |
 | Private/external blocker count | 9 |
-| Source-control ready requirement count | 6 |
+| Source-control ready requirement count | 7 |
 | Raw approval values included | false |
 | Raw evidence values included | false |
 | Raw report paths included | false |
