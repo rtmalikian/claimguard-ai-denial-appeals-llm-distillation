@@ -1,0 +1,308 @@
+{
+  "artifact": "clearinghouse_submission_evidence_validation_report",
+  "blocked_item_count": 6,
+  "blocked_items": [
+    {
+      "blockers": [
+        "payer_or_clearinghouse_enrollment_not_confirmed",
+        "test_mode_credentials_not_configured_privately",
+        "encrypted_transit_not_validated",
+        "production_endpoint_not_configured_privately"
+      ],
+      "evidence": {
+        "encrypted_transit_validated": false,
+        "payer_or_clearinghouse_enrollment_confirmed": false,
+        "production_endpoint_configured_privately": false,
+        "source_control_credentials_absent": true,
+        "test_mode_credentials_configured_privately": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse enrollment, private credentials, encrypted transit, and endpoint controls are ready",
+      "requirement_id": "clearinghouse_submission_connectivity_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "edi_837_submission_contract_not_validated",
+        "control_number_management_not_reviewed",
+        "acknowledgement_handling_not_validated",
+        "rejection_retry_duplicate_controls_not_reviewed",
+        "rollback_to_non_submission_mode_not_reviewed"
+      ],
+      "evidence": {
+        "acknowledgement_999_277ca_handling_validated": false,
+        "control_number_management_reviewed": false,
+        "edi_837_submission_contract_validated": false,
+        "rejection_retry_and_duplicate_controls_reviewed": false,
+        "rollback_to_non_submission_mode_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "EDI 837 submission, control number, acknowledgement, retry, duplicate, and rollback controls are ready",
+      "requirement_id": "clearinghouse_submission_transaction_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "metadata_only_audit_logging_not_reviewed",
+        "access_controls_not_reviewed",
+        "retention_policy_not_reviewed"
+      ],
+      "evidence": {
+        "access_controls_reviewed": false,
+        "metadata_only_audit_logging_reviewed": false,
+        "no_raw_edi_or_phi_logs_attested": true,
+        "retention_policy_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission audit, access, retention, and no-raw-log controls are ready",
+      "requirement_id": "clearinghouse_submission_audit_retention_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approval_or_risk_acceptance_not_private_or_missing",
+        "metadata_only_audit_not_reviewed"
+      ],
+      "evidence": {
+        "approval_or_risk_acceptance_private": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission approval and metadata-only audit governance controls are ready",
+      "requirement_id": "clearinghouse_submission_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_clearinghouse_submission_summary_path_not_configured",
+        "private_clearinghouse_submission_summary_not_checked",
+        "private_clearinghouse_submission_summary_private_reference_count_missing",
+        "private_clearinghouse_submission_summary_payer_count_missing",
+        "private_clearinghouse_submission_summary_test_transaction_count_missing",
+        "private_clearinghouse_submission_summary_acknowledgement_test_count_missing"
+      ],
+      "evidence": {
+        "private_clearinghouse_submission_summary_acknowledgement_test_count": 0,
+        "private_clearinghouse_submission_summary_checked": false,
+        "private_clearinghouse_submission_summary_path_configured": false,
+        "private_clearinghouse_submission_summary_path_env": "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_PRIVATE_SUMMARY_PATH",
+        "private_clearinghouse_submission_summary_path_value_included": false,
+        "private_clearinghouse_submission_summary_payer_count": 0,
+        "private_clearinghouse_submission_summary_private_reference_count": 0,
+        "private_clearinghouse_submission_summary_test_transaction_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private clearinghouse submission summary metadata is present without raw values",
+      "requirement_id": "clearinghouse_submission_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "clearinghouse_submission_ready is not true"
+      ],
+      "evidence": {
+        "clearinghouse_submission_ready": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission evidence is explicitly marked ready",
+      "requirement_id": "clearinghouse_submission_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "clearinghouse_submission_ready": false,
+  "evidence": {
+    "evidence_path": "llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json",
+    "private_evidence_renderer": "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+    "runbook": "llm-distill/docs/clearinghouse-submission-runbook.md",
+    "values_redacted": true
+  },
+  "generated_at": "2026-06-02T06:23:34.970236+00:00",
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_clearinghouse_submission_evidence",
+        "evidence_status": "draft_not_production_ready",
+        "values_redacted": true,
+        "version_configured": true
+      },
+      "name": "Clearinghouse submission evidence has the required structure",
+      "requirement_id": "clearinghouse_submission_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_approval_reference_values_attested": true,
+        "no_payer_portal_credential_values_attested": true,
+        "no_phi_or_secret_values_attested": true,
+        "no_raw_edi_payloads_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "private_clearinghouse_submission_summary_path_value_included_false": true,
+        "private_clearinghouse_submission_summary_raw_values_included_false": true,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission evidence contains no PHI, secrets, raw EDI payloads, credentials, or approval references",
+      "requirement_id": "clearinghouse_submission_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "runbook_exists": true,
+        "runbook_inside_source_control": true,
+        "runbook_missing_marker_count": 0,
+        "runbook_path": "llm-distill/docs/clearinghouse-submission-runbook.md",
+        "runbook_values_included": false,
+        "source_control_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled clearinghouse submission runbook has required safety markers",
+      "requirement_id": "clearinghouse_submission_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_inside_source_control": true,
+        "private_evidence_renderer_missing_marker_count": 0,
+        "private_evidence_renderer_path": "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+        "private_evidence_renderer_values_included": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Private clearinghouse submission evidence renderer exists with no-source-control and redaction markers",
+      "requirement_id": "clearinghouse_submission_private_evidence_renderer",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "payer_or_clearinghouse_enrollment_not_confirmed",
+        "test_mode_credentials_not_configured_privately",
+        "encrypted_transit_not_validated",
+        "production_endpoint_not_configured_privately"
+      ],
+      "evidence": {
+        "encrypted_transit_validated": false,
+        "payer_or_clearinghouse_enrollment_confirmed": false,
+        "production_endpoint_configured_privately": false,
+        "source_control_credentials_absent": true,
+        "test_mode_credentials_configured_privately": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse enrollment, private credentials, encrypted transit, and endpoint controls are ready",
+      "requirement_id": "clearinghouse_submission_connectivity_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "edi_837_submission_contract_not_validated",
+        "control_number_management_not_reviewed",
+        "acknowledgement_handling_not_validated",
+        "rejection_retry_duplicate_controls_not_reviewed",
+        "rollback_to_non_submission_mode_not_reviewed"
+      ],
+      "evidence": {
+        "acknowledgement_999_277ca_handling_validated": false,
+        "control_number_management_reviewed": false,
+        "edi_837_submission_contract_validated": false,
+        "rejection_retry_and_duplicate_controls_reviewed": false,
+        "rollback_to_non_submission_mode_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "EDI 837 submission, control number, acknowledgement, retry, duplicate, and rollback controls are ready",
+      "requirement_id": "clearinghouse_submission_transaction_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "metadata_only_audit_logging_not_reviewed",
+        "access_controls_not_reviewed",
+        "retention_policy_not_reviewed"
+      ],
+      "evidence": {
+        "access_controls_reviewed": false,
+        "metadata_only_audit_logging_reviewed": false,
+        "no_raw_edi_or_phi_logs_attested": true,
+        "retention_policy_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission audit, access, retention, and no-raw-log controls are ready",
+      "requirement_id": "clearinghouse_submission_audit_retention_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approval_or_risk_acceptance_not_private_or_missing",
+        "metadata_only_audit_not_reviewed"
+      ],
+      "evidence": {
+        "approval_or_risk_acceptance_private": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission approval and metadata-only audit governance controls are ready",
+      "requirement_id": "clearinghouse_submission_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_clearinghouse_submission_summary_path_not_configured",
+        "private_clearinghouse_submission_summary_not_checked",
+        "private_clearinghouse_submission_summary_private_reference_count_missing",
+        "private_clearinghouse_submission_summary_payer_count_missing",
+        "private_clearinghouse_submission_summary_test_transaction_count_missing",
+        "private_clearinghouse_submission_summary_acknowledgement_test_count_missing"
+      ],
+      "evidence": {
+        "private_clearinghouse_submission_summary_acknowledgement_test_count": 0,
+        "private_clearinghouse_submission_summary_checked": false,
+        "private_clearinghouse_submission_summary_path_configured": false,
+        "private_clearinghouse_submission_summary_path_env": "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_PRIVATE_SUMMARY_PATH",
+        "private_clearinghouse_submission_summary_path_value_included": false,
+        "private_clearinghouse_submission_summary_payer_count": 0,
+        "private_clearinghouse_submission_summary_private_reference_count": 0,
+        "private_clearinghouse_submission_summary_test_transaction_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private clearinghouse submission summary metadata is present without raw values",
+      "requirement_id": "clearinghouse_submission_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "clearinghouse_submission_ready is not true"
+      ],
+      "evidence": {
+        "clearinghouse_submission_ready": false,
+        "values_redacted": true
+      },
+      "name": "Clearinghouse submission evidence is explicitly marked ready",
+      "requirement_id": "clearinghouse_submission_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

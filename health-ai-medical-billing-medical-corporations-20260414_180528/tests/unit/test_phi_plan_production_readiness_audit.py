@@ -259,6 +259,25 @@ def _dependency_security_evidence_report(ready: bool) -> dict:
     }
 
 
+def _clearinghouse_submission_evidence_report(ready: bool) -> dict:
+    blockers = (
+        []
+        if ready
+        else [
+            {"requirement_id": "clearinghouse_submission_connectivity_controls"},
+            {"requirement_id": "clearinghouse_submission_transaction_controls"},
+            {"requirement_id": "clearinghouse_submission_audit_retention_controls"},
+            {"requirement_id": "clearinghouse_submission_private_summary_metadata"},
+        ]
+    )
+    return {
+        "safe_to_review": True,
+        "clearinghouse_submission_ready": ready,
+        "blocked_item_count": len(blockers),
+        "blocked_items": blockers,
+    }
+
+
 def _file_ingestion_surface_report(ready: bool) -> dict:
     return {
         "ready": ready,
@@ -286,6 +305,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
         corpus_manifest,
@@ -306,6 +326,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(False))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(False))
     _write_json(dependency_security_report, _dependency_security_evidence_report(False))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(False))
 
     report = audit.build_report(
         settings_like=_settings(),
@@ -321,6 +342,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
     )
 
     blocked_ids = {item["requirement_id"] for item in report["blocked_items"]}
@@ -342,6 +364,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     ]
     assert completion["private_or_external_blocker_ids"] == [
         "backup_disaster_recovery_evidence",
+        "clearinghouse_submission_evidence",
         "dependency_security_evidence",
         "manual_production_gate_packet_evidence",
         "production_corpus_expansion_beyond_synthetic",
@@ -371,6 +394,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     assert "production_prediction_fairness_monitoring" in blocked_ids
     assert "backup_disaster_recovery_evidence" in blocked_ids
     assert "dependency_security_evidence" in blocked_ids
+    assert "clearinghouse_submission_evidence" in blocked_ids
     assert "production_compose_startup_guard_env" not in blocked_ids
     compose_requirement = next(
         item
@@ -458,6 +482,21 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         "dependency_security_remediation_controls",
         "dependency_security_scan_controls",
     ]
+    clearinghouse_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "clearinghouse_submission_evidence"
+    )
+    assert (
+        "clearinghouse_submission_evidence_report_not_ready"
+        in clearinghouse_requirement["blockers"]
+    )
+    assert clearinghouse_requirement["evidence"]["clearinghouse_submission_blocked_requirement_ids"] == [
+        "clearinghouse_submission_audit_retention_controls",
+        "clearinghouse_submission_connectivity_controls",
+        "clearinghouse_submission_private_summary_metadata",
+        "clearinghouse_submission_transaction_controls",
+    ]
     manual_requirement = next(
         item
         for item in report["blocked_items"]
@@ -495,6 +534,7 @@ def test_production_audit_can_be_ready_with_external_gates_and_real_pair(tmp_pat
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
         corpus_manifest,
@@ -523,6 +563,7 @@ def test_production_audit_can_be_ready_with_external_gates_and_real_pair(tmp_pat
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
 
     report = audit.build_report(
         settings_like=_settings(
@@ -554,6 +595,7 @@ def test_production_audit_can_be_ready_with_external_gates_and_real_pair(tmp_pat
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
     )
 
     assert report["safe_current_state"] is True
@@ -582,6 +624,7 @@ def test_production_audit_does_not_emit_secret_reference_values(tmp_path):
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     student_reference = "student-approval-reference-do-not-write"
     model_reference = "model-improvement-reference-do-not-write"
     _write_json(distillation_report, {"release_ready": True})
@@ -612,6 +655,7 @@ def test_production_audit_does_not_emit_secret_reference_values(tmp_path):
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
 
     report = audit.build_report(
         settings_like=_settings(
@@ -643,6 +687,7 @@ def test_production_audit_does_not_emit_secret_reference_values(tmp_path):
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
     )
     serialized = json.dumps(report, sort_keys=True)
 
@@ -672,6 +717,7 @@ def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
     prediction_fairness_report = report_dir / "prediction_fairness_report.json"
     backup_disaster_recovery_report = report_dir / "backup_disaster_recovery_report.json"
     dependency_security_report = report_dir / "dependency_security_report.json"
+    clearinghouse_submission_report = report_dir / "clearinghouse_submission_report.json"
     production_compose = app_dir / "docker-compose.production.yml"
     monitoring_module = app_dir / "app" / "api" / "v1" / "monitoring.py"
     outside_missing_report = tmp_path / "outside" / "private-report.json"
@@ -697,6 +743,7 @@ def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(False))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(False))
     _write_json(dependency_security_report, _dependency_security_evidence_report(False))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(False))
     _write_compose(
         production_compose,
         {
@@ -736,6 +783,7 @@ def test_production_audit_emits_repo_relative_paths_and_redacts_external_paths(
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
         production_compose_path=production_compose,
         monitoring_module_path=monitoring_module,
     )
@@ -772,6 +820,7 @@ def test_production_audit_cli_sanitizes_source_controlled_report_output(
     prediction_fairness_report = tmp_path / "outside" / "prediction_fairness_report.json"
     backup_disaster_recovery_report = report_dir / "backup_disaster_recovery_report.json"
     dependency_security_report = report_dir / "dependency_security_report.json"
+    clearinghouse_submission_report = report_dir / "clearinghouse_submission_report.json"
     production_compose = app_dir / "docker-compose.production.yml"
     monitoring_module = app_dir / "app" / "api" / "v1" / "monitoring.py"
 
@@ -796,6 +845,7 @@ def test_production_audit_cli_sanitizes_source_controlled_report_output(
     _write_json(file_ingestion_surface_report, _file_ingestion_surface_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(False))
     _write_json(dependency_security_report, _dependency_security_evidence_report(False))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(False))
     _write_compose(
         production_compose,
         {
@@ -851,6 +901,8 @@ def test_production_audit_cli_sanitizes_source_controlled_report_output(
             str(backup_disaster_recovery_report),
             "--dependency-security-report",
             str(dependency_security_report),
+            "--clearinghouse-submission-report",
+            str(clearinghouse_submission_report),
             "--production-compose",
             str(production_compose),
             "--monitoring-module",
@@ -947,6 +999,7 @@ def test_production_audit_safe_state_depends_on_file_ingestion_gate(tmp_path):
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
         corpus_manifest,
@@ -975,6 +1028,7 @@ def test_production_audit_safe_state_depends_on_file_ingestion_gate(tmp_path):
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
 
     report = audit.build_report(
         settings_like=_settings(
@@ -1006,6 +1060,7 @@ def test_production_audit_safe_state_depends_on_file_ingestion_gate(tmp_path):
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
     )
 
     blocked_ids = {item["requirement_id"] for item in report["blocked_items"]}
@@ -1028,6 +1083,7 @@ def test_production_audit_safe_state_depends_on_monitoring_gate_metrics(tmp_path
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     monitoring_module = tmp_path / "monitoring.py"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
@@ -1057,6 +1113,7 @@ def test_production_audit_safe_state_depends_on_monitoring_gate_metrics(tmp_path
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
     monitoring_module.write_text(
         "\n".join(
             [
@@ -1104,6 +1161,7 @@ def test_production_audit_safe_state_depends_on_monitoring_gate_metrics(tmp_path
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
         monitoring_module_path=monitoring_module,
     )
 
@@ -1127,6 +1185,7 @@ def test_production_audit_safe_state_depends_on_monitoring_readiness_endpoint(tm
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     monitoring_module = tmp_path / "monitoring.py"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
@@ -1156,6 +1215,7 @@ def test_production_audit_safe_state_depends_on_monitoring_readiness_endpoint(tm
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
     monitoring_module.write_text(
         "\n".join(
             f"{metric_name} = '{metric_name}'"
@@ -1194,6 +1254,7 @@ def test_production_audit_safe_state_depends_on_monitoring_readiness_endpoint(tm
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
         monitoring_module_path=monitoring_module,
     )
 
@@ -1217,6 +1278,7 @@ def test_production_audit_safe_state_blocks_unapproved_student_auto_launch(tmp_p
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
         corpus_manifest,
@@ -1237,6 +1299,7 @@ def test_production_audit_safe_state_blocks_unapproved_student_auto_launch(tmp_p
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(False))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(False))
     _write_json(dependency_security_report, _dependency_security_evidence_report(False))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(False))
 
     report = audit.build_report(
         settings_like=_settings(CLAIMGUARD_STUDENT_ENABLE_AUTO_LAUNCH=True),
@@ -1252,6 +1315,7 @@ def test_production_audit_safe_state_blocks_unapproved_student_auto_launch(tmp_p
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
     )
 
     student_requirement = next(
@@ -1278,6 +1342,7 @@ def test_production_audit_safe_state_depends_on_compose_guard_env(tmp_path):
     prediction_fairness_report = tmp_path / "prediction_fairness_report.json"
     backup_disaster_recovery_report = tmp_path / "backup_disaster_recovery_report.json"
     dependency_security_report = tmp_path / "dependency_security_report.json"
+    clearinghouse_submission_report = tmp_path / "clearinghouse_submission_report.json"
     production_compose = tmp_path / "docker-compose.production.yml"
     _write_json(distillation_report, {"release_ready": True})
     _write_json(
@@ -1307,6 +1372,7 @@ def test_production_audit_safe_state_depends_on_compose_guard_env(tmp_path):
     _write_json(prediction_fairness_report, _prediction_fairness_evidence_report(True))
     _write_json(backup_disaster_recovery_report, _backup_disaster_recovery_evidence_report(True))
     _write_json(dependency_security_report, _dependency_security_evidence_report(True))
+    _write_json(clearinghouse_submission_report, _clearinghouse_submission_evidence_report(True))
     _write_compose(
         production_compose,
         {
@@ -1345,6 +1411,7 @@ def test_production_audit_safe_state_depends_on_compose_guard_env(tmp_path):
         prediction_fairness_report_path=prediction_fairness_report,
         backup_disaster_recovery_report_path=backup_disaster_recovery_report,
         dependency_security_report_path=dependency_security_report,
+        clearinghouse_submission_report_path=clearinghouse_submission_report,
         production_compose_path=production_compose,
     )
 

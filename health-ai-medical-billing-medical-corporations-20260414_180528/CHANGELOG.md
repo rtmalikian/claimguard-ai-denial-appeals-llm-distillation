@@ -2,6 +2,85 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 23:21:53 PDT - Clearinghouse submission evidence gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a boolean-only clearinghouse and payer submission production
+  evidence gate for payer/clearinghouse enrollment, private test-mode
+  credentials, encrypted-transit validation, private production endpoint
+  configuration, EDI 837 submission-contract testing, control-number review,
+  999/277CA acknowledgement handling, rejection/retry/duplicate controls,
+  rollback to non-submission mode, metadata-only audit logging, access
+  controls, retention review, and governance review without storing raw EDI
+  payloads, endpoint URLs, payer portal credentials, clearinghouse
+  credentials, approval references, PHI, secrets, or production claim content
+  in source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/root/PHIplan.md.bak` | Documented the clearinghouse submission evidence gate, remaining private production work, and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/docs/technical-llm-distillation-analysis.md.bak` | Updated public technical breakdown counts, blocker IDs, tool list, and reproduction commands for the clearinghouse submission gate. | Restore backup over `../docs/technical-llm-distillation-analysis.md`. |
+| `implementation.md` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and operational-security checklist for clearinghouse submission evidence validation. | Restore backup over `implementation.md`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added clearinghouse submission evidence fixtures and assertions to PHIplan production-readiness audit tests. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added clearinghouse submission evidence as a private/external production blocker while preserving `safe_current_state=true` semantics. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence to show nine private/external blockers and one warning. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+| `CHANGELOG.md` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-231008-clearinghouse-submission-evidence-gate/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json`
+- `../llm-distill/docs/clearinghouse-submission-runbook.md`
+- `../llm-distill/evals/reports/clearinghouse_submission_evidence_report.json`
+- `../llm-distill/scripts/validate_clearinghouse_submission_evidence.py`
+- `../llm-distill/scripts/render_clearinghouse_submission_private_evidence.py`
+- `tests/unit/test_clearinghouse_submission_evidence.py`
+
+### Validation
+- `find backups/20260601-231008-clearinghouse-submission-evidence-gate -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_clearinghouse_submission_evidence.py llm-distill/scripts/render_clearinghouse_submission_private_evidence.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_clearinghouse_submission_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 18 tests with one existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_clearinghouse_submission_evidence.py`: passed with `clearinghouse_submission_ready=false`, `safe_to_review=true`, and `blocked_item_count=6`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-clearinghouse-submission-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- Avoided implementing live clearinghouse submission, payer gateway calls,
+  production EHR/RCM integration, or claim transmission from source-controlled
+  template evidence.
+- Avoided storing raw EDI payloads, claim batches, endpoint URLs, payer portal
+  credentials, clearinghouse credentials, production response files, approval
+  references, PHI, secrets, production claim content, or private summary paths
+  in source control.
+- Avoided marking PHIplan production readiness complete from documentation or
+  template evidence alone; the new gate remains blocked until private
+  clearinghouse submission evidence exists.
+- Avoided making clearinghouse submission readiness a `safe_current_state`
+  blocker because the current conservative runtime defaults do not submit
+  production claims while production approval remains blocked.
+- A broad `run_phi_scan.py` pass over the new clearinghouse submission files
+  flagged only the required architect attribution email in the template,
+  runbook, and validator; the attribution was preserved per project directives,
+  while the clearinghouse and public-doc validators continue to allow that
+  attribution and block unrelated PHI, secret-shaped values, raw EDI values,
+  private paths, and approval/reference values.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-231008-clearinghouse-submission-evidence-gate/` and remove
+  the six added clearinghouse submission evidence files listed above.
+- This slice strengthens PHIplan production evidence governance; it does not
+  approve clearinghouse submission, payer gateway calls, production EHR/RCM
+  integration, student default routing, user-data model improvement,
+  production vector retrieval, non-synthetic corpus training, production
+  fairness monitoring, backup/DR readiness, or dependency security remediation
+  status.
+
 ## 2026-06-01 23:05:21 PDT - Dependency security evidence gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

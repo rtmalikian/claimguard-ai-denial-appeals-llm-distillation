@@ -1,0 +1,48 @@
+{
+  "artifact": "claimguard_clearinghouse_submission_evidence",
+  "version": "1.0",
+  "evidence_status": "draft_not_production_ready",
+  "architect": "Raphael Malikian <rtmalikian@gmail.com>",
+  "clearinghouse_submission_ready": false,
+  "no_phi_or_secret_values_attested": true,
+  "no_raw_edi_payloads_attested": true,
+  "no_payer_portal_credential_values_attested": true,
+  "no_approval_reference_values_attested": true,
+  "private_clearinghouse_submission_summary_path_env": "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_PRIVATE_SUMMARY_PATH",
+  "private_clearinghouse_submission_summary_path_configured": false,
+  "private_clearinghouse_submission_summary_path_value_included": false,
+  "private_clearinghouse_submission_summary_checked": false,
+  "private_clearinghouse_submission_summary_private_reference_count": 0,
+  "private_clearinghouse_submission_summary_payer_count": 0,
+  "private_clearinghouse_submission_summary_test_transaction_count": 0,
+  "private_clearinghouse_submission_summary_acknowledgement_test_count": 0,
+  "private_clearinghouse_submission_summary_raw_values_included": false,
+  "connectivity_controls": {
+    "payer_or_clearinghouse_enrollment_confirmed": false,
+    "test_mode_credentials_configured_privately": false,
+    "encrypted_transit_validated": false,
+    "production_endpoint_configured_privately": false,
+    "source_control_credentials_absent": true
+  },
+  "submission_controls": {
+    "edi_837_submission_contract_validated": false,
+    "control_number_management_reviewed": false,
+    "acknowledgement_999_277ca_handling_validated": false,
+    "rejection_retry_and_duplicate_controls_reviewed": false,
+    "rollback_to_non_submission_mode_reviewed": false
+  },
+  "audit_retention_controls": {
+    "metadata_only_audit_logging_reviewed": false,
+    "access_controls_reviewed": false,
+    "retention_policy_reviewed": false,
+    "no_raw_edi_or_phi_logs_attested": true
+  },
+  "governance_controls": {
+    "source_control_runbook_documented": true,
+    "runbook_path": "llm-distill/docs/clearinghouse-submission-runbook.md",
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+    "approval_or_risk_acceptance_private": false,
+    "metadata_only_audit_reviewed": false
+  }
+}

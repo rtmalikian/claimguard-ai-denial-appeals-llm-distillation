@@ -679,6 +679,24 @@ plan plus the active ClaimGuard `AGENTS.md`.
   aggregate summary counts are complete outside source control. The PHIplan
   production-readiness audit consumes this report as a private/external
   production blocker without changing the conservative current runtime state.
+- Add a boolean-only clearinghouse submission evidence gate at
+  `llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json`
+  with validation in
+  `llm-distill/scripts/validate_clearinghouse_submission_evidence.py` and a
+  private renderer at
+  `llm-distill/scripts/render_clearinghouse_submission_private_evidence.py`.
+  The checked-in report at
+  `llm-distill/evals/reports/clearinghouse_submission_evidence_report.json`
+  is safe to review and keeps `clearinghouse_submission_ready=false` until
+  payer or clearinghouse enrollment, private test-mode credentials, encrypted
+  transit validation, private production endpoint configuration, EDI 837
+  submission-contract testing, control-number review, 999/277CA
+  acknowledgement handling, rejection/retry/duplicate controls, rollback to
+  non-submission mode, metadata-only audit logging, access controls, retention
+  review, governance review, and private aggregate summary counts are complete
+  outside source control. The PHIplan production-readiness audit consumes this
+  report as a private/external production blocker without changing the
+  conservative current runtime state.
 - Add public GitHub documentation drift validation with
   `llm-distill/scripts/validate_public_repo_docs.py`. The validator checks that
   `README.md` links to
@@ -947,8 +965,9 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `production_ready=false` until student-default cutover approval, legal/BAA/
   consent model-improvement approval, production semantic/vector retrieval
   backend configuration, non-synthetic approved denial/appeal training pairs,
-  and production threshold/fairness monitoring evidence are complete. The
-  manual packet requirement now carries only
+  production threshold/fairness monitoring evidence, backup/disaster recovery
+  evidence, dependency security evidence, and clearinghouse submission evidence
+  are complete. The manual packet requirement now carries only
   metadata-level `blocked_requirement_ids` so reviewers can see which manual
   gates remain open without reading approval values, PHI, secrets, source
   paths, vectors, or document content. Approval references are recorded only as
@@ -956,9 +975,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   The top-level report also propagates only metadata-level dependent
   `blocked_requirement_ids` from the MLX runtime supervisor, model-improvement
   evidence, retrieval-vector backend evidence, production-corpus evidence, and
-  prediction-fairness monitoring evidence reports so reviewers can identify
-  exact remaining gates without exposing nested approval values, PHI, secrets,
-  source paths, vectors, raw demographic values, outcome rows, or raw documents.
+  prediction-fairness monitoring evidence reports, plus backup/disaster
+  recovery, dependency security, and clearinghouse submission evidence reports
+  so reviewers can identify exact remaining gates without exposing nested
+  approval values, PHI, secrets, source paths, vectors, raw demographic values,
+  outcome rows, raw scanner output, raw EDI payloads, endpoint values, or raw
+  documents.
   It now serializes source-controlled evidence paths as repository-relative
   paths and redacts outside-report paths in load errors so the checked-in
   top-level readiness report does not expose local workstation paths. The
@@ -1503,6 +1525,22 @@ plan plus the active ClaimGuard `AGENTS.md`.
   PHIplan production-readiness audit. Do not commit raw scanner output,
   vulnerability detail values, approval references, registry URLs,
   credentials, PHI, secrets, or production documents.
+- Complete private clearinghouse submission evidence before production
+  approval: confirm payer or clearinghouse enrollment, configure test-mode
+  credentials and production endpoint values privately, validate encrypted
+  transit, run synthetic or explicitly de-identified EDI 837 submission
+  contract tests, validate 999/277CA acknowledgement handling, review control
+  number management, rejection/retry/duplicate controls, rollback to
+  non-submission mode, metadata-only audit logging, access controls, and
+  retention policy, render private boolean-only evidence with
+  `llm-distill/scripts/render_clearinghouse_submission_private_evidence.py`,
+  then rerun
+  `llm-distill/scripts/validate_clearinghouse_submission_evidence.py` and the
+  PHIplan production-readiness audit. Do not commit raw EDI payloads,
+  production claim batches, patient identifiers, subscriber identifiers, payer
+  control numbers, claim control numbers, endpoint URLs, payer portal
+  credentials, clearinghouse credentials, approval references, PHI, secrets,
+  or production documents.
 - Obtain and configure real legal approval reference, BAA confirmation, and
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before enabling
@@ -2322,3 +2360,20 @@ remove
 `llm-distill/evals/reports/dependency_security_evidence_report.json`, and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py`
 if rolling back the dependency security evidence gate slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`docs/technical-llm-distillation-analysis.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-231008-clearinghouse-submission-evidence-gate/`;
+remove
+`llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json`,
+`llm-distill/docs/clearinghouse-submission-runbook.md`,
+`llm-distill/scripts/validate_clearinghouse_submission_evidence.py`,
+`llm-distill/scripts/render_clearinghouse_submission_private_evidence.py`,
+`llm-distill/evals/reports/clearinghouse_submission_evidence_report.json`, and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_clearinghouse_submission_evidence.py`
+if rolling back the clearinghouse submission evidence gate slice.

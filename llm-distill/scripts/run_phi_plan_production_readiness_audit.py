@@ -37,6 +37,9 @@ DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT = (
 DEFAULT_DEPENDENCY_SECURITY_EVIDENCE_REPORT = (
     REPORT_DIR / "dependency_security_evidence_report.json"
 )
+DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT = (
+    REPORT_DIR / "clearinghouse_submission_evidence_report.json"
+)
 DEFAULT_PRODUCTION_COMPOSE = APP_ROOT / "docker-compose.production.yml"
 DEFAULT_MONITORING_MODULE = APP_ROOT / "app" / "api" / "v1" / "monitoring.py"
 
@@ -168,6 +171,7 @@ PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS = {
     "production_prediction_fairness_monitoring",
     "backup_disaster_recovery_evidence",
     "dependency_security_evidence",
+    "clearinghouse_submission_evidence",
 }
 SOURCE_CONTROL_READY_REQUIREMENT_IDS = {
     "current_runtime_default_safe",
@@ -906,6 +910,44 @@ def dependency_security_requirement(
     )
 
 
+def clearinghouse_submission_requirement(
+    clearinghouse_submission_report_path: Path | None = DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT,
+) -> dict[str, Any]:
+    report_path: str | None = None
+    report_safe_to_review: bool | None = None
+    report_ready: bool | None = None
+    report_blocked_requirement_ids: list[str] = []
+    errors: list[str] = []
+    if clearinghouse_submission_report_path is not None:
+        report_path = safe_report_path(clearinghouse_submission_report_path)
+        clearinghouse_report, clearinghouse_errors = load_json(clearinghouse_submission_report_path)
+        errors.extend(clearinghouse_errors)
+        if isinstance(clearinghouse_report, dict):
+            report_safe_to_review = bool(clearinghouse_report.get("safe_to_review"))
+            report_ready = bool(clearinghouse_report.get("clearinghouse_submission_ready"))
+            report_blocked_requirement_ids = blocked_requirement_ids_from_report(clearinghouse_report)
+
+    blockers: list[str] = list(errors)
+    if report_ready is False:
+        blockers.append("clearinghouse_submission_evidence_report_not_ready")
+    if report_safe_to_review is False:
+        blockers.append("clearinghouse_submission_evidence_report_not_safe_to_review")
+
+    return requirement(
+        requirement_id="clearinghouse_submission_evidence",
+        name="Clearinghouse and payer submission evidence is ready",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "clearinghouse_submission_report_path": report_path,
+            "clearinghouse_submission_report_safe_to_review": report_safe_to_review,
+            "clearinghouse_submission_report_ready": report_ready,
+            "clearinghouse_submission_blocked_requirement_ids": report_blocked_requirement_ids,
+            "values_redacted": True,
+        },
+    )
+
+
 def vector_backend_requirement(
     settings_like: Any,
     vector_backend_report_path: Path | None = None,
@@ -1267,6 +1309,13 @@ def build_next_required_actions(requirements: list[dict[str, Any]]) -> list[str]
             "critical/high finding remediation or private approval, rebuild/retest evidence, and boolean-only evidence "
             "from validate_dependency_security_evidence.py are complete."
         )
+    if "clearinghouse_submission_evidence" in blocked_ids:
+        actions.append(
+            "Keep PHIplan production readiness blocked until clearinghouse or payer enrollment, private test-mode "
+            "credentials, encrypted-transit validation, EDI 837 submission-contract testing, 999/277CA acknowledgement "
+            "handling, retry/duplicate controls, rollback, metadata-only audit logging, access controls, retention review, "
+            "and boolean-only evidence from validate_clearinghouse_submission_evidence.py are complete."
+        )
     if "file_ingestion_surface_audit_ready" in blocked_ids:
         actions.append(
             "Run llm-distill/scripts/audit_file_ingestion_surfaces.py and keep every UploadFile/File "
@@ -1390,6 +1439,7 @@ def build_report(
     prediction_fairness_report_path: Path | None = DEFAULT_PREDICTION_FAIRNESS_EVIDENCE_REPORT,
     backup_disaster_recovery_report_path: Path | None = DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT,
     dependency_security_report_path: Path | None = DEFAULT_DEPENDENCY_SECURITY_EVIDENCE_REPORT,
+    clearinghouse_submission_report_path: Path | None = DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT,
     production_compose_path: Path = DEFAULT_PRODUCTION_COMPOSE,
     monitoring_module_path: Path = DEFAULT_MONITORING_MODULE,
 ) -> dict[str, Any]:
@@ -1414,6 +1464,7 @@ def build_report(
         prediction_fairness_monitoring_requirement(prediction_fairness_report_path),
         backup_disaster_recovery_requirement(backup_disaster_recovery_report_path),
         dependency_security_requirement(dependency_security_report_path),
+        clearinghouse_submission_requirement(clearinghouse_submission_report_path),
         synthetic_900_adapter_requirement(synthetic_900_run_report_path),
         external_phi_service_guard_requirement(settings_like),
     ]
@@ -1527,6 +1578,11 @@ def main() -> int:
         type=Path,
         default=DEFAULT_DEPENDENCY_SECURITY_EVIDENCE_REPORT,
     )
+    parser.add_argument(
+        "--clearinghouse-submission-report",
+        type=Path,
+        default=DEFAULT_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT,
+    )
     parser.add_argument("--production-compose", type=Path, default=DEFAULT_PRODUCTION_COMPOSE)
     parser.add_argument("--monitoring-module", type=Path, default=DEFAULT_MONITORING_MODULE)
     parser.add_argument("--fail-on-blocked", action="store_true")
@@ -1546,6 +1602,7 @@ def main() -> int:
         prediction_fairness_report_path=args.prediction_fairness_report,
         backup_disaster_recovery_report_path=args.backup_disaster_recovery_report,
         dependency_security_report_path=args.dependency_security_report,
+        clearinghouse_submission_report_path=args.clearinghouse_submission_report,
         production_compose_path=args.production_compose,
         monitoring_module_path=args.monitoring_module,
     )

@@ -487,6 +487,20 @@ review, and private aggregate summary counts are complete outside source
 control. Raw scanner output, vulnerability detail values, approval references,
 registry URLs, credentials, PHI, secrets, and production documents must remain
 outside source control.
+Clearinghouse submission readiness now also has a boolean-only evidence
+template, validator, private evidence renderer, runbook, and checked-in report.
+The PHIplan production-readiness audit consumes this report as a
+private/external production blocker while keeping the conservative current
+runtime state safe; the report remains not ready until payer or clearinghouse
+enrollment, private test-mode credentials, encrypted-transit validation,
+private production endpoint configuration, EDI 837 submission-contract tests,
+control-number review, 999/277CA acknowledgement handling, rejection/retry/
+duplicate controls, rollback to non-submission mode, metadata-only audit
+logging, access controls, retention review, governance review, and private
+aggregate summary counts are complete outside source control. Raw EDI payloads,
+production claim batches, endpoint URLs, payer portal credentials,
+clearinghouse credentials, approval references, PHI, secrets, and production
+documents must remain outside source control.
 The public GitHub-facing README now links to a technical LLM distillation
 breakdown with analysis statistics and tools used, and the repository includes
 a public-doc validator that checks the link, section headings, report links,
@@ -1146,6 +1160,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   evidence renderer, runbook, checked-in safe-but-blocked report, and PHIplan
   production-readiness audit linkage for private Python/frontend/container
   scan, remediation, rebuild/retest, governance, and no-raw-value evidence
+- [x] Boolean-only clearinghouse submission evidence template, validator,
+  private evidence renderer, runbook, checked-in safe-but-blocked report, and
+  PHIplan production-readiness audit linkage for private payer/clearinghouse
+  enrollment, test-mode credential, encrypted-transit, EDI 837 contract,
+  acknowledgement, retry/duplicate, rollback, audit, access, retention,
+  governance, and no-raw-value evidence
 - [x] Public GitHub README link to a technical LLM distillation breakdown with
   analysis statistics and tools used, plus validator coverage for link
   presence, report links, aggregate stats, tool markers, attribution, and
@@ -2192,7 +2212,22 @@ seed can be treated as comprehensive.
   raw scan output, vulnerability detail values, approval references, registry
   URLs, credentials, PHI, secrets, or production documents committed.
 
-### 1.3 NVIDIA NIM Security
+### 1.3 Clearinghouse Submission Readiness
+- [x] Boolean-only clearinghouse submission evidence validation added through
+  `llm-distill/scripts/validate_clearinghouse_submission_evidence.py`, with a
+  private renderer for final payer/clearinghouse enrollment, private
+  credential, encrypted-transit, EDI 837 submission-contract,
+  acknowledgement, retry/duplicate, rollback, metadata-only audit, access,
+  retention, and governance evidence.
+- [ ] Production clearinghouse submission remains blocked until private
+  enrollment/connectivity evidence, synthetic or de-identified transaction
+  tests, acknowledgement handling, control-number management, duplicate
+  prevention, rollback, audit logging, access controls, and retention review
+  are complete outside source control, with no raw EDI payloads, endpoint URLs,
+  payer portal credentials, clearinghouse credentials, approval references,
+  PHI, secrets, or production claim content committed.
+
+### 1.4 NVIDIA NIM Security
 - [x] Prompt-injection-like document instructions detected as metadata-only
   categories, untrusted document prompt boundaries added, and denial workflow
   blocker tasks/warnings/quality checks produced without returning matched
