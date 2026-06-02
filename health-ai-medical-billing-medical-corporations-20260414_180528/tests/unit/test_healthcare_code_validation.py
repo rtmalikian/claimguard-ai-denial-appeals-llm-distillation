@@ -10,6 +10,7 @@ from app.utils.healthcare_codes import (
     is_valid_carc_reason_code,
     is_valid_cpt_hcpcs_code,
     is_valid_icd10_code,
+    is_valid_ndc_code,
     is_valid_npi,
     is_valid_place_of_service_code,
     is_valid_rarc_code,
@@ -31,6 +32,8 @@ def test_healthcare_code_format_validators_accept_common_synthetic_codes():
     assert is_valid_carc_reason_code("16") is True
     assert is_valid_rarc_code("N123") is True
     assert is_valid_place_of_service_code("11") is True
+    assert is_valid_ndc_code("12345-6789-01") is True
+    assert is_valid_ndc_code("N412345678901") is True
     assert is_valid_claim_frequency_code("1") is True
     assert is_valid_revenue_code("0450") is True
 
@@ -43,6 +46,8 @@ def test_healthcare_code_format_validators_reject_bad_formats():
     assert is_valid_carc_reason_code("AB") is False
     assert is_valid_rarc_code("X123") is False
     assert is_valid_place_of_service_code("30") is False
+    assert is_valid_ndc_code("N4ABC") is False
+    assert is_valid_ndc_code("123456789") is False
     assert is_valid_claim_frequency_code("9") is False
     assert is_valid_revenue_code("45A") is False
 
@@ -120,17 +125,20 @@ def test_claim_billing_code_validation_returns_safe_issue_metadata():
 def test_administrative_code_validation_returns_safe_issue_metadata():
     issues = validate_administrative_claim_codes(
         place_of_service_codes=["11", "30"],
+        ndc_codes=["12345-6789-01", "N4ABC"],
         claim_frequency_codes=["1", "9"],
         revenue_codes=["0450", "45A"],
     )
 
     assert [issue.error_code for issue in issues] == [
         "invalid_place_of_service_code",
+        "invalid_ndc_code",
         "invalid_claim_frequency_code",
         "invalid_revenue_code",
     ]
     serialized = str([issue.safe_detail() for issue in issues])
     assert "30" not in serialized
+    assert "N4ABC" not in serialized
     assert "45A" not in serialized
     assert all(
         issue.safe_detail()["safe_context"]["raw_code_value_included"] is False

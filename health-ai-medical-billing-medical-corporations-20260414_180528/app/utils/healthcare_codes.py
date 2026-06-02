@@ -19,6 +19,16 @@ from app.utils.carc_rarc_database import (
 
 
 NPI_RE = re.compile(r"^\d{10}$")
+NDC_DIGIT_RE = re.compile(r"^\d{10,12}$")
+NDC_HYPHENATED_SEGMENT_LENGTHS = {
+    (4, 4, 2),
+    (5, 3, 2),
+    (5, 4, 1),
+    (5, 4, 2),
+    (6, 3, 2),
+    (6, 4, 1),
+    (6, 4, 2),
+}
 ICD10_CM_RE = re.compile(r"^[A-TV-Z][0-9][A-Z0-9](?:\.?[A-Z0-9]{1,4})?$")
 CPT_RE = re.compile(r"^(?:[0-9]{5}|[0-9]{4}[FT])$")
 HCPCS_RE = re.compile(r"^[A-V][0-9]{4}$")
@@ -138,6 +148,13 @@ def normalize_place_of_service_code(value: object) -> str:
     return normalize_healthcare_code(value).zfill(2)
 
 
+def normalize_ndc_code(value: object) -> str:
+    code = str(value or "").strip().upper()
+    if code.startswith("N4"):
+        code = code[2:].strip()
+    return code
+
+
 def normalize_claim_frequency_code(value: object) -> str:
     return normalize_healthcare_code(value)
 
@@ -201,6 +218,21 @@ def is_valid_place_of_service_code(value: object) -> bool:
     return normalize_place_of_service_code(value) in PLACE_OF_SERVICE_CODES
 
 
+def is_valid_ndc_code(value: object) -> bool:
+    code = normalize_ndc_code(value)
+    if not code:
+        return False
+    if "-" in code:
+        parts = code.split("-")
+        segment_lengths = tuple(len(part) for part in parts)
+        return (
+            len(parts) == 3
+            and segment_lengths in NDC_HYPHENATED_SEGMENT_LENGTHS
+            and all(part.isdigit() for part in parts)
+        )
+    return bool(NDC_DIGIT_RE.fullmatch(code))
+
+
 def is_valid_claim_frequency_code(value: object) -> bool:
     return normalize_claim_frequency_code(value) in CLAIM_FREQUENCY_CODES
 
@@ -244,6 +276,7 @@ def validate_claim_billing_codes(
 def validate_administrative_claim_codes(
     *,
     place_of_service_codes: Iterable[object] | None = None,
+    ndc_codes: Iterable[object] | None = None,
     claim_frequency_codes: Iterable[object] | None = None,
     revenue_codes: Iterable[object] | None = None,
 ) -> list[HealthcareCodeValidationIssue]:
@@ -256,6 +289,17 @@ def validate_administrative_claim_codes(
                     field="place_of_service_codes",
                     code_type="place_of_service",
                     error_code="invalid_place_of_service_code",
+                    index=index,
+                )
+            )
+
+    for index, code in enumerate(ndc_codes or []):
+        if not is_valid_ndc_code(code):
+            issues.append(
+                HealthcareCodeValidationIssue(
+                    field="ndc_codes",
+                    code_type="ndc",
+                    error_code="invalid_ndc_code",
                     index=index,
                 )
             )

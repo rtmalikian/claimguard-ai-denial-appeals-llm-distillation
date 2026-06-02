@@ -2,6 +2,59 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 19:04:08 PDT - Direct-claim NDC metadata validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: validate optional direct-claim NDC drug-code metadata when supplied,
+  blocking invalid format values before prediction, persistence, or audit-log
+  creation while keeping all errors and logs metadata-only.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/healthcare_codes.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/healthcare_codes.py.bak` | Added local NDC format normalization and validation for FDA-style segmented forms, payer 11-digit billing form, and uniform 12-digit format. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py.bak` | Added optional NDC alias validation for top-level direct claim metadata and service lines before model calls or persistence. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_healthcare_code_validation.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_healthcare_code_validation.py.bak` | Added NDC format and safe administrative-code validation coverage. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py.bak` | Added NDC claim-data value validation and pre-prediction blocking coverage with raw-value redaction assertions. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/root/PHIplan.md.bak` | Documented supplied direct-claim NDC validation and rollback notes. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated the required-field/NPI checklist to reflect optional supplied NDC drug-code validation. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/claims.py app/utils/healthcare_codes.py tests/unit/test_required_claim_fields.py tests/unit/test_healthcare_code_validation.py`: passed from the application directory.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_required_claim_fields.py tests/unit/test_healthcare_code_validation.py -q`: passed, 24 tests with two existing deprecation warnings.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-ndc-metadata-validation-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-ndc-metadata-validation-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided making NDC metadata universally required because not every claim has
+  drug billing details; this slice only validates optional NDC values when
+  supplied.
+- Avoided claiming drug identity, payer coverage, reimbursement, or medical
+  necessity; the check is format-only and local.
+- Avoided external drug-code lookups, real drug records, real claim examples,
+  PHI, production claim data, or secrets.
+- Avoided logging or returning raw NDC values, raw claim payloads, patient
+  identifiers, provider identifiers, PHI, secrets, or production claim content.
+- Avoided changing EDI parsing semantics, PHIplan production-readiness booleans,
+  student-default routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/`.
+- This slice closes a source-controlled drug-code metadata validation gap; it
+  does not complete the full PHIplan objective or approve production
+  student-default use.
+
 ## 2026-06-01 18:56:47 PDT - Referring provider NPI metadata validation
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

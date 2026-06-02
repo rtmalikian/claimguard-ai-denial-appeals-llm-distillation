@@ -1901,7 +1901,7 @@ STATE_TRANSITIONS = {
 | Service Date | Missing - CRITICAL |
 | Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Missing |
-| NDC Codes (drugs) | Missing |
+| NDC Codes (drugs) | Validated when supplied in direct claim metadata |
 | Referring Provider NPI | Validated when supplied in direct claim metadata |
 
 ### 2.3 No NPI Validation
@@ -1917,6 +1917,12 @@ STATE_TRANSITIONS = {
   requires a referring provider, but invalid supplied NPIs return metadata-only
   structured errors without raw field values, raw claim data, PHI, or production
   claim content.
+- [x] Direct claim metadata now rejects invalid supplied NDC drug-code aliases
+  before prediction, persistence, or audit-log creation. The field remains
+  optional because not every claim includes drug billing details, and the check
+  is format-only rather than payer-specific coverage or medical-necessity
+  validation. Safe errors omit raw NDC values, raw claim data, PHI, and
+  production claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and

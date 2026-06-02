@@ -1292,6 +1292,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   are blocked with metadata-only structured errors that omit raw NPI values,
   raw claim payloads, patient identifiers, provider identifiers, PHI, secrets,
   and production claim content.
+- Validate supplied direct-claim NDC drug-code metadata before model calls or
+  persistence. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now checks optional `ndc`, `ndc_code`, `ndc_codes`,
+  `national_drug_code`, `national_drug_codes`, and `drug_ndc` aliases at the
+  top level and inside service lines. Invalid supplied values are blocked with
+  metadata-only structured errors that omit raw NDC values, raw claim payloads,
+  patient identifiers, provider identifiers, PHI, secrets, and production claim
+  content. The check is local and format-only; it does not assert drug identity,
+  payer-specific coverage, reimbursement, or medical necessity.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2105,3 +2114,14 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-185257-referring-provider-npi-validation/`
 if rolling back the direct-claim referring provider NPI validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/healthcare_codes.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_healthcare_code_validation.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190106-ndc-metadata-validation/`
+if rolling back the direct-claim NDC metadata validation slice.

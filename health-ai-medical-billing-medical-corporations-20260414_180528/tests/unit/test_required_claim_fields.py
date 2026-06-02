@@ -116,6 +116,34 @@ def test_claim_data_value_validator_rejects_invalid_referring_npi_safely():
     assert "2345678901" not in str(details)
 
 
+def test_claim_data_value_validator_rejects_invalid_ndc_codes_safely():
+    from app.api.v1.claims import validate_claim_data_values
+
+    issues = validate_claim_data_values(
+        {
+            "ndc_code": "N4ABC",
+            "service_lines": [
+                {"ndc_codes": ["12345-6789-01", "123456789"]},
+                {"national_drug_code": {"code": "bad-ndc"}},
+            ],
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == [
+        "invalid_ndc_code_metadata",
+        "invalid_ndc_code_metadata",
+        "invalid_ndc_code_metadata",
+    ]
+    assert details[0]["field_path"] == "ndc_code"
+    assert details[1]["field_path"] == "service_lines[0].ndc_codes[1]"
+    assert details[2]["field_path"] == "service_lines[1].national_drug_code.code"
+    assert details[0]["safe_context"]["raw_field_value_included"] is False
+    assert "N4ABC" not in str(details)
+    assert "123456789" not in str(details)
+    assert "bad-ndc" not in str(details)
+
+
 def test_diagnosis_procedure_linkage_requires_diagnosis_support_safely():
     from app.api.v1.claims import validate_diagnosis_procedure_linkage
 
@@ -254,6 +282,42 @@ async def test_predict_denial_blocks_invalid_referring_npi_before_prediction(moc
     assert detail["issues"][0]["error_code"] == "invalid_referring_provider_npi"
     assert detail["safe_context"]["raw_field_values_included"] is False
     assert "1234567890" not in str(detail)
+    mock_predict.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("app.services.prediction.PredictionService.predict_denial", new_callable=AsyncMock)
+async def test_predict_denial_blocks_invalid_ndc_before_prediction(mock_predict):
+    from app.api.v1.claims import predict_denial
+    from app.schemas.claim import ClaimPredictionRequest
+
+    db = MagicMock()
+    request = ClaimPredictionRequest(
+        patient_id=1,
+        provider_id=1,
+        claim_data={
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "ndc_code": "N4ABC",
+        },
+        diagnosis_codes=["Z00.00"],
+        procedure_codes=["J1100"],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await predict_denial(
+            request=request,
+            current_user={"id": 42, "role": "billing_staff"},
+            db=db,
+        )
+
+    assert exc_info.value.status_code == 400
+    detail = exc_info.value.detail
+    assert detail["error_code"] == "invalid_claim_data_values"
+    assert detail["issues"][0]["error_code"] == "invalid_ndc_code_metadata"
+    assert detail["safe_context"]["raw_field_values_included"] is False
+    assert "N4ABC" not in str(detail)
     mock_predict.assert_not_called()
 
 

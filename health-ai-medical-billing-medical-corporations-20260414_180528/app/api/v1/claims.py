@@ -81,6 +81,7 @@ from app.utils.edi_parser import (
 )
 from app.utils.edi_835_parser import EDI835ClaimPayment, EDI835ParserError, parse_edi_835
 from app.utils.healthcare_codes import (
+    is_valid_ndc_code,
     is_valid_npi,
     is_valid_place_of_service_code,
     validate_claim_billing_codes,
@@ -291,6 +292,15 @@ REFERRING_PROVIDER_NPI_METADATA_KEYS = (
     "ordering_provider_npi",
     "supervising_provider_npi",
 )
+NDC_METADATA_KEYS = (
+    "ndc",
+    "ndc_code",
+    "ndc_codes",
+    "national_drug_code",
+    "national_drug_codes",
+    "drug_ndc",
+)
+NDC_NESTED_CODE_KEYS = ("code", "ndc", "ndc_code", "value")
 CLAIM_AMOUNT_METADATA_KEYS = (
     "amount",
     "claim_amount",
@@ -567,11 +577,96 @@ def _referring_provider_npi_value_issues_for_mapping(
     return issues
 
 
+def _ndc_value_issues_for_value(
+    *,
+    field: str,
+    value: object,
+    field_path: str,
+) -> list[ClaimDataValueIssue]:
+    if not _metadata_value_present(value):
+        return []
+
+    issues: list[ClaimDataValueIssue] = []
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            issues.extend(
+                _ndc_value_issues_for_value(
+                    field=field,
+                    value=item,
+                    field_path=f"{field_path}[{index}]",
+                )
+            )
+        return issues
+
+    if isinstance(value, dict):
+        nested_code_found = False
+        for nested_key in NDC_NESTED_CODE_KEYS:
+            if nested_key in value and _metadata_value_present(value.get(nested_key)):
+                nested_code_found = True
+                issues.extend(
+                    _ndc_value_issues_for_value(
+                        field=field,
+                        value=value.get(nested_key),
+                        field_path=f"{field_path}.{nested_key}",
+                    )
+                )
+        if nested_code_found:
+            return issues
+
+    if not is_valid_ndc_code(value):
+        issues.append(
+            ClaimDataValueIssue(
+                field=field,
+                field_path=field_path,
+                error_code="invalid_ndc_code_metadata",
+            )
+        )
+    return issues
+
+
+def _ndc_value_issues_for_mapping(
+    data: dict,
+    *,
+    prefix: str | None = None,
+) -> list[ClaimDataValueIssue]:
+    issues: list[ClaimDataValueIssue] = []
+    for key in NDC_METADATA_KEYS:
+        if key not in data or not _metadata_value_present(data.get(key)):
+            continue
+        field_path = f"{prefix}.{key}" if prefix else key
+        issues.extend(
+            _ndc_value_issues_for_value(
+                field=key,
+                value=data.get(key),
+                field_path=field_path,
+            )
+        )
+
+    for collection_key in CLAIM_SERVICE_LINE_COLLECTION_KEYS:
+        collection = data.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+        for index, item in enumerate(collection):
+            if isinstance(item, dict):
+                issues.extend(
+                    _ndc_value_issues_for_mapping(
+                        item,
+                        prefix=(
+                            f"{prefix}.{collection_key}[{index}]"
+                            if prefix
+                            else f"{collection_key}[{index}]"
+                        ),
+                    )
+                )
+    return issues
+
+
 def validate_claim_data_values(claim_data: object) -> list[ClaimDataValueIssue]:
     data = claim_data if isinstance(claim_data, dict) else {}
     return (
         _claim_amount_value_issues_for_mapping(data)
         + _referring_provider_npi_value_issues_for_mapping(data)
+        + _ndc_value_issues_for_mapping(data)
     )
 
 
