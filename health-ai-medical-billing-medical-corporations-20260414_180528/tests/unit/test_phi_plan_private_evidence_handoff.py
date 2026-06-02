@@ -35,6 +35,25 @@ def test_private_evidence_handoff_report_summarizes_current_private_blockers():
     assert report["source_control_blocker_count"] == 0
     assert report["private_blocker_count"] == 9
     assert report["domain_count"] == 9
+    assert report["operator_run_plan"]["ready"] is True
+    assert report["operator_run_plan"]["step_count"] == 9
+    assert report["operator_run_plan"]["manual_production_gate_runs_last"] is True
+    assert report["operator_run_plan"]["raw_private_values_included"] is False
+    assert report["operator_run_plan"]["raw_private_paths_included"] is False
+    assert report["operator_run_plan"]["domain_order"][-1] == (
+        "manual_production_gate_packet_evidence"
+    )
+    assert report["operator_run_plan"]["domain_order"][:3] == [
+        "student_default_cutover_external_approval",
+        "user_data_model_improvement_external_approval",
+        "production_semantic_vector_backend",
+    ]
+    for step in report["operator_run_plan"]["steps"]:
+        assert step["render_command_skeletons"]
+        assert step["validate_command_skeletons"]
+        assert step["values_redacted"] is True
+        assert "outside-source-control" in step["private_input_placeholder"]
+        assert "outside-source-control" in step["private_output_placeholder"]
     assert report["raw_approval_values_included"] is False
     assert report["raw_private_summary_paths_included"] is False
     assert report["raw_report_paths_included"] is False
@@ -57,6 +76,7 @@ def test_private_evidence_handoff_report_summarizes_current_private_blockers():
     serialized = json.dumps(report, sort_keys=True)
     assert "/Users/" not in serialized
     assert "/private/tmp/" not in serialized
+    assert "synthetic-" not in serialized
 
 
 def test_private_evidence_handoff_report_blocks_external_handoff(tmp_path):

@@ -1061,7 +1061,10 @@ plan plus the active ClaimGuard `AGENTS.md`.
   That report records `handoff_ready=true`,
   `private_evidence_complete=false`, and nine private blocker domains while
   keeping raw approval values, private summary paths, report paths, PHI,
-  secrets, and production document content out of source control. The
+  secrets, and production document content out of source control. It now also
+  includes a safe `operator_run_plan` with command skeletons and execution
+  order for the private renderers and validators, using only placeholders for
+  private paths and values. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual

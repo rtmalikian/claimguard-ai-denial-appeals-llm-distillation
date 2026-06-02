@@ -35,6 +35,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_phi_plan_manual_gate_private_packet.py",
         ),
+        "private_input_flag": "--packet",
+        "private_input_placeholder": "<private-manual-gate-packet-json-outside-source-control>",
+        "execution_order": 9,
     },
     {
         "requirement_id": "student_default_cutover_external_approval",
@@ -47,6 +50,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
             DISTILL_DIR / "scripts" / "render_student_cutover_private_env.py",
             DISTILL_DIR / "scripts" / "render_mlx_runtime_supervisor_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-runtime-supervisor-evidence-json-outside-source-control>",
+        "execution_order": 1,
     },
     {
         "requirement_id": "user_data_model_improvement_external_approval",
@@ -58,6 +64,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_model_improvement_private_env.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-model-improvement-evidence-json-outside-source-control>",
+        "execution_order": 2,
     },
     {
         "requirement_id": "production_semantic_vector_backend",
@@ -70,6 +79,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
             DISTILL_DIR / "scripts" / "render_retrieval_vector_private_env.py",
             DISTILL_DIR / "scripts" / "render_retrieval_vector_runtime_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-retrieval-vector-evidence-json-outside-source-control>",
+        "execution_order": 3,
     },
     {
         "requirement_id": "production_corpus_expansion_beyond_synthetic",
@@ -81,6 +93,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_production_corpus_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-production-corpus-evidence-json-outside-source-control>",
+        "execution_order": 4,
     },
     {
         "requirement_id": "production_prediction_fairness_monitoring",
@@ -92,6 +107,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_prediction_fairness_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-prediction-fairness-evidence-json-outside-source-control>",
+        "execution_order": 5,
     },
     {
         "requirement_id": "backup_disaster_recovery_evidence",
@@ -103,6 +121,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_backup_disaster_recovery_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-backup-disaster-recovery-evidence-json-outside-source-control>",
+        "execution_order": 6,
     },
     {
         "requirement_id": "dependency_security_evidence",
@@ -114,6 +135,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_dependency_security_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-dependency-security-evidence-json-outside-source-control>",
+        "execution_order": 7,
     },
     {
         "requirement_id": "clearinghouse_submission_evidence",
@@ -125,6 +149,9 @@ PRIVATE_EVIDENCE_DOMAINS = (
         "renderer_paths": (
             DISTILL_DIR / "scripts" / "render_clearinghouse_submission_private_evidence.py",
         ),
+        "private_input_flag": "--evidence",
+        "private_input_placeholder": "<private-clearinghouse-submission-evidence-json-outside-source-control>",
+        "execution_order": 8,
     },
 )
 
@@ -135,10 +162,14 @@ REQUIRED_HANDOFF_MARKERS = (
     "approval references outside source control",
     "private summary paths outside source control",
     "raw report paths outside source control",
+    "operator run plan",
+    "command skeletons",
     "no PHI",
     "no secrets",
     "no production document content",
 )
+
+PRIVATE_RENDER_OUTPUT_PLACEHOLDER = "<private-render-output-outside-source-control>"
 
 
 def path_is_within(path: Path, parent: Path) -> bool:
@@ -178,6 +209,39 @@ def blocked_requirement_ids(payload: Any) -> list[str]:
             if isinstance(item, dict) and item.get("requirement_id")
         }
     )
+
+
+def render_command_skeleton(renderer_path: Path) -> str:
+    return (
+        f"python3 {safe_path(renderer_path)} --output "
+        f"{PRIVATE_RENDER_OUTPUT_PLACEHOLDER} "
+        "[add approved private flags only after governance review]"
+    )
+
+
+def validate_command_skeleton(domain: dict[str, Any], validator_path: Path) -> str:
+    return (
+        f"python3 {safe_path(validator_path)} {domain['private_input_flag']} "
+        f"{domain['private_input_placeholder']} "
+        f"--report {safe_path(domain['report_path'])} --fail-on-blocked"
+    )
+
+
+def build_operator_run_step(domain: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "execution_order": int(domain["execution_order"]),
+        "requirement_id": domain["requirement_id"],
+        "render_command_skeletons": [
+            render_command_skeleton(path) for path in domain["renderer_paths"]
+        ],
+        "validate_command_skeletons": [
+            validate_command_skeleton(domain, path) for path in domain["validator_paths"]
+        ],
+        "source_control_report_path": safe_path(domain["report_path"]),
+        "private_input_placeholder": domain["private_input_placeholder"],
+        "private_output_placeholder": PRIVATE_RENDER_OUTPUT_PLACEHOLDER,
+        "values_redacted": True,
+    }
 
 
 def validate_handoff_markers(handoff_path: Path) -> tuple[dict[str, Any], list[str]]:
@@ -253,6 +317,7 @@ def build_domain_status(domain: dict[str, Any]) -> tuple[dict[str, Any], list[st
     return (
         {
             "requirement_id": domain["requirement_id"],
+            "execution_order": int(domain["execution_order"]),
             "report_path": safe_path(report_path),
             "ready_key": ready_key,
             "validator_paths": [safe_path(path) for path in validator_paths],
@@ -298,6 +363,10 @@ def build_report(handoff_path: Path = DEFAULT_HANDOFF) -> dict[str, Any]:
 
     private_evidence_complete = not blocked_domains
     source_control_ready = not source_control_blockers
+    operator_run_plan_steps = sorted(
+        (build_operator_run_step(domain) for domain in PRIVATE_EVIDENCE_DOMAINS),
+        key=lambda item: item["execution_order"],
+    )
     return {
         "artifact": "claimguard_phi_plan_private_evidence_handoff_status",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -310,6 +379,20 @@ def build_report(handoff_path: Path = DEFAULT_HANDOFF) -> dict[str, Any]:
         "private_blockers": blocked_domains,
         "domain_count": len(domain_statuses),
         "domain_statuses": domain_statuses,
+        "operator_run_plan": {
+            "ready": source_control_ready,
+            "step_count": len(operator_run_plan_steps),
+            "domain_order": [
+                step["requirement_id"] for step in operator_run_plan_steps
+            ],
+            "steps": operator_run_plan_steps,
+            "manual_production_gate_runs_last": (
+                operator_run_plan_steps[-1]["requirement_id"]
+                == "manual_production_gate_packet_evidence"
+            ),
+            "raw_private_values_included": False,
+            "raw_private_paths_included": False,
+        },
         "handoff_document": handoff_evidence,
         "raw_approval_values_included": False,
         "raw_private_summary_paths_included": False,

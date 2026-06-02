@@ -15,6 +15,7 @@
         "manual_student_default_cutover_evidence",
         "manual_user_data_model_improvement_evidence"
       ],
+      "execution_order": 9,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -39,6 +40,7 @@
         "mlx_runtime_supervisor_private_runtime_metadata",
         "mlx_runtime_supervisor_runtime_validation"
       ],
+      "execution_order": 1,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -62,6 +64,7 @@
       "blocked_requirement_ids": [
         "model_improvement_legal_controls"
       ],
+      "execution_order": 2,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -86,6 +89,7 @@
         "retrieval_vector_backend_index_state",
         "retrieval_vector_backend_runtime_validation"
       ],
+      "execution_order": 3,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -110,6 +114,7 @@
         "production_corpus_manifest_pair_evidence",
         "production_corpus_private_summary_metadata"
       ],
+      "execution_order": 4,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -135,6 +140,7 @@
         "prediction_fairness_governance_controls",
         "prediction_fairness_private_monitoring_summary"
       ],
+      "execution_order": 5,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -162,6 +168,7 @@
         "backup_disaster_recovery_restore_validation",
         "backup_disaster_recovery_storage_controls"
       ],
+      "execution_order": 6,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -188,6 +195,7 @@
         "dependency_security_remediation_controls",
         "dependency_security_scan_controls"
       ],
+      "execution_order": 7,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -215,6 +223,7 @@
         "clearinghouse_submission_ready_flag",
         "clearinghouse_submission_transaction_controls"
       ],
+      "execution_order": 8,
       "missing_renderer_paths": [],
       "missing_validator_paths": [],
       "outside_source_control_paths": [],
@@ -233,19 +242,167 @@
       ]
     }
   ],
-  "generated_at": "2026-06-02T17:14:13.815388+00:00",
+  "generated_at": "2026-06-02T17:25:38.834878+00:00",
   "handoff_document": {
     "handoff_path": "llm-distill/docs/phi-plan-private-evidence-handoff.md",
-    "marker_count": 9,
+    "marker_count": 11,
     "missing_markers": [],
     "path_inside_source_control": true,
-    "required_marker_count": 9
+    "required_marker_count": 11
   },
   "handoff_ready": true,
   "notes": [
     "This report is source-control handoff evidence, not private approval evidence.",
     "Private evidence remains incomplete until every domain-specific report is ready."
   ],
+  "operator_run_plan": {
+    "domain_order": [
+      "student_default_cutover_external_approval",
+      "user_data_model_improvement_external_approval",
+      "production_semantic_vector_backend",
+      "production_corpus_expansion_beyond_synthetic",
+      "production_prediction_fairness_monitoring",
+      "backup_disaster_recovery_evidence",
+      "dependency_security_evidence",
+      "clearinghouse_submission_evidence",
+      "manual_production_gate_packet_evidence"
+    ],
+    "manual_production_gate_runs_last": true,
+    "raw_private_paths_included": false,
+    "raw_private_values_included": false,
+    "ready": true,
+    "step_count": 9,
+    "steps": [
+      {
+        "execution_order": 1,
+        "private_input_placeholder": "<private-runtime-supervisor-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_student_cutover_private_env.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]",
+          "python3 llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "student_default_cutover_external_approval",
+        "source_control_report_path": "llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_mlx_runtime_supervisor.py --evidence <private-runtime-supervisor-evidence-json-outside-source-control> --report llm-distill/evals/reports/mlx_runtime_supervisor_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 2,
+        "private_input_placeholder": "<private-model-improvement-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_model_improvement_private_env.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "user_data_model_improvement_external_approval",
+        "source_control_report_path": "llm-distill/evals/reports/model_improvement_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_model_improvement_evidence.py --evidence <private-model-improvement-evidence-json-outside-source-control> --report llm-distill/evals/reports/model_improvement_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 3,
+        "private_input_placeholder": "<private-retrieval-vector-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_retrieval_vector_private_env.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]",
+          "python3 llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "production_semantic_vector_backend",
+        "source_control_report_path": "llm-distill/evals/reports/retrieval_vector_backend_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_retrieval_vector_backend.py --evidence <private-retrieval-vector-evidence-json-outside-source-control> --report llm-distill/evals/reports/retrieval_vector_backend_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 4,
+        "private_input_placeholder": "<private-production-corpus-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_production_corpus_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "production_corpus_expansion_beyond_synthetic",
+        "source_control_report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_production_corpus_evidence.py --evidence <private-production-corpus-evidence-json-outside-source-control> --report llm-distill/evals/reports/production_corpus_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 5,
+        "private_input_placeholder": "<private-prediction-fairness-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_prediction_fairness_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "production_prediction_fairness_monitoring",
+        "source_control_report_path": "llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_prediction_fairness_evidence.py --evidence <private-prediction-fairness-evidence-json-outside-source-control> --report llm-distill/evals/reports/prediction_fairness_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 6,
+        "private_input_placeholder": "<private-backup-disaster-recovery-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "backup_disaster_recovery_evidence",
+        "source_control_report_path": "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py --evidence <private-backup-disaster-recovery-evidence-json-outside-source-control> --report llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 7,
+        "private_input_placeholder": "<private-dependency-security-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_dependency_security_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "dependency_security_evidence",
+        "source_control_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_dependency_security_evidence.py --evidence <private-dependency-security-evidence-json-outside-source-control> --report llm-distill/evals/reports/dependency_security_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 8,
+        "private_input_placeholder": "<private-clearinghouse-submission-evidence-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_clearinghouse_submission_private_evidence.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "clearinghouse_submission_evidence",
+        "source_control_report_path": "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_clearinghouse_submission_evidence.py --evidence <private-clearinghouse-submission-evidence-json-outside-source-control> --report llm-distill/evals/reports/clearinghouse_submission_evidence_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      },
+      {
+        "execution_order": 9,
+        "private_input_placeholder": "<private-manual-gate-packet-json-outside-source-control>",
+        "private_output_placeholder": "<private-render-output-outside-source-control>",
+        "render_command_skeletons": [
+          "python3 llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py --output <private-render-output-outside-source-control> [add approved private flags only after governance review]"
+        ],
+        "requirement_id": "manual_production_gate_packet_evidence",
+        "source_control_report_path": "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+        "validate_command_skeletons": [
+          "python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --packet <private-manual-gate-packet-json-outside-source-control> --report llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json --fail-on-blocked"
+        ],
+        "values_redacted": true
+      }
+    ]
+  },
   "private_blocker_count": 9,
   "private_blockers": [
     {

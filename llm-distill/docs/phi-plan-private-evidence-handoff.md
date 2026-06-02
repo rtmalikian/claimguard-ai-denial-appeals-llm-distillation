@@ -13,6 +13,10 @@ The source-controlled handoff status is validated by
 `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` and written
 to `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`.
 That report remains safe to review while private evidence is still incomplete.
+It also contains an operator run plan with command skeletons that show the
+required render and validation order without storing private input paths,
+private output paths, approval references, PHI, secrets, or production document
+content.
 
 All final evidence must use boolean-only evidence and keep approval references
 outside source control, private summary paths outside source control, raw
@@ -21,7 +25,8 @@ document content.
 
 Audit markers: approval references outside source control; private summary
 paths outside source control; raw report paths outside source control; no PHI;
-no secrets; no production document content.
+no secrets; no production document content; operator run plan; command
+skeletons.
 
 ## Blocker Matrix
 
@@ -45,13 +50,16 @@ no secrets; no production document content.
    report is safe to review, ready, unblocked, and metadata-only.
 3. Run `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` to
    refresh `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`.
-4. Render the final manual production-gate packet with
+4. Review the checked-in `operator_run_plan` command skeletons in that report
+   and execute the domain renderers and validators using only private paths
+   outside source control.
+5. Render the final manual production-gate packet with
    `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` only
    after all dependent reports pass.
-5. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
+6. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
    confirm `production_ready=true` only when every private or external blocker
    is cleared by valid private evidence.
-6. Confirm source-controlled reports still exclude approval references, private
+7. Confirm source-controlled reports still exclude approval references, private
    summary paths, raw report paths, PHI, secrets, raw EDI payloads, endpoint
    values, vulnerability details, demographic values, outcome rows, source
    text, vectors, and production document content.

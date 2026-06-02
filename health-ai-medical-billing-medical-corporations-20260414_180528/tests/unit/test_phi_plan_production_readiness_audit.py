@@ -1731,6 +1731,11 @@ def test_private_evidence_handoff_requirement_verifies_checked_in_handoff():
     assert requirement["evidence"]["private_evidence_complete"] is False
     assert requirement["evidence"]["private_blocker_count"] == 9
     assert requirement["evidence"]["domain_count"] == 9
+    assert requirement["evidence"]["operator_run_plan_ready"] is True
+    assert requirement["evidence"]["operator_run_plan_step_count"] == 9
+    assert requirement["evidence"]["operator_run_plan_manual_gate_runs_last"] is True
+    assert requirement["evidence"]["operator_run_plan_raw_private_values_included"] is False
+    assert requirement["evidence"]["operator_run_plan_raw_private_paths_included"] is False
     assert requirement["evidence"]["approval_references_included"] is False
     assert requirement["evidence"]["private_summary_paths_included"] is False
     assert requirement["evidence"]["raw_report_paths_included"] is False
@@ -1769,4 +1774,26 @@ def test_private_evidence_handoff_requirement_blocks_missing_handoff_report(tmp_
     assert any(
         blocker.startswith("missing file:")
         for blocker in requirement["blockers"]
+    )
+
+
+def test_private_evidence_handoff_requirement_blocks_missing_operator_run_plan(tmp_path):
+    audit = _load_audit()
+    handoff_report = json.loads(
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT.read_text(encoding="utf-8")
+    )
+    handoff_report.pop("operator_run_plan", None)
+    report_path = tmp_path / "handoff_without_operator_run_plan.json"
+    _write_json(report_path, handoff_report)
+
+    requirement = audit.private_evidence_handoff_requirement(
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+        report_path,
+    )
+
+    assert requirement["status"] == "blocked"
+    assert "private_evidence_handoff_operator_run_plan_missing" in requirement["blockers"]
+    assert (
+        "private_evidence_handoff_operator_run_plan_not_ready"
+        in requirement["blockers"]
     )

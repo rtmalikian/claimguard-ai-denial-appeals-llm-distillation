@@ -462,7 +462,10 @@ paths, raw report paths, PHI, secrets, or production document content.
 `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` now writes
 `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` with
 safe handoff status, nine private blocker domains, and no raw approval,
-private summary, report-path, PHI, secret, or production document values.
+private summary, report-path, PHI, secret, or production document values. The
+same report now includes a safe `operator_run_plan` with command skeletons and
+execution order for private renderers and validators, using only placeholders
+for private paths and values.
 Production packaging now includes a multi-stage backend Dockerfile with a
 non-root runtime user, a production frontend Dockerfile that builds Vite assets
 and serves them through nginx, frontend health checks for development and

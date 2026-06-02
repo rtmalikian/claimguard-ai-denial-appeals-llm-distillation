@@ -273,6 +273,8 @@ REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS = {
     "private summary paths outside source control",
     "raw report paths outside source control",
     "boolean-only evidence",
+    "operator run plan",
+    "command skeletons",
     "no PHI",
     "no secrets",
     "no production document content",
@@ -789,6 +791,11 @@ def private_evidence_handoff_requirement(
     report_private_evidence_complete: bool | None = None
     report_private_blocker_count: int | None = None
     report_domain_count: int | None = None
+    operator_run_plan_ready: bool | None = None
+    operator_run_plan_step_count: int | None = None
+    operator_run_plan_manual_gate_runs_last: bool | None = None
+    operator_run_plan_raw_private_values_included: bool | None = None
+    operator_run_plan_raw_private_paths_included: bool | None = None
     report_raw_value_flags: dict[str, bool | None] = {
         "raw_approval_values_included": None,
         "raw_private_summary_paths_included": None,
@@ -836,6 +843,33 @@ def private_evidence_handoff_requirement(
         raw_domain_count = handoff_report.get("domain_count")
         if not isinstance(raw_domain_count, bool) and isinstance(raw_domain_count, int):
             report_domain_count = raw_domain_count
+        operator_run_plan = handoff_report.get("operator_run_plan")
+        if isinstance(operator_run_plan, dict):
+            raw_run_plan_ready = operator_run_plan.get("ready")
+            operator_run_plan_ready = (
+                raw_run_plan_ready if isinstance(raw_run_plan_ready, bool) else None
+            )
+            raw_step_count = operator_run_plan.get("step_count")
+            if not isinstance(raw_step_count, bool) and isinstance(raw_step_count, int):
+                operator_run_plan_step_count = raw_step_count
+            raw_manual_gate_runs_last = operator_run_plan.get(
+                "manual_production_gate_runs_last"
+            )
+            operator_run_plan_manual_gate_runs_last = (
+                raw_manual_gate_runs_last
+                if isinstance(raw_manual_gate_runs_last, bool)
+                else None
+            )
+            raw_private_values = operator_run_plan.get("raw_private_values_included")
+            operator_run_plan_raw_private_values_included = (
+                raw_private_values if isinstance(raw_private_values, bool) else None
+            )
+            raw_private_paths = operator_run_plan.get("raw_private_paths_included")
+            operator_run_plan_raw_private_paths_included = (
+                raw_private_paths if isinstance(raw_private_paths, bool) else None
+            )
+        else:
+            blockers.append("private_evidence_handoff_operator_run_plan_missing")
         for flag in report_raw_value_flags:
             raw_value = handoff_report.get(flag)
             report_raw_value_flags[flag] = raw_value if isinstance(raw_value, bool) else None
@@ -843,6 +877,16 @@ def private_evidence_handoff_requirement(
         blockers.append("private_evidence_handoff_report_not_safe_to_review")
     if report_handoff_ready is False:
         blockers.append("private_evidence_handoff_report_not_ready")
+    if operator_run_plan_ready is not True:
+        blockers.append("private_evidence_handoff_operator_run_plan_not_ready")
+    if operator_run_plan_step_count != len(PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS):
+        blockers.append("private_evidence_handoff_operator_run_plan_step_count_invalid")
+    if operator_run_plan_manual_gate_runs_last is not True:
+        blockers.append("private_evidence_handoff_operator_run_plan_order_invalid")
+    if operator_run_plan_raw_private_values_included is not False:
+        blockers.append("private_evidence_handoff_operator_run_plan_raw_values_not_false")
+    if operator_run_plan_raw_private_paths_included is not False:
+        blockers.append("private_evidence_handoff_operator_run_plan_raw_paths_not_false")
     if any(value is not False for value in report_raw_value_flags.values()):
         blockers.append("private_evidence_handoff_report_raw_value_flags_not_false")
 
@@ -863,6 +907,17 @@ def private_evidence_handoff_requirement(
             "private_evidence_complete": report_private_evidence_complete,
             "private_blocker_count": report_private_blocker_count,
             "domain_count": report_domain_count,
+            "operator_run_plan_ready": operator_run_plan_ready,
+            "operator_run_plan_step_count": operator_run_plan_step_count,
+            "operator_run_plan_manual_gate_runs_last": (
+                operator_run_plan_manual_gate_runs_last
+            ),
+            "operator_run_plan_raw_private_values_included": (
+                operator_run_plan_raw_private_values_included
+            ),
+            "operator_run_plan_raw_private_paths_included": (
+                operator_run_plan_raw_private_paths_included
+            ),
             **report_raw_value_flags,
             "approval_references_included": False,
             "private_summary_paths_included": False,

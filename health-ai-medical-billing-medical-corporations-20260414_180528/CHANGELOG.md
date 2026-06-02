@@ -2,6 +2,58 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 10:26:14 PDT - Private evidence operator run plan
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a redacted, machine-readable operator run plan to the PHIplan
+  private evidence handoff so the nine private/external blocker domains have a
+  source-controlled execution order and command skeletons for their private
+  renderers and validators. Keep all private paths, approval values, PHI,
+  secrets, raw evidence, and production document content outside source
+  control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-102151-private-evidence-run-plan/PHIplan.md` | Documented the new safe `operator_run_plan` in the private evidence handoff report. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-102151-private-evidence-run-plan/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `CHANGELOG.md` | `backups/20260602-102151-private-evidence-run-plan/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-102151-private-evidence-run-plan/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the private evidence run plan. | Restore backup over `implementation.md`. |
+| `tests/unit/test_phi_plan_private_evidence_handoff.py` | `backups/20260602-102151-private-evidence-run-plan/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_private_evidence_handoff.py` | Asserted the run plan is ready, ordered, populated, redacted, and keeps the manual gate last. | Restore backup over `tests/unit/test_phi_plan_private_evidence_handoff.py`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260602-102151-private-evidence-run-plan/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | Added audit coverage for missing and valid private handoff operator run-plan evidence. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/docs/phi-plan-private-evidence-handoff.md` | `backups/20260602-102151-private-evidence-run-plan/llm-distill/docs/phi-plan-private-evidence-handoff.md` | Documented the operator run plan, command skeletons, and review order. | Restore backup over `../llm-distill/docs/phi-plan-private-evidence-handoff.md`. |
+| `../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` | `backups/20260602-102151-private-evidence-run-plan/llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` | Added execution ordering and redacted render/validate command skeletons to the private handoff report. | Restore backup over `../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-102151-private-evidence-run-plan/llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | Required the operator run-plan markers and report fields in the PHIplan production-readiness audit. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | `backups/20260602-102151-private-evidence-run-plan/llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | Regenerated the checked-in handoff report with a nine-step safe `operator_run_plan`; private evidence remains incomplete. | Restore backup over `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-102151-private-evidence-run-plan/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Regenerated PHIplan readiness evidence with private handoff run-plan checks passing; production readiness remains blocked. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Validation
+- `find backups/20260602-102151-private-evidence-run-plan -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_private_evidence_handoff.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the application directory.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_private_evidence_handoff.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 22 tests with the existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py --fail-on-source-control-blocked`: passed with `handoff_ready=True`, `private_evidence_complete=False`, and `private_blockers=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed and refreshed the checked-in report with `production_ready=false`, `safe_current_state=true`, `blocked=9`, and `warnings=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- Run-plan inspection: passed with `operator_run_plan.ready=True`, `step_count=9`, `manual_production_gate_runs_last=True`, `raw_private_values_included=False`, and `raw_private_paths_included=False`.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json >/dev/null` and `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json >/dev/null`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=31` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided writing an executable private command with actual paths, approval
+  references, endpoint values, credentials, PHI, production EDI payloads, raw
+  scan details, or production document content.
+- Avoided marking any private/external blocker ready; the run plan only proves
+  source-controlled operator sequencing and no-raw-value boundaries.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-102151-private-evidence-run-plan/`.
+
 ## 2026-06-02 10:14:43 PDT - Private handoff monitoring metric
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
