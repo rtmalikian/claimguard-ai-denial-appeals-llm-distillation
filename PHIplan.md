@@ -389,7 +389,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   paths are not published in release-readiness evidence. The top-level
   distillation readiness audit now applies the same recursive report-output
   sanitizer before writing JSON, covering nested evidence copied from child
-  reports while preserving internal file validation.
+  reports while preserving internal file validation. The audit CLI now also
+  routes final JSON output through `write_source_controlled_report_json(...)`
+  so checked-in distillation readiness reports share the same source-control
+  path-redaction boundary while temporary scratch reports can preserve local
+  diagnostic paths.
 - Add Denial Workflow UI controls for encrypted retrieval-source creation,
   explicit privacy-review attestation, model-improvement opt-in gating through
   the existing backend validation, stored source visibility, document-surface

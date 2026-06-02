@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -14,9 +15,15 @@ from run_phi_scan import scan_text
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 DISTILL_DIR = REPO_ROOT / "llm-distill"
 DATA_DIR = DISTILL_DIR / "data" / "distillation"
 REPORT_DIR = DISTILL_DIR / "evals" / "reports"
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 
 DEFAULT_REPORT = REPORT_DIR / "distillation_readiness_audit_report.json"
 DEFAULT_SOURCE_REGISTRY = DISTILL_DIR / "data" / "source_registry.json"
@@ -1746,9 +1753,7 @@ def main() -> int:
             "Default student use is also controlled by CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA.",
         ],
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    safe_payload = sanitize_report_value(payload)
-    args.output.write_text(json.dumps(safe_payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_source_controlled_report_json(args.output, payload, REPO_ROOT)
     print(f"wrote distillation readiness audit report to {args.output}")
     if blocked and args.fail_on_blocked:
         return 2

@@ -2,6 +2,55 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 17:43:45 PDT - Distillation readiness source-controlled writer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route the top-level distillation readiness audit through the shared
+  source-control-aware JSON writer so checked-in distillation readiness reports
+  use the common path-redaction boundary while temporary scratch reports remain
+  useful for local diagnostics.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_distillation_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/llm-distill/scripts/run_distillation_readiness_audit.py.bak` | Writes the final readiness payload through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py.bak` | Added static regression coverage that the distillation readiness audit uses the shared writer and does not reintroduce direct output JSON writes. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/root/PHIplan.md.bak` | Documented the shared writer boundary for the top-level distillation readiness audit. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/app/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_distillation_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py -q`: passed, 24 tests.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-distillation-readiness-source-writer.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 -m json.tool /private/tmp/claimguard-distillation-readiness-source-writer.json`: passed.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- `if rg -n "args\\.output\\.write_text\\(json.dumps" llm-distill/scripts/run_distillation_readiness_audit.py; then exit 1; else echo 'no direct distillation readiness JSON output write remains'; fi`: passed.
+- Strict secret/PII-like token scan over `llm-distill/scripts/run_distillation_readiness_audit.py`, `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_distillation_readiness_audit.py`, `PHIplan.md`, `CHANGELOG.md`, and `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing distillation readiness requirements, warning semantics,
+  student-default gates, model-training evidence, adapter evidence, or
+  checked-in readiness report JSON in this slice.
+- Avoided deleting the audit's existing sanitizer helper because tests still
+  cover its recursive redaction behavior and existing callers may import it.
+- Avoided redacting out-of-repo scratch report outputs; those remain local
+  diagnostics outside source control.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-174245-distillation-readiness-source-controlled-writer/`.
+- This slice improves distillation readiness report writer hygiene; it does
+  not complete the full PHIplan objective or approve production/student-default
+  use.
+
 ## 2026-06-01 17:37:25 PDT - PHIplan evidence validator writer boundary
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

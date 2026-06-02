@@ -59,6 +59,17 @@ def test_report_sanitizer_emits_repo_relative_paths_and_redacts_external_paths(
     assert str(tmp_path) not in serialized
 
 
+def test_distillation_readiness_audit_uses_source_controlled_report_writer():
+    text = AUDIT_SCRIPT.read_text(encoding="utf-8")
+
+    assert (
+        "from report_output_sanitizer import "
+        "write_source_controlled_report_json"
+    ) in text
+    assert "write_source_controlled_report_json(args.output, payload, REPO_ROOT)" in text
+    assert "args.output.write_text(json.dumps" not in text
+
+
 def _approved_record(
     *,
     document_id: str,
