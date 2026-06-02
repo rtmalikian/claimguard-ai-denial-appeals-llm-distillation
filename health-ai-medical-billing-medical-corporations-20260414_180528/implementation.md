@@ -476,6 +476,14 @@ the report remains not ready until off-repository encrypted storage,
 metadata-only restore verification, key recovery, retention approval,
 disaster-recovery smoke evidence, governance review, and private aggregate
 summary counts are complete outside source control.
+FastAPI startup now also fails fast in production if the backup/disaster-
+recovery evidence report is missing, unsafe, not ready, or has blocked
+requirement IDs. Production compose forwards
+`BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT` with a repository-relative default,
+and the startup guard reports only metadata-level booleans and blocker IDs
+without raw backup paths, backup artifacts, restore output, database rows,
+encryption-key values, approval-reference values, PHI, secrets, report paths,
+or raw evidence values.
 Dependency security readiness now also has a boolean-only evidence template,
 validator, private evidence renderer, runbook, and checked-in report. The
 PHIplan production-readiness audit consumes this report as a private/external
@@ -1171,6 +1179,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   private evidence renderer, checked-in safe-but-blocked report, and PHIplan
   production-readiness audit linkage for off-repository backup/restore/key
   recovery evidence
+- [x] Backup/disaster-recovery production startup guard, conservative
+  production compose default, and PHIplan audit coverage for
+  `BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT`, with metadata-only logging and
+  production fail-fast behavior until backup/restore evidence is safe, ready,
+  and unblocked
 - [x] Boolean-only dependency security evidence template, validator, private
   evidence renderer, runbook, checked-in safe-but-blocked report, and PHIplan
   production-readiness audit linkage for private Python/frontend/container
@@ -2217,6 +2230,13 @@ seed can be treated as comprehensive.
   `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`, with a
   private renderer for final off-repository backup, restore, key-recovery,
   retention, and disaster-recovery smoke evidence
+- [x] Production startup guard added for
+  `BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT`. Production startup now rejects
+  missing, unsafe, unready, or blocked backup/disaster-recovery evidence;
+  production compose forwards the report path with a repository-relative
+  default and the guard omits raw backup paths, backup artifacts, restore
+  output, database rows, encryption-key values, approval references, PHI,
+  secrets, report paths, and raw evidence from logs and responses.
 - [ ] Production backup/disaster-recovery evidence remains blocked until
   private encrypted backup storage, restore verification, key recovery,
   retention approval, and disaster-recovery smoke evidence are complete outside

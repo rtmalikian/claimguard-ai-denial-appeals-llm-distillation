@@ -96,6 +96,9 @@ class Settings(BaseSettings):
     PREDICTION_FAIRNESS_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
     )
+    BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT: str = (
+        "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json"
+    )
     DEPENDENCY_SECURITY_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/dependency_security_evidence_report.json"
     )

@@ -21,6 +21,7 @@ REQUIRED_GUARD_ENV_VARS = {
     "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE",
     "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT",
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT",
+    "BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT",
     "DEPENDENCY_SECURITY_EVIDENCE_REPORT",
     "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED",
     "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL",
@@ -77,6 +78,9 @@ def test_production_compose_keeps_gate_defaults_conservative():
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_ENABLED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_LEGAL_APPROVED"].endswith(":-false}")
     assert env_values["USER_DATA_MODEL_IMPROVEMENT_BAA_CONFIRMED"].endswith(":-false}")
+    assert env_values["BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT"].endswith(
+        ":-llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json}"
+    )
     assert env_values["DEPENDENCY_SECURITY_EVIDENCE_REPORT"].endswith(
         ":-llm-distill/evals/reports/dependency_security_evidence_report.json}"
     )

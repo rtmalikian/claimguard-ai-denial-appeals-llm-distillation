@@ -12,6 +12,9 @@ from app.middleware.auth import JWTAuthMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.services.nvidia import validate_nvidia_startup_config
+from app.utils.backup_disaster_recovery_config import (
+    validate_backup_disaster_recovery_startup_config,
+)
 from app.utils.clearinghouse_submission_config import (
     validate_clearinghouse_submission_startup_config,
 )
@@ -69,6 +72,7 @@ async def startup_event():
     validate_nvidia_startup_config()
     validate_model_improvement_startup_config()
     validate_prediction_fairness_startup_config()
+    validate_backup_disaster_recovery_startup_config()
     validate_dependency_security_startup_config()
     validate_clearinghouse_submission_startup_config()
     validate_retrieval_vector_startup_config()

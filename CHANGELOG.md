@@ -2,6 +2,75 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 23:48:44 PDT - Backup disaster-recovery startup guard
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a production startup guard so ClaimGuard cannot start in
+  production while backup/disaster-recovery evidence is missing, unsafe, not
+  ready, or blocked. Keep raw backup paths, backup artifacts, restore output,
+  database rows, encryption-key values, approval-reference values, PHI,
+  secrets, raw report paths, and production documents outside source control
+  while preserving the current `production_ready=false` and
+  `safe_current_state=true` posture.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/root/PHIplan.md.bak` | Documented the backup/disaster-recovery startup guard, remaining private production evidence, and rollback notes. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and backup/disaster-recovery checklist for startup gating. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py.bak` | Added the `BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT` setting. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py.bak` | Runs the backup/disaster-recovery startup guard during FastAPI startup. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/docker-compose.production.yml.bak` | Forwards `BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT` with a repository-relative default. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py.bak` | Added production compose assertions for the backup/disaster-recovery evidence report default. | Restore backup over the same path. |
+| `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added backup/disaster-recovery report settings to default-state and production compose guard checks. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence after adding the compose guard setting. | Restore backup over the same path. |
+
+### Files Added
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/backup_disaster_recovery_config.py`
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_backup_disaster_recovery_startup_config.py`
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_backup_disaster_recovery_startup_config.py tests/unit/test_production_compose_env.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 24 tests with one existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/backup_disaster_recovery_config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_backup_disaster_recovery_startup_config.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-backup-dr-startup-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`: passed with `ready=False` and `blocked=6`; timestamp-only report churn was restored to keep this slice scoped.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-backup-dr-startup-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided running, creating, or committing real backups, restore output,
+  database rows, encryption-key values, production documents, PHI, secrets, or
+  private backup storage references.
+- Avoided marking backup/disaster-recovery evidence ready; private encrypted
+  storage, restore verification, key recovery, retention approval, and
+  disaster-recovery smoke checks remain incomplete outside source control.
+- Avoided changing database backup scripts or production restore behavior in
+  this startup-guard slice.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-234540-backup-dr-startup-guard/`
+  and remove the two added backup/disaster-recovery startup guard files listed
+  above.
+- This slice strengthens production startup safety only; it does not complete
+  backup setup, restore validation, disaster-recovery approval, dependency
+  scans, dependency remediation, clearinghouse submission, payer gateway calls,
+  production EHR/RCM integration, student default routing, user-data model
+  improvement, production vector retrieval, non-synthetic corpus training, or
+  production fairness monitoring.
+
 ## 2026-06-01 23:40:09 PDT - Dependency security startup guard
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
