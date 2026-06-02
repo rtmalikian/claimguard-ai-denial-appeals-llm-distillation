@@ -476,6 +476,17 @@ the report remains not ready until off-repository encrypted storage,
 metadata-only restore verification, key recovery, retention approval,
 disaster-recovery smoke evidence, governance review, and private aggregate
 summary counts are complete outside source control.
+Dependency security readiness now also has a boolean-only evidence template,
+validator, private evidence renderer, runbook, and checked-in report. The
+PHIplan production-readiness audit consumes this report as a private/external
+production blocker while keeping the conservative current runtime state safe;
+the report remains not ready until Python, frontend, and container dependency
+scans, lockfile review, critical/high-finding remediation or private approval,
+compensating controls, rebuild/retest evidence, upgrade planning, governance
+review, and private aggregate summary counts are complete outside source
+control. Raw scanner output, vulnerability detail values, approval references,
+registry URLs, credentials, PHI, secrets, and production documents must remain
+outside source control.
 The public GitHub-facing README now links to a technical LLM distillation
 breakdown with analysis statistics and tools used, and the repository includes
 a public-doc validator that checks the link, section headings, report links,
@@ -1131,6 +1142,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   private evidence renderer, checked-in safe-but-blocked report, and PHIplan
   production-readiness audit linkage for off-repository backup/restore/key
   recovery evidence
+- [x] Boolean-only dependency security evidence template, validator, private
+  evidence renderer, runbook, checked-in safe-but-blocked report, and PHIplan
+  production-readiness audit linkage for private Python/frontend/container
+  scan, remediation, rebuild/retest, governance, and no-raw-value evidence
 - [x] Public GitHub README link to a technical LLM distillation breakdown with
   analysis statistics and tools used, plus validator coverage for link
   presence, report links, aggregate stats, tool markers, attribution, and
@@ -2166,6 +2181,16 @@ seed can be treated as comprehensive.
 | `pydantic` v1.x | CVE series - upgrade to v2.x |
 | `python-jose` | CVE-2024-2023-1095 |
 | `pillow` | Periodic CVEs - ensure latest |
+
+- [x] Boolean-only dependency security evidence validation added through
+  `llm-distill/scripts/validate_dependency_security_evidence.py`, with a
+  private renderer for final Python dependency, frontend dependency, container
+  image, lockfile, remediation/approval, compensating-control, rebuild/retest,
+  upgrade-plan, and governance evidence.
+- [ ] Production dependency security remains blocked until scans and
+  remediation or private approval are complete outside source control, with no
+  raw scan output, vulnerability detail values, approval references, registry
+  URLs, credentials, PHI, secrets, or production documents committed.
 
 ### 1.3 NVIDIA NIM Security
 - [x] Prompt-injection-like document instructions detected as metadata-only

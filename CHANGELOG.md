@@ -2,6 +2,77 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 23:05:21 PDT - Dependency security evidence gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a boolean-only dependency security production evidence gate for
+  Python dependency scans, frontend dependency scans, container image scans,
+  lockfile review, critical/high finding remediation or private approval,
+  compensating controls, rebuild/retest evidence, upgrade planning, and
+  governance review without storing raw scan output, vulnerability detail
+  values, approval references, registry URLs, credentials, PHI, secrets, or
+  production documents in source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/root/PHIplan.md.bak` | Documented the dependency security evidence gate, remaining private production work, and rollback notes. | Restore backup over `PHIplan.md`. |
+| `docs/technical-llm-distillation-analysis.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/docs/technical-llm-distillation-analysis.md.bak` | Updated public technical breakdown counts, blocker IDs, tool list, and reproduction commands for the dependency security gate. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and operational-security checklist for dependency security evidence validation. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added dependency security evidence fixtures and assertions to PHIplan production-readiness audit tests. | Restore backup over the same path. |
+| `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added dependency security evidence as a private/external production blocker while preserving `safe_current_state=true` semantics. | Restore backup over the same path. |
+| `llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence to show eight private/external blockers and one warning. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json`
+- `llm-distill/docs/dependency-security-runbook.md`
+- `llm-distill/evals/reports/dependency_security_evidence_report.json`
+- `llm-distill/scripts/validate_dependency_security_evidence.py`
+- `llm-distill/scripts/render_dependency_security_private_evidence.py`
+- `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py`
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_dependency_security_evidence.py llm-distill/scripts/render_dependency_security_private_evidence.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_dependency_security_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 18 tests with one existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_dependency_security_evidence.py`: passed with `dependency_security_ready=false`, `safe_to_review=true`, and `blocked_item_count=5`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=8`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-dependency-security-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=29` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- Avoided storing raw dependency scan output, vulnerability detail values, CVE
+  lists, approval references, registry URLs, credentials, PHI, secrets,
+  production documents, or private summary paths in source control.
+- Avoided marking PHIplan production readiness complete from documentation or
+  template evidence alone; the new gate remains blocked until private
+  dependency security evidence exists.
+- Avoided making dependency security readiness a `safe_current_state` blocker
+  because the current conservative runtime defaults are still safe while
+  production approval remains blocked.
+- A broad `run_phi_scan.py` pass over the new dependency-security files flagged
+  only the required architect attribution email in the template, runbook, and
+  validator; the attribution was preserved per project directives, while the
+  dependency and public-doc validators continue to allow that attribution and
+  block unrelated PHI, secret-shaped values, raw scanner output, private paths,
+  and approval/reference values.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/`
+  and remove the six added dependency security evidence files listed above.
+- This slice strengthens PHIplan production evidence governance; it does not
+  approve production deployment, student default routing, user-data model
+  improvement, production vector retrieval, non-synthetic corpus training,
+  production fairness monitoring, backup/DR readiness, or dependency security
+  remediation status.
+
 ## 2026-06-01 22:45:24 PDT - Backup and disaster-recovery evidence gate
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

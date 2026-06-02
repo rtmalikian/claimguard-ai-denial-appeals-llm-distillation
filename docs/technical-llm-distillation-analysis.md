@@ -181,7 +181,7 @@ Performance details from the checked-in live benchmark reports:
 |---|---:|
 | PHIplan safe current state | true |
 | PHIplan production ready | false |
-| Blocked production items | 7 |
+| Blocked production items | 8 |
 | Warning production items | 1 |
 | Manual production gate ready | false |
 | User-data model improvement enabled | false |
@@ -201,11 +201,11 @@ the public repository.
 |---|---:|
 | PHIplan completion proven | false |
 | Completion status | not_complete_private_or_external_evidence_required |
-| Total requirement count | 14 |
+| Total requirement count | 15 |
 | Ready requirement count | 6 |
-| Blocked requirement count | 7 |
+| Blocked requirement count | 8 |
 | Warning requirement count | 1 |
-| Private/external blocker count | 7 |
+| Private/external blocker count | 8 |
 | Source-control ready requirement count | 6 |
 | Raw approval values included | false |
 | Raw evidence values included | false |
@@ -224,6 +224,7 @@ Source-control-ready requirement IDs:
 Private/external blocker IDs:
 
 - `backup_disaster_recovery_evidence`
+- `dependency_security_evidence`
 - `manual_production_gate_packet_evidence`
 - `production_corpus_expansion_beyond_synthetic`
 - `production_prediction_fairness_monitoring`
@@ -239,10 +240,11 @@ production outcome rows.
 
 The direct PHIplan evidence reports for MLX runtime supervision, model
 improvement, retrieval-vector backend readiness, production-corpus evidence,
-prediction-fairness monitoring, and the manual production-gate packet now use
-the same output sanitizer before JSON is written. The validators still inspect
-the actual source-controlled paths internally, but checked-in report payloads
-emit repository-relative paths and redact outside local paths.
+prediction-fairness monitoring, backup/disaster recovery, dependency security,
+and the manual production-gate packet now use the same output sanitizer before
+JSON is written. The validators still inspect the actual source-controlled
+paths internally, but checked-in report payloads emit repository-relative paths
+and redact outside local paths.
 
 The repository also includes `llm-distill/scripts/sanitize_public_eval_reports.py`
 for batch-sanitizing checked-in eval report JSON artifacts. Running it across
@@ -611,6 +613,13 @@ Safety and validation:
   approval, and disaster-recovery smoke gates are complete, with approved mode
   validating a private aggregate backup/DR summary before ready evidence can be
   written.
+- `llm-distill/scripts/render_dependency_security_private_evidence.py` for
+  private boolean-only dependency security evidence rendering after Python,
+  frontend, and container dependency scans, lockfile review, remediation or
+  private approval, compensating controls, rebuild/retest, upgrade planning,
+  governance review, and no-raw-value gates are complete, with approved mode
+  validating a private aggregate dependency-security summary before ready
+  evidence can be written.
 - `llm-distill/scripts/validate_retrieval_vector_backend.py` for boolean-only
   retrieval vector configuration, reindex, runbook, and runtime evidence.
 - `llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` for manual
@@ -618,6 +627,11 @@ Safety and validation:
 - `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py` for
   boolean-only backup/DR storage, restore, key-recovery, runbook, and private
   summary evidence.
+- `llm-distill/scripts/validate_dependency_security_evidence.py` for
+  boolean-only dependency scan, remediation, governance, runbook, and private
+  summary evidence without publishing raw scan output, vulnerability detail
+  values, approval references, registry URLs, credentials, PHI, secrets, or
+  production documents.
 - Targeted pytest tests for validators, reports, and manual gates.
 
 ## Reproduce The Core Checks
@@ -632,6 +646,7 @@ python3 llm-distill/scripts/run_distillation_readiness_audit.py
 python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py
 python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py
 python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py
+python3 llm-distill/scripts/validate_dependency_security_evidence.py
 ```
 
 Run focused unit tests from the application directory:
@@ -651,6 +666,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX="${TMPDIR:-.}/claimguard-pycache" 
   tests/unit/test_backup_disaster_recovery_evidence.py \
   tests/unit/test_prediction_fairness_evidence.py \
   tests/unit/test_phi_plan_manual_gate_packet.py \
+  tests/unit/test_dependency_security_evidence.py \
   tests/unit/test_phi_plan_production_readiness_audit.py \
   -q -p no:cacheprovider
 ```

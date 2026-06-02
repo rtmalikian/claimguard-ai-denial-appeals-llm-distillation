@@ -664,6 +664,21 @@ plan plus the active ClaimGuard `AGENTS.md`.
   completed outside source control. The PHIplan production-readiness audit now
   consumes this report as a private/external production blocker without
   changing the conservative current runtime state.
+- Add a boolean-only dependency security evidence gate at
+  `llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json`
+  with validation in
+  `llm-distill/scripts/validate_dependency_security_evidence.py` and a private
+  renderer at
+  `llm-distill/scripts/render_dependency_security_private_evidence.py`. The
+  checked-in report at
+  `llm-distill/evals/reports/dependency_security_evidence_report.json` is safe
+  to review and keeps `dependency_security_ready=false` until Python,
+  frontend, and container dependency scans, lockfile review,
+  critical/high-finding remediation or private approval, compensating controls,
+  rebuild/retest evidence, upgrade planning, governance review, and private
+  aggregate summary counts are complete outside source control. The PHIplan
+  production-readiness audit consumes this report as a private/external
+  production blocker without changing the conservative current runtime state.
 - Add public GitHub documentation drift validation with
   `llm-distill/scripts/validate_public_repo_docs.py`. The validator checks that
   `README.md` links to
@@ -1478,6 +1493,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   then rerun
   `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py` and the
   PHIplan production-readiness audit.
+- Complete private dependency security evidence before production approval:
+  run Python dependency, frontend dependency, and container image scans outside
+  source control, review lockfiles, remediate or privately approve
+  critical/high findings, document compensating controls and the upgrade plan,
+  rebuild and retest, render private boolean-only evidence with
+  `llm-distill/scripts/render_dependency_security_private_evidence.py`, then
+  rerun `llm-distill/scripts/validate_dependency_security_evidence.py` and the
+  PHIplan production-readiness audit. Do not commit raw scanner output,
+  vulnerability detail values, approval references, registry URLs,
+  credentials, PHI, secrets, or production documents.
 - Obtain and configure real legal approval reference, BAA confirmation, and
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before enabling
@@ -2280,3 +2305,20 @@ remove
 `llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json`, and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_backup_disaster_recovery_evidence.py`
 if rolling back the backup/disaster-recovery evidence gate slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`docs/technical-llm-distillation-analysis.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-225255-dependency-security-evidence-gate/`;
+remove
+`llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json`,
+`llm-distill/docs/dependency-security-runbook.md`,
+`llm-distill/scripts/validate_dependency_security_evidence.py`,
+`llm-distill/scripts/render_dependency_security_private_evidence.py`,
+`llm-distill/evals/reports/dependency_security_evidence_report.json`, and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py`
+if rolling back the dependency security evidence gate slice.

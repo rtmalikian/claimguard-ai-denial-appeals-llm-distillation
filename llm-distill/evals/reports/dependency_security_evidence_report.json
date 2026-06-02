@@ -1,0 +1,276 @@
+{
+  "artifact": "dependency_security_evidence_validation_report",
+  "blocked_item_count": 5,
+  "blocked_items": [
+    {
+      "blockers": [
+        "python_dependency_scan_not_completed",
+        "frontend_dependency_scan_not_completed",
+        "container_image_scan_not_completed",
+        "lockfiles_not_reviewed",
+        "scan_tools_not_documented"
+      ],
+      "evidence": {
+        "container_image_scan_completed": false,
+        "frontend_dependency_scan_completed": false,
+        "lockfiles_reviewed": false,
+        "python_dependency_scan_completed": false,
+        "scan_tools_documented": false,
+        "values_redacted": true
+      },
+      "name": "Python, frontend, container, and lockfile dependency scans are ready",
+      "requirement_id": "dependency_security_scan_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "critical_high_findings_not_remediated_or_approved",
+        "known_vulnerable_packages_not_reviewed",
+        "compensating_controls_not_documented",
+        "rebuild_and_retest_not_completed",
+        "upgrade_plan_not_documented"
+      ],
+      "evidence": {
+        "compensating_controls_documented": false,
+        "critical_high_findings_remediated_or_approved": false,
+        "known_vulnerable_packages_reviewed": false,
+        "rebuild_and_retest_completed": false,
+        "upgrade_plan_documented": false,
+        "values_redacted": true
+      },
+      "name": "Dependency findings are remediated, approved, documented, rebuilt, and retested",
+      "requirement_id": "dependency_security_remediation_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approval_or_risk_acceptance_not_private_or_missing",
+        "metadata_only_audit_not_reviewed"
+      ],
+      "evidence": {
+        "approval_or_risk_acceptance_private": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Dependency security approval and metadata-only audit governance controls are ready",
+      "requirement_id": "dependency_security_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_dependency_security_summary_path_not_configured",
+        "private_dependency_security_summary_not_checked",
+        "private_dependency_security_summary_private_reference_count_missing",
+        "private_dependency_security_summary_python_package_count_missing",
+        "private_dependency_security_summary_frontend_package_count_missing",
+        "private_dependency_security_summary_container_image_count_missing"
+      ],
+      "evidence": {
+        "private_dependency_security_summary_checked": false,
+        "private_dependency_security_summary_container_image_count": 0,
+        "private_dependency_security_summary_frontend_package_count": 0,
+        "private_dependency_security_summary_path_configured": false,
+        "private_dependency_security_summary_path_env": "CLAIMGUARD_DEPENDENCY_SECURITY_PRIVATE_SUMMARY_PATH",
+        "private_dependency_security_summary_path_value_included": false,
+        "private_dependency_security_summary_private_reference_count": 0,
+        "private_dependency_security_summary_python_package_count": 0,
+        "private_dependency_security_summary_remediated_or_approved_finding_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private dependency security summary metadata is present without raw values",
+      "requirement_id": "dependency_security_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_ready is not true"
+      ],
+      "evidence": {
+        "dependency_security_ready": false,
+        "values_redacted": true
+      },
+      "name": "Dependency security evidence is explicitly marked ready",
+      "requirement_id": "dependency_security_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "dependency_security_ready": false,
+  "evidence": {
+    "evidence_path": "llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json",
+    "private_evidence_renderer": "llm-distill/scripts/render_dependency_security_private_evidence.py",
+    "runbook": "llm-distill/docs/dependency-security-runbook.md",
+    "values_redacted": true
+  },
+  "generated_at": "2026-06-02T06:02:40.679916+00:00",
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_dependency_security_evidence",
+        "evidence_status": "draft_not_production_ready",
+        "values_redacted": true,
+        "version_configured": true
+      },
+      "name": "Dependency security evidence has the required structure",
+      "requirement_id": "dependency_security_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "llm-distill/data/dependency_security_evidence/dependency_security_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_approval_reference_values_attested": true,
+        "no_phi_or_secret_values_attested": true,
+        "no_raw_scan_output_attested": true,
+        "no_vulnerability_detail_values_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "private_dependency_security_summary_path_value_included_false": true,
+        "private_dependency_security_summary_raw_values_included_false": true,
+        "values_redacted": true
+      },
+      "name": "Dependency security evidence contains no PHI, secrets, raw scan output, vulnerability detail values, or approval references",
+      "requirement_id": "dependency_security_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "runbook_exists": true,
+        "runbook_inside_source_control": true,
+        "runbook_missing_marker_count": 0,
+        "runbook_path": "llm-distill/docs/dependency-security-runbook.md",
+        "runbook_values_included": false,
+        "source_control_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled dependency security runbook has required safety markers",
+      "requirement_id": "dependency_security_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_inside_source_control": true,
+        "private_evidence_renderer_missing_marker_count": 0,
+        "private_evidence_renderer_path": "llm-distill/scripts/render_dependency_security_private_evidence.py",
+        "private_evidence_renderer_values_included": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Private dependency security evidence renderer exists with no-source-control and redaction markers",
+      "requirement_id": "dependency_security_private_evidence_renderer",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "python_dependency_scan_not_completed",
+        "frontend_dependency_scan_not_completed",
+        "container_image_scan_not_completed",
+        "lockfiles_not_reviewed",
+        "scan_tools_not_documented"
+      ],
+      "evidence": {
+        "container_image_scan_completed": false,
+        "frontend_dependency_scan_completed": false,
+        "lockfiles_reviewed": false,
+        "python_dependency_scan_completed": false,
+        "scan_tools_documented": false,
+        "values_redacted": true
+      },
+      "name": "Python, frontend, container, and lockfile dependency scans are ready",
+      "requirement_id": "dependency_security_scan_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "critical_high_findings_not_remediated_or_approved",
+        "known_vulnerable_packages_not_reviewed",
+        "compensating_controls_not_documented",
+        "rebuild_and_retest_not_completed",
+        "upgrade_plan_not_documented"
+      ],
+      "evidence": {
+        "compensating_controls_documented": false,
+        "critical_high_findings_remediated_or_approved": false,
+        "known_vulnerable_packages_reviewed": false,
+        "rebuild_and_retest_completed": false,
+        "upgrade_plan_documented": false,
+        "values_redacted": true
+      },
+      "name": "Dependency findings are remediated, approved, documented, rebuilt, and retested",
+      "requirement_id": "dependency_security_remediation_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "approval_or_risk_acceptance_not_private_or_missing",
+        "metadata_only_audit_not_reviewed"
+      ],
+      "evidence": {
+        "approval_or_risk_acceptance_private": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Dependency security approval and metadata-only audit governance controls are ready",
+      "requirement_id": "dependency_security_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_dependency_security_summary_path_not_configured",
+        "private_dependency_security_summary_not_checked",
+        "private_dependency_security_summary_private_reference_count_missing",
+        "private_dependency_security_summary_python_package_count_missing",
+        "private_dependency_security_summary_frontend_package_count_missing",
+        "private_dependency_security_summary_container_image_count_missing"
+      ],
+      "evidence": {
+        "private_dependency_security_summary_checked": false,
+        "private_dependency_security_summary_container_image_count": 0,
+        "private_dependency_security_summary_frontend_package_count": 0,
+        "private_dependency_security_summary_path_configured": false,
+        "private_dependency_security_summary_path_env": "CLAIMGUARD_DEPENDENCY_SECURITY_PRIVATE_SUMMARY_PATH",
+        "private_dependency_security_summary_path_value_included": false,
+        "private_dependency_security_summary_private_reference_count": 0,
+        "private_dependency_security_summary_python_package_count": 0,
+        "private_dependency_security_summary_remediated_or_approved_finding_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private dependency security summary metadata is present without raw values",
+      "requirement_id": "dependency_security_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_ready is not true"
+      ],
+      "evidence": {
+        "dependency_security_ready": false,
+        "values_redacted": true
+      },
+      "name": "Dependency security evidence is explicitly marked ready",
+      "requirement_id": "dependency_security_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

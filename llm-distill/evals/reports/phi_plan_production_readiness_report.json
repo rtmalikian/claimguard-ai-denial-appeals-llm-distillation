@@ -1,5 +1,5 @@
 {
-  "blocked_item_count": 7,
+  "blocked_item_count": 8,
   "blocked_items": [
     {
       "blockers": [
@@ -195,13 +195,36 @@
       "requirement_id": "backup_disaster_recovery_evidence",
       "status": "blocked",
       "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "dependency_security_blocked_requirement_ids": [
+          "dependency_security_governance_controls",
+          "dependency_security_private_summary_metadata",
+          "dependency_security_ready_flag",
+          "dependency_security_remediation_controls",
+          "dependency_security_scan_controls"
+        ],
+        "dependency_security_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
+        "dependency_security_report_ready": false,
+        "dependency_security_report_safe_to_review": true,
+        "values_redacted": true
+      },
+      "name": "Dependency security scan and remediation evidence is ready",
+      "requirement_id": "dependency_security_evidence",
+      "status": "blocked",
+      "warnings": []
     }
   ],
   "completion_audit": {
     "artifact": "phi_plan_completion_audit_matrix",
-    "blocked_requirement_count": 7,
+    "blocked_requirement_count": 8,
     "blocked_requirement_ids": [
       "backup_disaster_recovery_evidence",
+      "dependency_security_evidence",
       "manual_production_gate_packet_evidence",
       "production_corpus_expansion_beyond_synthetic",
       "production_prediction_fairness_monitoring",
@@ -212,9 +235,10 @@
     "completion_proven": false,
     "completion_status": "not_complete_private_or_external_evidence_required",
     "non_completion_reason": "PHIplan production readiness is blocked by private/manual or external production evidence that must remain outside source control.",
-    "private_or_external_blocker_count": 7,
+    "private_or_external_blocker_count": 8,
     "private_or_external_blocker_ids": [
       "backup_disaster_recovery_evidence",
+      "dependency_security_evidence",
       "manual_production_gate_packet_evidence",
       "production_corpus_expansion_beyond_synthetic",
       "production_prediction_fairness_monitoring",
@@ -255,13 +279,13 @@
       "monitoring_readiness_endpoint_ready",
       "production_compose_startup_guard_env"
     ],
-    "total_requirement_count": 14,
+    "total_requirement_count": 15,
     "warning_requirement_count": 1,
     "warning_requirement_ids": [
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T05:47:45.047475+00:00",
+  "generated_at": "2026-06-02T06:02:41.592972+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -270,6 +294,7 @@
     "Add approved non-synthetic denial/appeal training pairs only after public/government licensing or Raphael-approved de-identification review is complete, then validate boolean-only evidence with validate_production_corpus_evidence.py.",
     "Keep production threshold calibration and continuous fairness monitoring blocked until approved real-world outcome data, minimum sample size, threshold review, demographic grouping review, monitoring ownership, latest run evidence, legal/privacy review, and boolean-only evidence from validate_prediction_fairness_evidence.py are complete.",
     "Keep PHIplan production readiness blocked until off-repository encrypted backup storage, metadata-only restore verification, encryption-key recovery, retention approval, disaster-recovery smoke evidence, and boolean-only evidence from validate_backup_disaster_recovery_evidence.py are complete.",
+    "Keep PHIplan production readiness blocked until Python, frontend, and container dependency scans, critical/high finding remediation or private approval, rebuild/retest evidence, and boolean-only evidence from validate_dependency_security_evidence.py are complete.",
     "Rerun the guarded synthetic-900 MLX LoRA command from a local macOS session with Metal access before promoting a synthetic-900 adapter."
   ],
   "notes": [
@@ -568,6 +593,28 @@
       },
       "name": "Backup and disaster-recovery evidence is ready",
       "requirement_id": "backup_disaster_recovery_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_evidence_report_not_ready"
+      ],
+      "evidence": {
+        "dependency_security_blocked_requirement_ids": [
+          "dependency_security_governance_controls",
+          "dependency_security_private_summary_metadata",
+          "dependency_security_ready_flag",
+          "dependency_security_remediation_controls",
+          "dependency_security_scan_controls"
+        ],
+        "dependency_security_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
+        "dependency_security_report_ready": false,
+        "dependency_security_report_safe_to_review": true,
+        "values_redacted": true
+      },
+      "name": "Dependency security scan and remediation evidence is ready",
+      "requirement_id": "dependency_security_evidence",
       "status": "blocked",
       "warnings": []
     },
