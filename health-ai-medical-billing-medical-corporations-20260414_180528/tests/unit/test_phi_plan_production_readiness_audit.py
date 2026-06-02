@@ -283,6 +283,39 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     warning_ids = {item["requirement_id"] for item in report["warning_items"]}
     assert report["safe_current_state"] is True
     assert report["production_ready"] is False
+    completion = report["completion_audit"]
+    assert completion["artifact"] == "phi_plan_completion_audit_matrix"
+    assert completion["completion_proven"] is False
+    assert (
+        completion["completion_status"]
+        == "not_complete_private_or_external_evidence_required"
+    )
+    assert completion["production_ready"] is False
+    assert completion["safe_current_state"] is True
+    assert completion["blocked_requirement_count"] == report["blocked_item_count"]
+    assert completion["warning_requirement_ids"] == [
+        "synthetic_900_adapter_training_status"
+    ]
+    assert completion["private_or_external_blocker_ids"] == [
+        "manual_production_gate_packet_evidence",
+        "production_corpus_expansion_beyond_synthetic",
+        "production_prediction_fairness_monitoring",
+        "production_semantic_vector_backend",
+        "student_default_cutover_external_approval",
+        "user_data_model_improvement_external_approval",
+    ]
+    assert completion["source_control_ready_requirement_ids"] == [
+        "current_runtime_default_safe",
+        "external_phi_service_guard",
+        "file_ingestion_surface_audit_ready",
+        "monitoring_gate_metrics_ready",
+        "monitoring_readiness_endpoint_ready",
+        "production_compose_startup_guard_env",
+    ]
+    assert completion["raw_approval_values_included"] is False
+    assert completion["raw_evidence_values_included"] is False
+    assert completion["raw_report_paths_included"] is False
+    assert completion["raw_phi_or_secret_values_included"] is False
     assert "manual_production_gate_packet_evidence" in blocked_ids
     assert "student_default_cutover_external_approval" in blocked_ids
     assert "file_ingestion_surface_audit_ready" not in blocked_ids
@@ -448,6 +481,13 @@ def test_production_audit_can_be_ready_with_external_gates_and_real_pair(tmp_pat
     assert report["safe_current_state"] is True
     assert report["production_ready"] is True
     assert report["blocked_item_count"] == 0
+    completion = report["completion_audit"]
+    assert completion["completion_proven"] is True
+    assert completion["completion_status"] == "complete"
+    assert completion["non_completion_reason"] is None
+    assert completion["blocked_requirement_ids"] == []
+    assert completion["private_or_external_blocker_ids"] == []
+    assert completion["production_ready"] is True
 
 
 def test_production_audit_does_not_emit_secret_reference_values(tmp_path):

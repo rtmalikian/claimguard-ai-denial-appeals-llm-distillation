@@ -153,6 +153,22 @@ MONITORING_READINESS_RUNTIME_SENTINELS = {
     "raw_approval_reference": "synthetic-approval-reference-not-for-endpoint",
     "raw_evidence_value": "synthetic-raw-evidence-not-for-endpoint",
 }
+PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS = {
+    "manual_production_gate_packet_evidence",
+    "student_default_cutover_external_approval",
+    "user_data_model_improvement_external_approval",
+    "production_semantic_vector_backend",
+    "production_corpus_expansion_beyond_synthetic",
+    "production_prediction_fairness_monitoring",
+}
+SOURCE_CONTROL_READY_REQUIREMENT_IDS = {
+    "current_runtime_default_safe",
+    "production_compose_startup_guard_env",
+    "file_ingestion_surface_audit_ready",
+    "monitoring_gate_metrics_ready",
+    "monitoring_readiness_endpoint_ready",
+    "external_phi_service_guard",
+}
 COMPOSE_ENV_INTERPOLATION_RE = re.compile(
     r"^\$\{(?P<name>[A-Z0-9_]+)(?::-(?P<default>.*))?\}$"
 )
@@ -1187,6 +1203,82 @@ def build_next_required_actions(requirements: list[dict[str, Any]]) -> list[str]
     return actions
 
 
+def build_completion_audit(
+    requirements: list[dict[str, Any]],
+    *,
+    safe_current_state: bool,
+    production_ready: bool,
+) -> dict[str, Any]:
+    ready_requirement_ids = sorted(
+        item["requirement_id"]
+        for item in requirements
+        if item["status"] == "ready"
+    )
+    blocked_requirement_ids = sorted(
+        item["requirement_id"]
+        for item in requirements
+        if item["status"] == "blocked"
+    )
+    warning_requirement_ids = sorted(
+        item["requirement_id"]
+        for item in requirements
+        if item["status"] == "warning"
+    )
+    private_or_external_blocker_ids = sorted(
+        requirement_id
+        for requirement_id in blocked_requirement_ids
+        if requirement_id in PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS
+    )
+    source_control_ready_requirement_ids = sorted(
+        requirement_id
+        for requirement_id in ready_requirement_ids
+        if requirement_id in SOURCE_CONTROL_READY_REQUIREMENT_IDS
+    )
+    completion_proven = production_ready and not blocked_requirement_ids
+    completion_status = (
+        "complete"
+        if completion_proven
+        else "not_complete_private_or_external_evidence_required"
+        if private_or_external_blocker_ids
+        else "not_complete_source_control_requirements_blocked"
+    )
+    non_completion_reason = (
+        None
+        if completion_proven
+        else (
+            "PHIplan production readiness is blocked by private/manual or external "
+            "production evidence that must remain outside source control."
+            if private_or_external_blocker_ids
+            else "PHIplan production readiness has source-controlled blockers."
+        )
+    )
+    return {
+        "artifact": "phi_plan_completion_audit_matrix",
+        "schema_version": "1.0",
+        "completion_proven": completion_proven,
+        "completion_status": completion_status,
+        "non_completion_reason": non_completion_reason,
+        "safe_current_state": safe_current_state,
+        "production_ready": production_ready,
+        "total_requirement_count": len(requirements),
+        "ready_requirement_count": len(ready_requirement_ids),
+        "blocked_requirement_count": len(blocked_requirement_ids),
+        "warning_requirement_count": len(warning_requirement_ids),
+        "ready_requirement_ids": ready_requirement_ids,
+        "blocked_requirement_ids": blocked_requirement_ids,
+        "warning_requirement_ids": warning_requirement_ids,
+        "private_or_external_blocker_ids": private_or_external_blocker_ids,
+        "private_or_external_blocker_count": len(private_or_external_blocker_ids),
+        "source_control_ready_requirement_ids": source_control_ready_requirement_ids,
+        "source_control_ready_requirement_count": len(source_control_ready_requirement_ids),
+        "source_control_ready_expected_ids": sorted(SOURCE_CONTROL_READY_REQUIREMENT_IDS),
+        "raw_approval_values_included": False,
+        "raw_evidence_values_included": False,
+        "raw_report_paths_included": False,
+        "raw_phi_or_secret_values_included": False,
+    }
+
+
 def build_report(
     *,
     settings_like: Any,
@@ -1283,6 +1375,7 @@ def build_report(
         and monitoring_metrics_safe
         and monitoring_readiness_endpoint_safe
     )
+    production_ready = not blocked_items
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -1291,12 +1384,17 @@ def build_report(
             "synthetic/reviewed distillation evidence."
         ),
         "safe_current_state": safe_current_state,
-        "production_ready": not blocked_items,
+        "production_ready": production_ready,
         "blocked_item_count": len(blocked_items),
         "warning_item_count": len(warning_items),
         "blocked_items": blocked_items,
         "warning_items": warning_items,
         "requirements": requirements,
+        "completion_audit": build_completion_audit(
+            requirements,
+            safe_current_state=safe_current_state,
+            production_ready=production_ready,
+        ),
         "next_required_actions": build_next_required_actions(requirements),
         "notes": [
             "This audit does not enable student default routing, call external services, train models, or write adapter files.",

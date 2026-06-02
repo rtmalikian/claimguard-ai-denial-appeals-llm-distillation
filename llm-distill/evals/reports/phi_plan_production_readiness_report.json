@@ -174,7 +174,69 @@
       "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T23:41:21.552969+00:00",
+  "completion_audit": {
+    "artifact": "phi_plan_completion_audit_matrix",
+    "blocked_requirement_count": 6,
+    "blocked_requirement_ids": [
+      "manual_production_gate_packet_evidence",
+      "production_corpus_expansion_beyond_synthetic",
+      "production_prediction_fairness_monitoring",
+      "production_semantic_vector_backend",
+      "student_default_cutover_external_approval",
+      "user_data_model_improvement_external_approval"
+    ],
+    "completion_proven": false,
+    "completion_status": "not_complete_private_or_external_evidence_required",
+    "non_completion_reason": "PHIplan production readiness is blocked by private/manual or external production evidence that must remain outside source control.",
+    "private_or_external_blocker_count": 6,
+    "private_or_external_blocker_ids": [
+      "manual_production_gate_packet_evidence",
+      "production_corpus_expansion_beyond_synthetic",
+      "production_prediction_fairness_monitoring",
+      "production_semantic_vector_backend",
+      "student_default_cutover_external_approval",
+      "user_data_model_improvement_external_approval"
+    ],
+    "production_ready": false,
+    "raw_approval_values_included": false,
+    "raw_evidence_values_included": false,
+    "raw_phi_or_secret_values_included": false,
+    "raw_report_paths_included": false,
+    "ready_requirement_count": 6,
+    "ready_requirement_ids": [
+      "current_runtime_default_safe",
+      "external_phi_service_guard",
+      "file_ingestion_surface_audit_ready",
+      "monitoring_gate_metrics_ready",
+      "monitoring_readiness_endpoint_ready",
+      "production_compose_startup_guard_env"
+    ],
+    "safe_current_state": true,
+    "schema_version": "1.0",
+    "source_control_ready_expected_ids": [
+      "current_runtime_default_safe",
+      "external_phi_service_guard",
+      "file_ingestion_surface_audit_ready",
+      "monitoring_gate_metrics_ready",
+      "monitoring_readiness_endpoint_ready",
+      "production_compose_startup_guard_env"
+    ],
+    "source_control_ready_requirement_count": 6,
+    "source_control_ready_requirement_ids": [
+      "current_runtime_default_safe",
+      "external_phi_service_guard",
+      "file_ingestion_surface_audit_ready",
+      "monitoring_gate_metrics_ready",
+      "monitoring_readiness_endpoint_ready",
+      "production_compose_startup_guard_env"
+    ],
+    "total_requirement_count": 13,
+    "warning_requirement_count": 1,
+    "warning_requirement_ids": [
+      "synthetic_900_adapter_training_status"
+    ]
+  },
+  "generated_at": "2026-06-02T01:07:38.264925+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",

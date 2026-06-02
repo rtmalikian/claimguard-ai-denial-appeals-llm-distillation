@@ -2,6 +2,59 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 18:07:47 PDT - PHIplan completion audit matrix
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a derived `completion_audit` matrix to the PHIplan production
+  readiness report so reviewers can see which requirement IDs are source-control
+  ready, which are warnings, and which remain private/external blockers without
+  exposing approval values, raw evidence, report paths, PHI, or secrets.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-180615-phi-completion-audit-matrix/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added `build_completion_audit(...)` and emits the derived completion matrix in the PHIplan readiness report. | Restore backup over the same path. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-180615-phi-completion-audit-matrix/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Regenerated the checked-in report with `completion_audit.completion_proven=false`, six private/external blockers, six source-controlled ready requirements, and one warning. | Restore backup over the same path. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260601-180615-phi-completion-audit-matrix/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added regression coverage for blocked and all-ready completion matrix states plus no-raw-value flags. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-180615-phi-completion-audit-matrix/root/PHIplan.md.bak` | Documented the new completion matrix and rollback note. | Restore backup over `../PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260601-180615-phi-completion-audit-matrix/app/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-180615-phi-completion-audit-matrix/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-180615-phi-completion-audit-matrix -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 14 tests with one existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed.
+- Inspection of `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`: passed; `completion_audit.completion_proven=false`, `completion_status=not_complete_private_or_external_evidence_required`, `private_or_external_blocker_count=6`, `source_control_ready_requirement_count=6`, `warning_requirement_count=1`, and all raw-value inclusion flags are `false`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py tests/unit/test_public_repo_docs.py -q`: passed, 15 tests with one existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- Strict secret/PII-like token scan over all changed files: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing PHIplan readiness booleans, dependent report readiness
+  semantics, student-default routing, model-improvement enablement, retrieval
+  backend configuration, corpus eligibility, prediction-fairness status, or
+  manual production-gate requirements.
+- Avoided writing approval references, private evidence paths, raw evidence,
+  PHI, secrets, source text, vectors, demographic values, or production
+  documents into the checked-in report.
+- Avoided treating the completion matrix as production approval; it is a
+  derived audit surface that remains false while private/external blockers
+  remain.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-180615-phi-completion-audit-matrix/`.
+- This slice improves completion evidence clarity; it does not complete the
+  full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:59:57 PDT - Remaining public report writer boundary
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

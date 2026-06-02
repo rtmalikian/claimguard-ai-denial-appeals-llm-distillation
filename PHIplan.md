@@ -911,7 +911,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `write_source_controlled_report_json(...)` too, so future regenerations of
   `llm-distill/evals/reports/phi_plan_production_readiness_report.json`
   apply the same source-control-aware path sanitizer while preserving
-  out-of-repo scratch reports for local diagnostics. The
+  out-of-repo scratch reports for local diagnostics. The same report now
+  includes a `completion_audit` matrix that records total, ready, warning, and
+  blocked requirement IDs, identifies the private/external blocker set, and
+  states `completion_proven=false` without exposing approval values, raw
+  evidence, report paths, PHI, or secrets. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual
@@ -2003,3 +2007,10 @@ Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/scripts/run_mlx_finetune.py` from
 `backups/20260601-175531-remaining-public-report-writer-boundary/` if rolling
 back the remaining public report-writer source-control boundary slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`backups/20260601-180615-phi-completion-audit-matrix/` if rolling back the
+PHIplan completion-audit matrix slice.
