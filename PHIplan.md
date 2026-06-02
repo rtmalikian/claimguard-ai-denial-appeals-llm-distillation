@@ -1322,6 +1322,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   not infer payer, employer, or plan-specific group-number requirements;
   missing-field errors omit raw group values, raw claim payloads, patient
   identifiers, provider identifiers, PHI, secrets, and production claim content.
+- Tighten direct-claim payer and subscriber required-field validation.
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now requires nested `payer` objects to contain an accepted payer
+  identifier/name alias and nested `subscriber` objects to contain an accepted
+  subscriber/member/policy identifier alias before submission prediction or
+  persistence. Arbitrary nested objects no longer satisfy those critical claim
+  fields. Safe missing-field errors omit raw payer/subscriber values, raw claim
+  payloads, patient identifiers, provider identifiers, PHI, secrets, and
+  production claim content.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2164,3 +2173,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-191455-group-number-metadata-required/`
 if rolling back the conditional group-number metadata slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-192042-payer-subscriber-metadata-validation/`
+if rolling back the payer/subscriber metadata validation slice.

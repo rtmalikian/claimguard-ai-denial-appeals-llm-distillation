@@ -278,7 +278,25 @@ class RequiredClaimFieldIssue:
 
 
 PAYER_METADATA_KEYS = ("payer", "payer_name", "payer_identifier")
+PAYER_NESTED_METADATA_KEYS = (
+    "id",
+    "identifier",
+    "name",
+    "payer_id",
+    "payer_identifier",
+    "payer_name",
+    "insurance_name",
+    "plan_name",
+)
 SUBSCRIBER_METADATA_KEYS = ("subscriber", "subscriber_id", "policy_number")
+SUBSCRIBER_NESTED_METADATA_KEYS = (
+    "id",
+    "identifier",
+    "subscriber_id",
+    "member_id",
+    "policy_number",
+    "certificate_number",
+)
 GROUP_NUMBER_REQUIRED_METADATA_KEYS = (
     "group_number_required",
     "group_required",
@@ -425,6 +443,41 @@ def _first_present_metadata_value(claim_data: dict, keys: tuple[str, ...]) -> ob
     return None
 
 
+def _first_present_identifier_metadata_value(
+    claim_data: dict,
+    *,
+    top_level_keys: tuple[str, ...],
+    nested_keys_by_top_level: dict[str, tuple[str, ...]],
+) -> object | None:
+    for key in top_level_keys:
+        if key not in claim_data or not _metadata_value_present(claim_data.get(key)):
+            continue
+        value = claim_data.get(key)
+        nested_keys = nested_keys_by_top_level.get(key)
+        if nested_keys is None or not isinstance(value, dict):
+            return value
+        nested_value = _first_present_metadata_value(value, nested_keys)
+        if nested_value is not None:
+            return nested_value
+    return None
+
+
+def _first_payer_metadata_value(data: dict) -> object | None:
+    return _first_present_identifier_metadata_value(
+        data,
+        top_level_keys=PAYER_METADATA_KEYS,
+        nested_keys_by_top_level={"payer": PAYER_NESTED_METADATA_KEYS},
+    )
+
+
+def _first_subscriber_metadata_value(data: dict) -> object | None:
+    return _first_present_identifier_metadata_value(
+        data,
+        top_level_keys=SUBSCRIBER_METADATA_KEYS,
+        nested_keys_by_top_level={"subscriber": SUBSCRIBER_NESTED_METADATA_KEYS},
+    )
+
+
 def _metadata_flag_enabled(value: object) -> bool:
     if isinstance(value, bool):
         return value
@@ -525,7 +578,7 @@ def validate_required_claim_submission_fields(
     data = claim_data if isinstance(claim_data, dict) else {}
     issues: list[RequiredClaimFieldIssue] = []
 
-    if _first_present_metadata_value(data, PAYER_METADATA_KEYS) is None:
+    if _first_payer_metadata_value(data) is None:
         issues.append(
             RequiredClaimFieldIssue(
                 field="payer",
@@ -534,7 +587,7 @@ def validate_required_claim_submission_fields(
             )
         )
 
-    if _first_present_metadata_value(data, SUBSCRIBER_METADATA_KEYS) is None:
+    if _first_subscriber_metadata_value(data) is None:
         issues.append(
             RequiredClaimFieldIssue(
                 field="subscriber",

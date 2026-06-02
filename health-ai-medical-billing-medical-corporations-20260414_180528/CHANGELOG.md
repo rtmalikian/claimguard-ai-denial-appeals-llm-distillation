@@ -2,6 +2,54 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 19:22:23 PDT - Payer and subscriber metadata validation
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: tighten critical direct-claim payer and subscriber metadata validation
+  so arbitrary nested objects cannot satisfy required payer/subscriber fields
+  before prediction, persistence, or audit-log creation.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `app/api/v1/claims.py` | `backups/20260601-192042-payer-subscriber-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py.bak` | Added accepted nested payer/subscriber identifier aliases and required-field validation that rejects non-identifying nested payer/subscriber objects. | Restore backup over `app/api/v1/claims.py`. |
+| `tests/unit/test_required_claim_fields.py` | `backups/20260601-192042-payer-subscriber-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py.bak` | Added validator and submit-claim coverage for accepted nested payer/subscriber identifiers and rejected non-identifying nested objects. | Restore backup over `tests/unit/test_required_claim_fields.py`. |
+| `../PHIplan.md` | `backups/20260601-192042-payer-subscriber-metadata-validation/root/PHIplan.md.bak` | Documented payer/subscriber metadata validation and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260601-192042-payer-subscriber-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated required claim-field tracking for payer/subscriber metadata. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-192042-payer-subscriber-metadata-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-192042-payer-subscriber-metadata-validation/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-192042-payer-subscriber-metadata-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/api/v1/claims.py tests/unit/test_required_claim_fields.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_required_claim_fields.py tests/unit/test_healthcare_code_validation.py -q`: passed, 33 tests with two existing deprecation warnings.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-payer-subscriber-metadata-validation-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-payer-subscriber-metadata-validation-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, and no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- Avoided making payer or subscriber validation depend on real payer directories,
+  eligibility systems, clearinghouses, or production member records.
+- Avoided logging or returning raw payer values, subscriber values, raw claim
+  payloads, patient identifiers, provider identifiers, PHI, secrets, or
+  production claim content.
+- Avoided validating member/subscriber identifier format because payer and
+  employer formats vary and false negatives could block valid synthetic or
+  de-identified claim metadata.
+- Avoided changing EDI parsing semantics, PHIplan production-readiness booleans,
+  student-default routing, production corpus status, retrieval-vector status,
+  prediction-fairness status, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-192042-payer-subscriber-metadata-validation/`.
+- This slice tightens critical direct-claim required fields; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 19:16:53 PDT - Conditional group-number claim metadata
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

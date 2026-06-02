@@ -35,6 +35,44 @@ def test_required_claim_field_validator_returns_safe_missing_metadata_issues():
     assert "250" not in str(details)
 
 
+def test_required_claim_field_validator_rejects_non_identifier_payer_subscriber_objects():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer": {"department": "synthetic billing queue"},
+            "subscriber": {"display_label": "synthetic subscriber label"},
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == [
+        "missing_payer_metadata",
+        "missing_subscriber_metadata",
+    ]
+    assert details[0]["field"] == "payer"
+    assert details[1]["field"] == "subscriber"
+    assert "synthetic billing queue" not in str(details)
+    assert "synthetic subscriber label" not in str(details)
+
+
+def test_required_claim_field_validator_accepts_nested_payer_subscriber_identifiers():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer": {"payer_identifier": "SYN-PAYER-001"},
+            "subscriber": {"member_id": "SYN-MEMBER-001"},
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+        }
+    )
+
+    assert issues == []
+
+
 def test_required_claim_field_validator_rejects_invalid_service_date_safely():
     from app.api.v1.claims import validate_required_claim_submission_fields
 
@@ -284,6 +322,50 @@ async def test_submit_claim_blocks_missing_required_metadata_before_prediction(m
     assert detail["issue_count"] == 4
     assert detail["safe_context"]["raw_claim_data_included"] is False
     assert "250" not in str(detail)
+    mock_predict.assert_not_called()
+    db.add.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("app.services.prediction.PredictionService.predict_denial", new_callable=AsyncMock)
+async def test_submit_claim_blocks_non_identifier_payer_subscriber_before_prediction(
+    mock_predict,
+):
+    from app.api.v1.claims import submit_claim
+    from app.schemas.claim import ClaimSubmitRequest
+
+    db = MagicMock()
+    request = ClaimSubmitRequest(
+        patient_id=1,
+        provider_id=1,
+        claim_data={
+            "payer": {"department": "synthetic billing queue"},
+            "subscriber": {"display_label": "synthetic subscriber label"},
+            "service_date": "2026-01-15",
+            "place_of_service_code": "11",
+        },
+        diagnosis_codes=["Z00.00"],
+        procedure_codes=["99213"],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await submit_claim(
+            request=request,
+            current_user={"id": 42, "role": "billing_staff"},
+            db=db,
+        )
+
+    assert exc_info.value.status_code == 400
+    detail = exc_info.value.detail
+    assert detail["error_code"] == "missing_required_claim_fields"
+    assert [issue["error_code"] for issue in detail["issues"]] == [
+        "missing_payer_metadata",
+        "missing_subscriber_metadata",
+    ]
+    assert detail["safe_context"]["raw_field_values_included"] is False
+    assert "synthetic billing queue" not in str(detail)
+    assert "synthetic subscriber label" not in str(detail)
     mock_predict.assert_not_called()
     db.add.assert_not_called()
     db.commit.assert_not_called()

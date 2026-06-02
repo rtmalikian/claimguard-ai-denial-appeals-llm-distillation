@@ -1895,8 +1895,8 @@ STATE_TRANSITIONS = {
 ### 2.2 Missing Required Claim Fields
 | Field | Status |
 |-------|--------|
-| Payer ID / Insurance | Missing - CRITICAL |
-| Subscriber ID | Missing - CRITICAL |
+| Payer ID / Insurance | Required and validated for direct claim submission |
+| Subscriber ID | Required and validated for direct claim submission |
 | Group Number | Required when direct claim metadata explicitly marks group number as required |
 | Service Date | Missing - CRITICAL |
 | Place of Service Code | Required and validated for direct claim submission |
@@ -1933,6 +1933,10 @@ STATE_TRANSITIONS = {
   does not infer group-number requirements from payer, employer, plan name, or
   clinical facts; safe missing-field errors omit raw group values, raw claim
   data, PHI, and production claim content.
+- [x] Direct claim submission now requires payer and subscriber metadata to use
+  accepted identifier/name aliases rather than allowing arbitrary nested
+  objects to satisfy critical claim fields. Safe missing-field errors omit raw
+  payer/subscriber values, raw claim data, PHI, and production claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and
