@@ -1312,6 +1312,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   reimbursement, or medical necessity; missing-field errors omit raw
   authorization values, raw claim payloads, patient identifiers, provider
   identifiers, PHI, secrets, and production claim content.
+- Require direct-claim group-number metadata when group number is explicitly
+  marked required. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now checks `group_number_required`, `group_required`,
+  `requires_group_number`, `employer_group_plan`, and
+  `commercial_group_plan` at the claim and service-line level. When any such
+  flag is enabled, claim submission requires one of the accepted group-number
+  aliases before prediction, persistence, or audit-log creation. The rule does
+  not infer payer, employer, or plan-specific group-number requirements;
+  missing-field errors omit raw group values, raw claim payloads, patient
+  identifiers, provider identifiers, PHI, secrets, and production claim content.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2145,3 +2155,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-190901-authorization-metadata-required/`
 if rolling back the conditional authorization-number metadata slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-191455-group-number-metadata-required/`
+if rolling back the conditional group-number metadata slice.

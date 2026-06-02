@@ -1897,7 +1897,7 @@ STATE_TRANSITIONS = {
 |-------|--------|
 | Payer ID / Insurance | Missing - CRITICAL |
 | Subscriber ID | Missing - CRITICAL |
-| Group Number | Missing |
+| Group Number | Required when direct claim metadata explicitly marks group number as required |
 | Service Date | Missing - CRITICAL |
 | Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Required when direct claim metadata explicitly marks prior authorization as required |
@@ -1928,6 +1928,11 @@ STATE_TRANSITIONS = {
   required. The rule does not infer authorization requirements from payer,
   procedure, diagnosis, or clinical facts; safe missing-field errors omit raw
   authorization values, raw claim data, PHI, and production claim content.
+- [x] Direct claim submission now requires group-number metadata when the claim
+  or service-line metadata explicitly marks group number as required. The rule
+  does not infer group-number requirements from payer, employer, plan name, or
+  clinical facts; safe missing-field errors omit raw group values, raw claim
+  data, PHI, and production claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and

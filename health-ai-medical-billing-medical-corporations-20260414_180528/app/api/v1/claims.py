@@ -279,6 +279,21 @@ class RequiredClaimFieldIssue:
 
 PAYER_METADATA_KEYS = ("payer", "payer_name", "payer_identifier")
 SUBSCRIBER_METADATA_KEYS = ("subscriber", "subscriber_id", "policy_number")
+GROUP_NUMBER_REQUIRED_METADATA_KEYS = (
+    "group_number_required",
+    "group_required",
+    "requires_group_number",
+    "employer_group_plan",
+    "commercial_group_plan",
+)
+GROUP_NUMBER_METADATA_KEYS = (
+    "group_number",
+    "group_id",
+    "group_policy_number",
+    "policy_group_number",
+    "plan_group_number",
+    "employer_group_number",
+)
 SERVICE_DATE_METADATA_KEYS = ("service_date", "date_of_service")
 PLACE_OF_SERVICE_METADATA_KEYS = (
     "place_of_service_code",
@@ -434,8 +449,8 @@ def _metadata_flag_enabled(value: object) -> bool:
     return False
 
 
-def _authorization_required_for_mapping(data: dict) -> bool:
-    for key in AUTHORIZATION_REQUIRED_METADATA_KEYS:
+def _metadata_flag_enabled_for_mapping(data: dict, keys: tuple[str, ...]) -> bool:
+    for key in keys:
         if key in data and _metadata_flag_enabled(data.get(key)):
             return True
 
@@ -444,13 +459,16 @@ def _authorization_required_for_mapping(data: dict) -> bool:
         if not isinstance(collection, list):
             continue
         for item in collection:
-            if isinstance(item, dict) and _authorization_required_for_mapping(item):
+            if isinstance(item, dict) and _metadata_flag_enabled_for_mapping(item, keys):
                 return True
     return False
 
 
-def _first_authorization_number_value(data: dict) -> object | None:
-    value = _first_present_metadata_value(data, AUTHORIZATION_NUMBER_METADATA_KEYS)
+def _first_metadata_value_for_mapping(
+    data: dict,
+    keys: tuple[str, ...],
+) -> object | None:
+    value = _first_present_metadata_value(data, keys)
     if value is not None:
         return value
 
@@ -461,10 +479,26 @@ def _first_authorization_number_value(data: dict) -> object | None:
         for item in collection:
             if not isinstance(item, dict):
                 continue
-            value = _first_authorization_number_value(item)
+            value = _first_metadata_value_for_mapping(item, keys)
             if value is not None:
                 return value
     return None
+
+
+def _group_number_required_for_mapping(data: dict) -> bool:
+    return _metadata_flag_enabled_for_mapping(data, GROUP_NUMBER_REQUIRED_METADATA_KEYS)
+
+
+def _first_group_number_value(data: dict) -> object | None:
+    return _first_metadata_value_for_mapping(data, GROUP_NUMBER_METADATA_KEYS)
+
+
+def _authorization_required_for_mapping(data: dict) -> bool:
+    return _metadata_flag_enabled_for_mapping(data, AUTHORIZATION_REQUIRED_METADATA_KEYS)
+
+
+def _first_authorization_number_value(data: dict) -> object | None:
+    return _first_metadata_value_for_mapping(data, AUTHORIZATION_NUMBER_METADATA_KEYS)
 
 
 def _is_valid_service_date_metadata(value: object) -> bool:
@@ -506,6 +540,18 @@ def validate_required_claim_submission_fields(
                 field="subscriber",
                 error_code="missing_subscriber_metadata",
                 accepted_metadata_keys=SUBSCRIBER_METADATA_KEYS,
+            )
+        )
+
+    if (
+        _group_number_required_for_mapping(data)
+        and _first_group_number_value(data) is None
+    ):
+        issues.append(
+            RequiredClaimFieldIssue(
+                field="group_number",
+                error_code="missing_group_number_metadata",
+                accepted_metadata_keys=GROUP_NUMBER_METADATA_KEYS,
             )
         )
 
