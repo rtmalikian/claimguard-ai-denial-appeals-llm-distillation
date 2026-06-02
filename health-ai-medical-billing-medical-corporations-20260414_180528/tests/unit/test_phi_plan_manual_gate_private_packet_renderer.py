@@ -32,6 +32,18 @@ READY_PREDICTION_FAIRNESS_REPORT_FIXTURE = (
     "health-ai-medical-billing-medical-corporations-20260414_180528/"
     "tests/fixtures/prediction_fairness_ready_report.json"
 )
+READY_BACKUP_DISASTER_RECOVERY_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/backup_disaster_recovery_ready_report.json"
+)
+READY_DEPENDENCY_SECURITY_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/dependency_security_ready_report.json"
+)
+READY_CLEARINGHOUSE_SUBMISSION_REPORT_FIXTURE = (
+    "health-ai-medical-billing-medical-corporations-20260414_180528/"
+    "tests/fixtures/clearinghouse_submission_ready_report.json"
+)
 READY_FILE_INGESTION_SURFACE_REPORT_FIXTURE = (
     "health-ai-medical-billing-medical-corporations-20260414_180528/"
     "tests/fixtures/file_ingestion_surface_ready_report.json"
@@ -76,6 +88,9 @@ def _approved_config(renderer: ModuleType, output_path: Path):
         production_corpus_attested=True,
         retrieval_vector_attested=True,
         prediction_fairness_attested=True,
+        backup_disaster_recovery_attested=True,
+        dependency_security_attested=True,
+        clearinghouse_submission_attested=True,
         file_ingestion_surface_attested=True,
         dependent_reports_ready_attested=True,
         no_raw_values_attested=True,
@@ -84,6 +99,9 @@ def _approved_config(renderer: ModuleType, output_path: Path):
         production_corpus_report=READY_PRODUCTION_CORPUS_REPORT_FIXTURE,
         retrieval_vector_report=READY_RETRIEVAL_VECTOR_REPORT_FIXTURE,
         prediction_fairness_report=READY_PREDICTION_FAIRNESS_REPORT_FIXTURE,
+        backup_disaster_recovery_report=READY_BACKUP_DISASTER_RECOVERY_REPORT_FIXTURE,
+        dependency_security_report=READY_DEPENDENCY_SECURITY_REPORT_FIXTURE,
+        clearinghouse_submission_report=READY_CLEARINGHOUSE_SUBMISSION_REPORT_FIXTURE,
         file_ingestion_surface_report=READY_FILE_INGESTION_SURFACE_REPORT_FIXTURE,
     )
 
@@ -96,6 +114,9 @@ def _manual_gate_summary_payload(**overrides):
         "production_corpus_attested": True,
         "retrieval_vector_attested": True,
         "prediction_fairness_attested": True,
+        "backup_disaster_recovery_attested": True,
+        "dependency_security_attested": True,
+        "clearinghouse_submission_attested": True,
         "file_ingestion_surface_attested": True,
         "dependent_reports_ready_attested": True,
         "manual_review_completed": True,
@@ -121,8 +142,8 @@ def _manual_gate_summary_payload(**overrides):
         "approved_non_synthetic_pair_count": 1,
         "approved_source_type_count": 1,
         "manifest_record_id_count": 2,
-        "dependent_report_count": 6,
-        "private_reference_count": 3,
+        "dependent_report_count": 9,
+        "private_reference_count": 6,
     }
     payload.update(overrides)
     return payload
@@ -147,6 +168,9 @@ def _set_private_values(monkeypatch, renderer: ModuleType) -> dict[str, str]:
         renderer.DEFAULT_MANUAL_REVIEW_REFERENCE_ENV: "MANUAL-GATE-REF-TEST",
         renderer.DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV: "DEPENDENT-EVIDENCE-REF-TEST",
         renderer.DEFAULT_RELEASE_REFERENCE_ENV: "RELEASE-REF-TEST",
+        renderer.DEFAULT_BACKUP_DR_REFERENCE_ENV: "BACKUP-DR-REF-TEST",
+        renderer.DEFAULT_DEPENDENCY_SECURITY_REFERENCE_ENV: "DEPENDENCY-SECURITY-REF-TEST",
+        renderer.DEFAULT_CLEARINGHOUSE_REFERENCE_ENV: "CLEARINGHOUSE-REF-TEST",
     }
     for key, value in values.items():
         monkeypatch.setenv(key, value)
@@ -202,6 +226,9 @@ def test_approved_mode_requires_private_manifest_record_ids(monkeypatch, tmp_pat
         (config.manual_review_reference_env, "MANUAL-GATE-REF-TEST"),
         (config.dependent_evidence_reference_env, "DEPENDENT-EVIDENCE-REF-TEST"),
         (config.release_reference_env, "RELEASE-REF-TEST"),
+        (config.backup_dr_reference_env, "BACKUP-DR-REF-TEST"),
+        (config.dependency_security_reference_env, "DEPENDENCY-SECURITY-REF-TEST"),
+        (config.clearinghouse_reference_env, "CLEARINGHOUSE-REF-TEST"),
     ]:
         monkeypatch.setenv(env_name, value)
 
@@ -239,6 +266,9 @@ def test_approved_mode_requires_ready_dependent_reports(monkeypatch, tmp_path):
                 production_corpus_attested=True,
                 retrieval_vector_attested=True,
                 prediction_fairness_attested=True,
+                backup_disaster_recovery_attested=True,
+                dependency_security_attested=True,
+                clearinghouse_submission_attested=True,
                 file_ingestion_surface_attested=True,
                 dependent_reports_ready_attested=True,
                 no_raw_values_attested=True,
@@ -352,7 +382,7 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     assert summary["production_gate_ready"] is True
     assert summary["dependent_evidence_reports_checked"] is True
     assert summary["dependent_evidence_reports_ready"] is True
-    assert summary["private_reference_count"] == 3
+    assert summary["private_reference_count"] == 6
     assert summary["manifest_record_id_count"] == 2
     assert summary["private_manual_gate_summary_checked"] is True
     assert summary["private_manual_gate_summary_path_env_configured"] is True
@@ -361,8 +391,8 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     assert summary["private_manual_gate_summary_approved_non_synthetic_pair_count"] == 1
     assert summary["private_manual_gate_summary_approved_source_type_count"] == 1
     assert summary["private_manual_gate_summary_manifest_record_id_count"] == 2
-    assert summary["private_manual_gate_summary_dependent_report_count"] == 6
-    assert summary["private_manual_gate_summary_private_reference_count"] == 3
+    assert summary["private_manual_gate_summary_dependent_report_count"] == 9
+    assert summary["private_manual_gate_summary_private_reference_count"] == 6
     assert summary["private_manual_gate_summary_raw_values_included"] is False
     assert summary["manifest_record_ids_included_in_summary"] is False
     assert summary["approval_reference_value_included"] is False
@@ -379,8 +409,8 @@ def test_approved_mode_writes_private_packet_and_redacts_summary(
     assert payload["private_manual_gate_summary_approved_non_synthetic_pair_count"] == 1
     assert payload["private_manual_gate_summary_approved_source_type_count"] == 1
     assert payload["private_manual_gate_summary_manifest_record_id_count"] == 2
-    assert payload["private_manual_gate_summary_dependent_report_count"] == 6
-    assert payload["private_manual_gate_summary_private_reference_count"] == 3
+    assert payload["private_manual_gate_summary_dependent_report_count"] == 9
+    assert payload["private_manual_gate_summary_private_reference_count"] == 6
     assert payload["private_manual_gate_summary_raw_values_included"] is False
     assert payload["approval_reference_value_included"] is False
     assert payload["private_reference_values_included"] is False

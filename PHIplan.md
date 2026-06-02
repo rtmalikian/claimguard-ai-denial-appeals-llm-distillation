@@ -1096,21 +1096,27 @@ plan plus the active ClaimGuard `AGENTS.md`.
   `llm-distill/docs/phi-plan-manual-production-gate-checklist.md` exists with
   required markers for student cutover approval, user-data model-improvement
   approval, non-synthetic denial/appeal pair evidence, semantic vector backend
-  readiness, production fairness evidence, the manual gate private packet
-  renderer, file-ingestion surface audit readiness, boolean-only evidence, no
-  approval references in source control, no PHI or production document content,
-  and `production_gate_ready=false` without emitting checklist text. The manual
+  readiness, production fairness evidence, backup/disaster-recovery evidence,
+  dependency-security evidence, clearinghouse submission evidence, the manual
+  gate private packet renderer, file-ingestion surface audit readiness,
+  boolean-only evidence, no approval references in source control, no PHI or
+  production document content, and `production_gate_ready=false` without
+  emitting checklist text. The manual
   gate path now also includes
   `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`, a
   renderer for the final private manual production-gate packet. It refuses
   output inside source control, requires explicit student cutover,
   student-runtime, model-improvement, production-corpus, retrieval-vector,
-  prediction-fairness, file-ingestion, dependent-report-readiness, and
+  prediction-fairness, backup/disaster-recovery, dependency-security,
+  clearinghouse-submission, file-ingestion, dependent-report-readiness, and
   no-raw-value attestations before approved mode, reads private manifest record
-  ids, governance references, and a private aggregate manual-gate summary path
-  from environment variables, verifies the configured supervisor,
-  model-improvement, production-corpus, retrieval-vector, prediction-fairness,
-  and file-ingestion surface reports are ready, validates required private
+  ids, governance references, backup/disaster-recovery references,
+  dependency-security references, clearinghouse references, and a private
+  aggregate manual-gate summary path from environment variables, verifies the
+  configured supervisor, model-improvement, production-corpus,
+  retrieval-vector, prediction-fairness, backup/disaster-recovery,
+  dependency-security, clearinghouse-submission, and file-ingestion surface
+  reports are ready, validates required private
   summary booleans, positive aggregate counts, and explicit no-raw-value flags
   before writing a ready packet, rejects unsupported private summary fields,
   writes private output with `0600` permissions, and prints only redacted
@@ -2578,3 +2584,22 @@ Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-002653-security-control-surface-audit/`
 if rolling back the security-control surface audit slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`,
+`llm-distill/docs/phi-plan-manual-production-gate-checklist.md`,
+`llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`,
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json`,
+`llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`, and
+`llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-010000-manual-gate-expanded-evidence/`;
+remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/fixtures/backup_disaster_recovery_ready_report.json`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/fixtures/dependency_security_ready_report.json`, and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/fixtures/clearinghouse_submission_ready_report.json`
+if rolling back the manual gate expanded evidence slice.

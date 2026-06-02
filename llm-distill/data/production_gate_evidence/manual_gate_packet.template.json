@@ -117,6 +117,47 @@
     "rollback_or_threshold_reversion_reviewed": true,
     "audit_log_metadata_only_verified": true
   },
+  "backup_disaster_recovery": {
+    "backup_disaster_recovery_evidence_report_ready": false,
+    "source_control_runbook_documented": true,
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
+    "encrypted_backup_storage_configured": false,
+    "restore_validation_completed": false,
+    "encryption_key_recovery_reviewed": false,
+    "retention_policy_approved": false,
+    "disaster_recovery_smoke_passed": false,
+    "metadata_only_restore_verified": false
+  },
+  "dependency_security": {
+    "dependency_security_evidence_report_ready": false,
+    "source_control_runbook_documented": true,
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_dependency_security_private_evidence.py",
+    "python_dependency_scan_completed": false,
+    "frontend_dependency_scan_completed": false,
+    "container_dependency_scan_completed": false,
+    "critical_high_findings_remediated_or_approved": false,
+    "rebuild_retest_completed": false,
+    "upgrade_plan_reviewed": false,
+    "raw_scanner_output_excluded": true
+  },
+  "clearinghouse_submission": {
+    "clearinghouse_submission_evidence_report_ready": false,
+    "source_control_runbook_documented": true,
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+    "payer_or_clearinghouse_enrollment_attested": false,
+    "test_mode_credentials_configured": false,
+    "encrypted_transit_validated": false,
+    "edi_837_submission_contract_test_passed": false,
+    "acknowledgement_handling_validated": false,
+    "rejection_retry_duplicate_controls_reviewed": false,
+    "rollback_to_manual_reviewed": true,
+    "metadata_only_audit_logging_verified": true,
+    "access_controls_reviewed": false,
+    "retention_policy_reviewed": false
+  },
   "file_ingestion_surface_audit": {
     "file_ingestion_surface_report_ready": true,
     "expected_upload_surface_count": 3,

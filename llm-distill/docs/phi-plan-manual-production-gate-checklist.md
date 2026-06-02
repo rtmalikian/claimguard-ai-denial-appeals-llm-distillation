@@ -26,6 +26,12 @@ identifiers, or credentials.
 - retrieval vector private environment renderer required
 - production threshold/fairness monitoring evidence required
 - prediction-fairness private evidence renderer required
+- backup/disaster-recovery evidence required
+- backup/disaster-recovery private evidence renderer required
+- dependency-security evidence required
+- dependency-security private evidence renderer required
+- clearinghouse submission evidence required
+- clearinghouse submission private evidence renderer required
 - file-ingestion surface audit must stay ready
 - boolean-only evidence
 - approval references must stay outside source control
@@ -76,8 +82,26 @@ identifiers, or credentials.
    to a private path outside source control after outcome-data, sample-size,
    threshold-review, monitoring, latest-run, and legal/privacy evidence are
    complete; confirm command output includes redacted booleans/counts only.
-9. Confirm production readiness remains blocked until every required gate is
+9. For backup and disaster-recovery, render any final evidence file with
+   `llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py`
+   only to a private path outside source control after encrypted backup
+   storage, restore validation, key recovery, retention, and smoke evidence are
+   complete; confirm command output includes redacted booleans/counts only.
+10. For dependency security, render any final evidence file with
+   `llm-distill/scripts/render_dependency_security_private_evidence.py` only
+   to a private path outside source control after Python, frontend, and
+   container scans, critical/high remediation or approval, rebuild/retest, and
+   upgrade-plan evidence are complete; confirm command output includes
+   redacted booleans/counts only.
+11. For clearinghouse submission, render any final evidence file with
+   `llm-distill/scripts/render_clearinghouse_submission_private_evidence.py`
+   only to a private path outside source control after enrollment, test-mode
+   credentials, encrypted transit, EDI 837 contract tests, acknowledgement
+   handling, retry/duplicate controls, rollback, access controls, audit, and
+   retention evidence are complete; confirm command output includes redacted
+   booleans/counts only.
+12. Confirm production readiness remains blocked until every required gate is
    ready in `llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`
    and `llm-distill/evals/reports/phi_plan_production_readiness_report.json`.
-10. Confirm any future document-ingestion surface is registered in the
+13. Confirm any future document-ingestion surface is registered in the
    file-ingestion surface audit before it handles production material.

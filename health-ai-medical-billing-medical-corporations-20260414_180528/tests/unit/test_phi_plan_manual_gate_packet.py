@@ -82,8 +82,8 @@ def _ready_packet() -> dict:
         "private_manual_gate_summary_approved_non_synthetic_pair_count": 1,
         "private_manual_gate_summary_approved_source_type_count": 1,
         "private_manual_gate_summary_manifest_record_id_count": 2,
-        "private_manual_gate_summary_dependent_report_count": 6,
-        "private_manual_gate_summary_private_reference_count": 3,
+        "private_manual_gate_summary_dependent_report_count": 9,
+        "private_manual_gate_summary_private_reference_count": 6,
         "private_manual_gate_summary_raw_values_included": False,
         "approval_reference_value_included": False,
         "private_reference_values_included": False,
@@ -176,6 +176,53 @@ def _ready_packet() -> dict:
             "rollback_or_threshold_reversion_reviewed": True,
             "audit_log_metadata_only_verified": True,
         },
+        "backup_disaster_recovery": {
+            "backup_disaster_recovery_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py"
+            ),
+            "encrypted_backup_storage_configured": True,
+            "restore_validation_completed": True,
+            "encryption_key_recovery_reviewed": True,
+            "retention_policy_approved": True,
+            "disaster_recovery_smoke_passed": True,
+            "metadata_only_restore_verified": True,
+        },
+        "dependency_security": {
+            "dependency_security_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_dependency_security_private_evidence.py"
+            ),
+            "python_dependency_scan_completed": True,
+            "frontend_dependency_scan_completed": True,
+            "container_dependency_scan_completed": True,
+            "critical_high_findings_remediated_or_approved": True,
+            "rebuild_retest_completed": True,
+            "upgrade_plan_reviewed": True,
+            "raw_scanner_output_excluded": True,
+        },
+        "clearinghouse_submission": {
+            "clearinghouse_submission_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "private_evidence_renderer_path": (
+                "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py"
+            ),
+            "payer_or_clearinghouse_enrollment_attested": True,
+            "test_mode_credentials_configured": True,
+            "encrypted_transit_validated": True,
+            "edi_837_submission_contract_test_passed": True,
+            "acknowledgement_handling_validated": True,
+            "rejection_retry_duplicate_controls_reviewed": True,
+            "rollback_to_manual_reviewed": True,
+            "metadata_only_audit_logging_verified": True,
+            "access_controls_reviewed": True,
+            "retention_policy_reviewed": True,
+        },
         "file_ingestion_surface_audit": {
             "file_ingestion_surface_report_ready": True,
             "expected_upload_surface_count": 3,
@@ -236,6 +283,9 @@ def test_template_packet_is_safe_to_review_but_not_ready():
     assert "manual_production_corpus_evidence" in blocked_ids
     assert "manual_retrieval_vector_backend_evidence" in blocked_ids
     assert "manual_prediction_fairness_monitoring_evidence" in blocked_ids
+    assert "manual_backup_disaster_recovery_evidence" in blocked_ids
+    assert "manual_dependency_security_evidence" in blocked_ids
+    assert "manual_clearinghouse_submission_evidence" in blocked_ids
     assert "manual_file_ingestion_surface_evidence" not in blocked_ids
     student_requirement = next(
         item
@@ -493,6 +543,60 @@ def test_template_packet_is_safe_to_review_but_not_ready():
         ]
         is True
     )
+    backup_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_backup_disaster_recovery_evidence"
+    )
+    assert "backup_disaster_recovery_evidence_report_not_ready" in backup_requirement["blockers"]
+    assert "backup_disaster_recovery_source_control_runbook_not_documented" not in backup_requirement["blockers"]
+    assert "backup_disaster_recovery_private_evidence_renderer_not_documented" not in backup_requirement["blockers"]
+    assert backup_requirement["evidence"]["source_control_runbook_documented"] is True
+    assert (
+        backup_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    dependency_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_dependency_security_evidence"
+    )
+    assert "dependency_security_evidence_report_not_ready" in dependency_requirement["blockers"]
+    assert "dependency_security_source_control_runbook_not_documented" not in dependency_requirement["blockers"]
+    assert "dependency_security_private_evidence_renderer_not_documented" not in dependency_requirement["blockers"]
+    assert dependency_requirement["evidence"]["source_control_runbook_documented"] is True
+    assert (
+        dependency_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert dependency_requirement["evidence"]["raw_scanner_output_excluded"] is True
+    clearinghouse_requirement = next(
+        item
+        for item in report["blocked_items"]
+        if item["requirement_id"] == "manual_clearinghouse_submission_evidence"
+    )
+    assert "clearinghouse_submission_evidence_report_not_ready" in clearinghouse_requirement["blockers"]
+    assert (
+        "clearinghouse_submission_source_control_runbook_not_documented"
+        not in clearinghouse_requirement["blockers"]
+    )
+    assert (
+        "clearinghouse_submission_private_evidence_renderer_not_documented"
+        not in clearinghouse_requirement["blockers"]
+    )
+    assert clearinghouse_requirement["evidence"]["source_control_runbook_documented"] is True
+    assert (
+        clearinghouse_requirement["evidence"][
+            "source_control_private_evidence_renderer_documented"
+        ]
+        is True
+    )
+    assert clearinghouse_requirement["evidence"]["rollback_to_manual_reviewed"] is True
+    assert clearinghouse_requirement["evidence"]["metadata_only_audit_logging_verified"] is True
 
 
 def test_ready_packet_passes_all_manual_gate_requirements(tmp_path):

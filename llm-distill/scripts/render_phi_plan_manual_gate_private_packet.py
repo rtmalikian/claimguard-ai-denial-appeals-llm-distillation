@@ -28,6 +28,11 @@ DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV = (
     "PHI_PLAN_MANUAL_GATE_DEPENDENT_EVIDENCE_REFERENCE"
 )
 DEFAULT_RELEASE_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_RELEASE_REFERENCE"
+DEFAULT_BACKUP_DR_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_BACKUP_DR_REFERENCE"
+DEFAULT_DEPENDENCY_SECURITY_REFERENCE_ENV = (
+    "PHI_PLAN_MANUAL_GATE_DEPENDENCY_SECURITY_REFERENCE"
+)
+DEFAULT_CLEARINGHOUSE_REFERENCE_ENV = "PHI_PLAN_MANUAL_GATE_CLEARINGHOUSE_REFERENCE"
 DEFAULT_PRIVATE_SUMMARY_PATH_ENV = "PHI_PLAN_MANUAL_GATE_PRIVATE_SUMMARY_PATH"
 DEFAULT_PRIVATE_PACKET_RENDERER_PATH = (
     "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
@@ -44,6 +49,15 @@ DEFAULT_RETRIEVAL_VECTOR_REPORT = (
 )
 DEFAULT_PREDICTION_FAIRNESS_REPORT = (
     "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
+)
+DEFAULT_BACKUP_DISASTER_RECOVERY_REPORT = (
+    "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json"
+)
+DEFAULT_DEPENDENCY_SECURITY_REPORT = (
+    "llm-distill/evals/reports/dependency_security_evidence_report.json"
+)
+DEFAULT_CLEARINGHOUSE_SUBMISSION_REPORT = (
+    "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
 )
 DEFAULT_FILE_INGESTION_SURFACE_REPORT = (
     "llm-distill/evals/reports/file_ingestion_surface_audit_report.json"
@@ -62,6 +76,9 @@ REQUIRED_ATTESTATIONS = {
     "production_corpus_attested": "production corpus attestation is required",
     "retrieval_vector_attested": "retrieval vector attestation is required",
     "prediction_fairness_attested": "prediction fairness attestation is required",
+    "backup_disaster_recovery_attested": "backup/disaster-recovery attestation is required",
+    "dependency_security_attested": "dependency security attestation is required",
+    "clearinghouse_submission_attested": "clearinghouse submission attestation is required",
     "file_ingestion_surface_attested": "file-ingestion surface attestation is required",
     "dependent_reports_ready_attested": "dependent report readiness attestation is required",
     "no_raw_values_attested": "no raw values attestation is required",
@@ -71,6 +88,9 @@ ALLOWED_ENV_KEYS = {
     DEFAULT_MANUAL_REVIEW_REFERENCE_ENV,
     DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
     DEFAULT_RELEASE_REFERENCE_ENV,
+    DEFAULT_BACKUP_DR_REFERENCE_ENV,
+    DEFAULT_DEPENDENCY_SECURITY_REFERENCE_ENV,
+    DEFAULT_CLEARINGHOUSE_REFERENCE_ENV,
     DEFAULT_PRIVATE_SUMMARY_PATH_ENV,
 }
 FORBIDDEN_ENV_KEY_FRAGMENTS = {
@@ -92,6 +112,9 @@ REQUIRED_PRIVATE_SUMMARY_TRUE_FLAGS = {
     "production_corpus_attested",
     "retrieval_vector_attested",
     "prediction_fairness_attested",
+    "backup_disaster_recovery_attested",
+    "dependency_security_attested",
+    "clearinghouse_submission_attested",
     "file_ingestion_surface_attested",
     "dependent_reports_ready_attested",
     "manual_review_completed",
@@ -146,12 +169,18 @@ class RenderConfig:
     manual_review_reference_env: str = DEFAULT_MANUAL_REVIEW_REFERENCE_ENV
     dependent_evidence_reference_env: str = DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV
     release_reference_env: str = DEFAULT_RELEASE_REFERENCE_ENV
+    backup_dr_reference_env: str = DEFAULT_BACKUP_DR_REFERENCE_ENV
+    dependency_security_reference_env: str = DEFAULT_DEPENDENCY_SECURITY_REFERENCE_ENV
+    clearinghouse_reference_env: str = DEFAULT_CLEARINGHOUSE_REFERENCE_ENV
     private_summary_path_env: str = DEFAULT_PRIVATE_SUMMARY_PATH_ENV
     supervisor_report: str = DEFAULT_SUPERVISOR_REPORT
     model_improvement_report: str = DEFAULT_MODEL_IMPROVEMENT_REPORT
     production_corpus_report: str = DEFAULT_PRODUCTION_CORPUS_REPORT
     retrieval_vector_report: str = DEFAULT_RETRIEVAL_VECTOR_REPORT
     prediction_fairness_report: str = DEFAULT_PREDICTION_FAIRNESS_REPORT
+    backup_disaster_recovery_report: str = DEFAULT_BACKUP_DISASTER_RECOVERY_REPORT
+    dependency_security_report: str = DEFAULT_DEPENDENCY_SECURITY_REPORT
+    clearinghouse_submission_report: str = DEFAULT_CLEARINGHOUSE_SUBMISSION_REPORT
     file_ingestion_surface_report: str = DEFAULT_FILE_INGESTION_SURFACE_REPORT
     student_cutover_attested: bool = False
     student_runtime_attested: bool = False
@@ -159,6 +188,9 @@ class RenderConfig:
     production_corpus_attested: bool = False
     retrieval_vector_attested: bool = False
     prediction_fairness_attested: bool = False
+    backup_disaster_recovery_attested: bool = False
+    dependency_security_attested: bool = False
+    clearinghouse_submission_attested: bool = False
     file_ingestion_surface_attested: bool = False
     dependent_reports_ready_attested: bool = False
     no_raw_values_attested: bool = False
@@ -206,6 +238,18 @@ def _load_private_references(config: RenderConfig) -> list[str]:
             "dependent evidence packet reference",
         ),
         (config.release_reference_env, "release review reference"),
+        (
+            config.backup_dr_reference_env,
+            "backup/disaster-recovery evidence reference",
+        ),
+        (
+            config.dependency_security_reference_env,
+            "dependency security evidence reference",
+        ),
+        (
+            config.clearinghouse_reference_env,
+            "clearinghouse submission evidence reference",
+        ),
     ]
     return [
         _load_private_reference(env_name, label)
@@ -358,6 +402,24 @@ def _dependent_report_specs(config: RenderConfig) -> tuple[tuple[str, str, str, 
             "prediction fairness",
             config.prediction_fairness_report,
             "prediction_fairness_monitoring_ready",
+            True,
+        ),
+        (
+            "backup/disaster recovery",
+            config.backup_disaster_recovery_report,
+            "backup_disaster_recovery_ready",
+            True,
+        ),
+        (
+            "dependency security",
+            config.dependency_security_report,
+            "dependency_security_ready",
+            True,
+        ),
+        (
+            "clearinghouse submission",
+            config.clearinghouse_submission_report,
+            "clearinghouse_submission_ready",
             True,
         ),
         (
@@ -609,6 +671,56 @@ def _approved_packet(
         }
     )
 
+    backup_dr = packet["backup_disaster_recovery"]
+    backup_dr.update(
+        {
+            "backup_disaster_recovery_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "encrypted_backup_storage_configured": True,
+            "restore_validation_completed": True,
+            "encryption_key_recovery_reviewed": True,
+            "retention_policy_approved": True,
+            "disaster_recovery_smoke_passed": True,
+            "metadata_only_restore_verified": True,
+        }
+    )
+
+    dependency = packet["dependency_security"]
+    dependency.update(
+        {
+            "dependency_security_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "python_dependency_scan_completed": True,
+            "frontend_dependency_scan_completed": True,
+            "container_dependency_scan_completed": True,
+            "critical_high_findings_remediated_or_approved": True,
+            "rebuild_retest_completed": True,
+            "upgrade_plan_reviewed": True,
+            "raw_scanner_output_excluded": True,
+        }
+    )
+
+    clearinghouse = packet["clearinghouse_submission"]
+    clearinghouse.update(
+        {
+            "clearinghouse_submission_evidence_report_ready": True,
+            "source_control_runbook_documented": True,
+            "source_control_private_evidence_renderer_documented": True,
+            "payer_or_clearinghouse_enrollment_attested": True,
+            "test_mode_credentials_configured": True,
+            "encrypted_transit_validated": True,
+            "edi_837_submission_contract_test_passed": True,
+            "acknowledgement_handling_validated": True,
+            "rejection_retry_duplicate_controls_reviewed": True,
+            "rollback_to_manual_reviewed": True,
+            "metadata_only_audit_logging_verified": True,
+            "access_controls_reviewed": True,
+            "retention_policy_reviewed": True,
+        }
+    )
+
     file_ingestion = packet["file_ingestion_surface_audit"]
     file_ingestion.update(
         {
@@ -664,6 +776,9 @@ def render_private_packet(config: RenderConfig) -> dict[str, Any]:
         "production_corpus_attested": config.production_corpus_attested,
         "retrieval_vector_attested": config.retrieval_vector_attested,
         "prediction_fairness_attested": config.prediction_fairness_attested,
+        "backup_disaster_recovery_attested": config.backup_disaster_recovery_attested,
+        "dependency_security_attested": config.dependency_security_attested,
+        "clearinghouse_submission_attested": config.clearinghouse_submission_attested,
         "file_ingestion_surface_attested": config.file_ingestion_surface_attested,
         "dependent_reports_ready_attested": config.dependent_reports_ready_attested,
         "dependent_evidence_reports_configured": True,
@@ -740,12 +855,18 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         manual_review_reference_env=args.manual_review_reference_env,
         dependent_evidence_reference_env=args.dependent_evidence_reference_env,
         release_reference_env=args.release_reference_env,
+        backup_dr_reference_env=args.backup_dr_reference_env,
+        dependency_security_reference_env=args.dependency_security_reference_env,
+        clearinghouse_reference_env=args.clearinghouse_reference_env,
         private_summary_path_env=args.private_summary_path_env,
         supervisor_report=args.supervisor_report,
         model_improvement_report=args.model_improvement_report,
         production_corpus_report=args.production_corpus_report,
         retrieval_vector_report=args.retrieval_vector_report,
         prediction_fairness_report=args.prediction_fairness_report,
+        backup_disaster_recovery_report=args.backup_disaster_recovery_report,
+        dependency_security_report=args.dependency_security_report,
+        clearinghouse_submission_report=args.clearinghouse_submission_report,
         file_ingestion_surface_report=args.file_ingestion_surface_report,
         student_cutover_attested=args.student_cutover_attested,
         student_runtime_attested=args.student_runtime_attested,
@@ -753,6 +874,9 @@ def build_config(args: argparse.Namespace) -> RenderConfig:
         production_corpus_attested=args.production_corpus_attested,
         retrieval_vector_attested=args.retrieval_vector_attested,
         prediction_fairness_attested=args.prediction_fairness_attested,
+        backup_disaster_recovery_attested=args.backup_disaster_recovery_attested,
+        dependency_security_attested=args.dependency_security_attested,
+        clearinghouse_submission_attested=args.clearinghouse_submission_attested,
         file_ingestion_surface_attested=args.file_ingestion_surface_attested,
         dependent_reports_ready_attested=args.dependent_reports_ready_attested,
         no_raw_values_attested=args.no_raw_values_attested,
@@ -781,12 +905,33 @@ def main(argv: list[str] | None = None) -> int:
         default=DEFAULT_DEPENDENT_EVIDENCE_REFERENCE_ENV,
     )
     parser.add_argument("--release-reference-env", default=DEFAULT_RELEASE_REFERENCE_ENV)
+    parser.add_argument("--backup-dr-reference-env", default=DEFAULT_BACKUP_DR_REFERENCE_ENV)
+    parser.add_argument(
+        "--dependency-security-reference-env",
+        default=DEFAULT_DEPENDENCY_SECURITY_REFERENCE_ENV,
+    )
+    parser.add_argument(
+        "--clearinghouse-reference-env",
+        default=DEFAULT_CLEARINGHOUSE_REFERENCE_ENV,
+    )
     parser.add_argument("--private-summary-path-env", default=DEFAULT_PRIVATE_SUMMARY_PATH_ENV)
     parser.add_argument("--supervisor-report", default=DEFAULT_SUPERVISOR_REPORT)
     parser.add_argument("--model-improvement-report", default=DEFAULT_MODEL_IMPROVEMENT_REPORT)
     parser.add_argument("--production-corpus-report", default=DEFAULT_PRODUCTION_CORPUS_REPORT)
     parser.add_argument("--retrieval-vector-report", default=DEFAULT_RETRIEVAL_VECTOR_REPORT)
     parser.add_argument("--prediction-fairness-report", default=DEFAULT_PREDICTION_FAIRNESS_REPORT)
+    parser.add_argument(
+        "--backup-disaster-recovery-report",
+        default=DEFAULT_BACKUP_DISASTER_RECOVERY_REPORT,
+    )
+    parser.add_argument(
+        "--dependency-security-report",
+        default=DEFAULT_DEPENDENCY_SECURITY_REPORT,
+    )
+    parser.add_argument(
+        "--clearinghouse-submission-report",
+        default=DEFAULT_CLEARINGHOUSE_SUBMISSION_REPORT,
+    )
     parser.add_argument(
         "--file-ingestion-surface-report",
         default=DEFAULT_FILE_INGESTION_SURFACE_REPORT,
@@ -797,6 +942,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--production-corpus-attested", action="store_true")
     parser.add_argument("--retrieval-vector-attested", action="store_true")
     parser.add_argument("--prediction-fairness-attested", action="store_true")
+    parser.add_argument("--backup-disaster-recovery-attested", action="store_true")
+    parser.add_argument("--dependency-security-attested", action="store_true")
+    parser.add_argument("--clearinghouse-submission-attested", action="store_true")
     parser.add_argument("--file-ingestion-surface-attested", action="store_true")
     parser.add_argument("--dependent-reports-ready-attested", action="store_true")
     parser.add_argument("--no-raw-values-attested", action="store_true")

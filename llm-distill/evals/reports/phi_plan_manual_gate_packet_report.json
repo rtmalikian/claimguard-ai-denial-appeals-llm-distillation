@@ -1,5 +1,5 @@
 {
-  "blocked_item_count": 6,
+  "blocked_item_count": 9,
   "blocked_items": [
     {
       "blockers": [
@@ -16,8 +16,8 @@
         "approval_reference_value_included": false,
         "approved_non_synthetic_pair_count": 0,
         "approved_source_type_count": 0,
-        "expected_dependent_report_count": 6,
-        "expected_private_reference_count": 3,
+        "expected_dependent_report_count": 9,
+        "expected_private_reference_count": 6,
         "manifest_record_id_count": 0,
         "manifest_record_ids_included_in_summary": false,
         "private_manual_gate_summary_approved_non_synthetic_pair_count": 0,
@@ -183,13 +183,98 @@
       "requirement_id": "manual_prediction_fairness_monitoring_evidence",
       "status": "blocked",
       "warnings": []
+    },
+    {
+      "blockers": [
+        "backup_disaster_recovery_evidence_report_not_ready",
+        "encrypted_backup_storage_not_attested",
+        "restore_validation_not_attested",
+        "encryption_key_recovery_not_reviewed",
+        "retention_policy_not_approved",
+        "disaster_recovery_smoke_not_passed",
+        "metadata_only_restore_not_verified"
+      ],
+      "evidence": {
+        "backup_disaster_recovery_evidence_report_ready": false,
+        "disaster_recovery_smoke_passed": false,
+        "encrypted_backup_storage_configured": false,
+        "encryption_key_recovery_reviewed": false,
+        "metadata_only_restore_verified": false,
+        "restore_validation_completed": false,
+        "retention_policy_approved": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true
+      },
+      "name": "Manual packet attests backup and disaster-recovery evidence",
+      "requirement_id": "manual_backup_disaster_recovery_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_evidence_report_not_ready",
+        "python_dependency_scan_not_attested",
+        "frontend_dependency_scan_not_attested",
+        "container_dependency_scan_not_attested",
+        "critical_high_findings_not_remediated_or_approved",
+        "rebuild_retest_not_attested",
+        "upgrade_plan_not_reviewed"
+      ],
+      "evidence": {
+        "container_dependency_scan_completed": false,
+        "critical_high_findings_remediated_or_approved": false,
+        "dependency_security_evidence_report_ready": false,
+        "frontend_dependency_scan_completed": false,
+        "python_dependency_scan_completed": false,
+        "raw_scanner_output_excluded": true,
+        "rebuild_retest_completed": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true,
+        "upgrade_plan_reviewed": false
+      },
+      "name": "Manual packet attests dependency security evidence",
+      "requirement_id": "manual_dependency_security_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "clearinghouse_submission_evidence_report_not_ready",
+        "payer_or_clearinghouse_enrollment_not_attested",
+        "test_mode_credentials_not_configured",
+        "encrypted_transit_not_validated",
+        "edi_837_submission_contract_test_not_passed",
+        "acknowledgement_handling_not_validated",
+        "rejection_retry_duplicate_controls_not_reviewed",
+        "access_controls_not_reviewed",
+        "retention_policy_not_reviewed"
+      ],
+      "evidence": {
+        "access_controls_reviewed": false,
+        "acknowledgement_handling_validated": false,
+        "clearinghouse_submission_evidence_report_ready": false,
+        "edi_837_submission_contract_test_passed": false,
+        "encrypted_transit_validated": false,
+        "metadata_only_audit_logging_verified": true,
+        "payer_or_clearinghouse_enrollment_attested": false,
+        "rejection_retry_duplicate_controls_reviewed": false,
+        "retention_policy_reviewed": false,
+        "rollback_to_manual_reviewed": true,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true,
+        "test_mode_credentials_configured": false
+      },
+      "name": "Manual packet attests clearinghouse submission evidence",
+      "requirement_id": "manual_clearinghouse_submission_evidence",
+      "status": "blocked",
+      "warnings": []
     }
   ],
-  "generated_at": "2026-06-01T23:32:35.312982+00:00",
+  "generated_at": "2026-06-02T07:42:58.889986+00:00",
   "notes": [
     "This validator reads a local JSON packet only and does not call external services.",
     "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
-    "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, and runtime-supervisor gates are complete."
+    "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, runtime-supervisor, backup/disaster-recovery, dependency-security, and clearinghouse-submission gates are complete."
   ],
   "objective": "Validate the manual PHIplan production-gate packet without storing approval reference values, PHI, secrets, or production document content.",
   "packet_path": "llm-distill/data/production_gate_evidence/manual_gate_packet.template.json",
@@ -230,8 +315,8 @@
         "manual_gate_checklist_inside_source_control": true,
         "manual_gate_checklist_missing_marker_count": 0,
         "manual_gate_checklist_path": "llm-distill/docs/phi-plan-manual-production-gate-checklist.md",
-        "manual_gate_checklist_present_marker_count": 19,
-        "manual_gate_checklist_required_marker_count": 19,
+        "manual_gate_checklist_present_marker_count": 25,
+        "manual_gate_checklist_required_marker_count": 25,
         "manual_gate_checklist_values_included": false,
         "source_control_manual_gate_checklist_documented": true
       },
@@ -245,13 +330,13 @@
       "evidence": {
         "approval_reference_value_included": false,
         "missing_marker_count": 0,
-        "present_marker_count": 25,
+        "present_marker_count": 28,
         "private_output_required": true,
         "private_packet_renderer_exists": true,
         "private_packet_renderer_inside_source_control": true,
         "private_packet_renderer_path": "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
         "raw_renderer_text_included": false,
-        "required_marker_count": 25,
+        "required_marker_count": 28,
         "source_control_private_packet_renderer_documented": true
       },
       "name": "Source-controlled manual gate private packet renderer is available",
@@ -274,8 +359,8 @@
         "approval_reference_value_included": false,
         "approved_non_synthetic_pair_count": 0,
         "approved_source_type_count": 0,
-        "expected_dependent_report_count": 6,
-        "expected_private_reference_count": 3,
+        "expected_dependent_report_count": 9,
+        "expected_private_reference_count": 6,
         "manifest_record_id_count": 0,
         "manifest_record_ids_included_in_summary": false,
         "private_manual_gate_summary_approved_non_synthetic_pair_count": 0,
@@ -458,6 +543,91 @@
       },
       "name": "Manual packet attests production threshold calibration and continuous fairness monitoring evidence",
       "requirement_id": "manual_prediction_fairness_monitoring_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "backup_disaster_recovery_evidence_report_not_ready",
+        "encrypted_backup_storage_not_attested",
+        "restore_validation_not_attested",
+        "encryption_key_recovery_not_reviewed",
+        "retention_policy_not_approved",
+        "disaster_recovery_smoke_not_passed",
+        "metadata_only_restore_not_verified"
+      ],
+      "evidence": {
+        "backup_disaster_recovery_evidence_report_ready": false,
+        "disaster_recovery_smoke_passed": false,
+        "encrypted_backup_storage_configured": false,
+        "encryption_key_recovery_reviewed": false,
+        "metadata_only_restore_verified": false,
+        "restore_validation_completed": false,
+        "retention_policy_approved": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true
+      },
+      "name": "Manual packet attests backup and disaster-recovery evidence",
+      "requirement_id": "manual_backup_disaster_recovery_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "dependency_security_evidence_report_not_ready",
+        "python_dependency_scan_not_attested",
+        "frontend_dependency_scan_not_attested",
+        "container_dependency_scan_not_attested",
+        "critical_high_findings_not_remediated_or_approved",
+        "rebuild_retest_not_attested",
+        "upgrade_plan_not_reviewed"
+      ],
+      "evidence": {
+        "container_dependency_scan_completed": false,
+        "critical_high_findings_remediated_or_approved": false,
+        "dependency_security_evidence_report_ready": false,
+        "frontend_dependency_scan_completed": false,
+        "python_dependency_scan_completed": false,
+        "raw_scanner_output_excluded": true,
+        "rebuild_retest_completed": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true,
+        "upgrade_plan_reviewed": false
+      },
+      "name": "Manual packet attests dependency security evidence",
+      "requirement_id": "manual_dependency_security_evidence",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "clearinghouse_submission_evidence_report_not_ready",
+        "payer_or_clearinghouse_enrollment_not_attested",
+        "test_mode_credentials_not_configured",
+        "encrypted_transit_not_validated",
+        "edi_837_submission_contract_test_not_passed",
+        "acknowledgement_handling_not_validated",
+        "rejection_retry_duplicate_controls_not_reviewed",
+        "access_controls_not_reviewed",
+        "retention_policy_not_reviewed"
+      ],
+      "evidence": {
+        "access_controls_reviewed": false,
+        "acknowledgement_handling_validated": false,
+        "clearinghouse_submission_evidence_report_ready": false,
+        "edi_837_submission_contract_test_passed": false,
+        "encrypted_transit_validated": false,
+        "metadata_only_audit_logging_verified": true,
+        "payer_or_clearinghouse_enrollment_attested": false,
+        "rejection_retry_duplicate_controls_reviewed": false,
+        "retention_policy_reviewed": false,
+        "rollback_to_manual_reviewed": true,
+        "source_control_private_evidence_renderer_documented": true,
+        "source_control_runbook_documented": true,
+        "test_mode_credentials_configured": false
+      },
+      "name": "Manual packet attests clearinghouse submission evidence",
+      "requirement_id": "manual_clearinghouse_submission_evidence",
       "status": "blocked",
       "warnings": []
     },

@@ -194,6 +194,9 @@ def _manual_gate_packet_report(ready: bool) -> dict:
             {"requirement_id": "manual_production_corpus_evidence"},
             {"requirement_id": "manual_retrieval_vector_backend_evidence"},
             {"requirement_id": "manual_prediction_fairness_monitoring_evidence"},
+            {"requirement_id": "manual_backup_disaster_recovery_evidence"},
+            {"requirement_id": "manual_dependency_security_evidence"},
+            {"requirement_id": "manual_clearinghouse_submission_evidence"},
         ]
     )
     return {
@@ -591,6 +594,9 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         if item["requirement_id"] == "manual_production_gate_packet_evidence"
     )
     assert manual_requirement["evidence"]["blocked_requirement_ids"] == [
+        "manual_backup_disaster_recovery_evidence",
+        "manual_clearinghouse_submission_evidence",
+        "manual_dependency_security_evidence",
         "manual_gate_private_summary_metadata",
         "manual_prediction_fairness_monitoring_evidence",
         "manual_production_corpus_evidence",

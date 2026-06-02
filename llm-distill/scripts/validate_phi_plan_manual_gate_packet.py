@@ -47,6 +47,12 @@ MANUAL_GATE_CHECKLIST_REQUIRED_MARKERS = [
     "retrieval vector private environment renderer required",
     "production threshold/fairness monitoring evidence required",
     "prediction-fairness private evidence renderer required",
+    "backup/disaster-recovery evidence required",
+    "backup/disaster-recovery private evidence renderer required",
+    "dependency-security evidence required",
+    "dependency-security private evidence renderer required",
+    "clearinghouse submission evidence required",
+    "clearinghouse submission private evidence renderer required",
     "file-ingestion surface audit must stay ready",
     "boolean-only evidence",
     "approval references must stay outside source control",
@@ -87,6 +93,9 @@ MANUAL_GATE_PRIVATE_PACKET_RENDERER_REQUIRED_MARKERS = [
     "PHI_PLAN_MANUAL_GATE_MANIFEST_RECORD_IDS",
     "PHI_PLAN_MANUAL_GATE_REVIEW_REFERENCE",
     "PHI_PLAN_MANUAL_GATE_PRIVATE_SUMMARY_PATH",
+    "PHI_PLAN_MANUAL_GATE_BACKUP_DR_REFERENCE",
+    "PHI_PLAN_MANUAL_GATE_DEPENDENCY_SECURITY_REFERENCE",
+    "PHI_PLAN_MANUAL_GATE_CLEARINGHOUSE_REFERENCE",
     "_validate_private_manual_gate_summary",
     "manual_gate_private_packet_renderer_documented",
     "approved_non_synthetic_pair_count",
@@ -138,8 +147,8 @@ FORBIDDEN_ENV_KEY_FRAGMENTS = {
     "secret",
     "token",
 }
-MANUAL_GATE_DEPENDENT_REPORT_COUNT = 6
-MANUAL_GATE_PRIVATE_REFERENCE_COUNT = 3
+MANUAL_GATE_DEPENDENT_REPORT_COUNT = 9
+MANUAL_GATE_PRIVATE_REFERENCE_COUNT = 6
 
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
@@ -271,6 +280,9 @@ def packet_format_requirement(packet: Any) -> dict[str, Any]:
         "production_corpus",
         "retrieval_vector_backend",
         "prediction_fairness_monitoring",
+        "backup_disaster_recovery",
+        "dependency_security",
+        "clearinghouse_submission",
         "file_ingestion_surface_audit",
     ]:
         if not isinstance(packet.get(section_name), dict):
@@ -790,6 +802,92 @@ def prediction_fairness_monitoring_requirement(packet: dict[str, Any]) -> dict[s
     )
 
 
+def backup_disaster_recovery_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    section = packet.get("backup_disaster_recovery", {})
+    required_flags = {
+        "backup_disaster_recovery_evidence_report_ready": "backup_disaster_recovery_evidence_report_not_ready",
+        "source_control_runbook_documented": "backup_disaster_recovery_source_control_runbook_not_documented",
+        "source_control_private_evidence_renderer_documented": "backup_disaster_recovery_private_evidence_renderer_not_documented",
+        "encrypted_backup_storage_configured": "encrypted_backup_storage_not_attested",
+        "restore_validation_completed": "restore_validation_not_attested",
+        "encryption_key_recovery_reviewed": "encryption_key_recovery_not_reviewed",
+        "retention_policy_approved": "retention_policy_not_approved",
+        "disaster_recovery_smoke_passed": "disaster_recovery_smoke_not_passed",
+        "metadata_only_restore_verified": "metadata_only_restore_not_verified",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_flags.items()
+        if not bool_value(section, key)
+    ]
+    return requirement(
+        requirement_id="manual_backup_disaster_recovery_evidence",
+        name="Manual packet attests backup and disaster-recovery evidence",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={key: bool_value(section, key) for key in required_flags},
+    )
+
+
+def dependency_security_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    section = packet.get("dependency_security", {})
+    required_flags = {
+        "dependency_security_evidence_report_ready": "dependency_security_evidence_report_not_ready",
+        "source_control_runbook_documented": "dependency_security_source_control_runbook_not_documented",
+        "source_control_private_evidence_renderer_documented": "dependency_security_private_evidence_renderer_not_documented",
+        "python_dependency_scan_completed": "python_dependency_scan_not_attested",
+        "frontend_dependency_scan_completed": "frontend_dependency_scan_not_attested",
+        "container_dependency_scan_completed": "container_dependency_scan_not_attested",
+        "critical_high_findings_remediated_or_approved": "critical_high_findings_not_remediated_or_approved",
+        "rebuild_retest_completed": "rebuild_retest_not_attested",
+        "upgrade_plan_reviewed": "upgrade_plan_not_reviewed",
+        "raw_scanner_output_excluded": "raw_scanner_output_exclusion_not_attested",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_flags.items()
+        if not bool_value(section, key)
+    ]
+    return requirement(
+        requirement_id="manual_dependency_security_evidence",
+        name="Manual packet attests dependency security evidence",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={key: bool_value(section, key) for key in required_flags},
+    )
+
+
+def clearinghouse_submission_requirement(packet: dict[str, Any]) -> dict[str, Any]:
+    section = packet.get("clearinghouse_submission", {})
+    required_flags = {
+        "clearinghouse_submission_evidence_report_ready": "clearinghouse_submission_evidence_report_not_ready",
+        "source_control_runbook_documented": "clearinghouse_submission_source_control_runbook_not_documented",
+        "source_control_private_evidence_renderer_documented": "clearinghouse_submission_private_evidence_renderer_not_documented",
+        "payer_or_clearinghouse_enrollment_attested": "payer_or_clearinghouse_enrollment_not_attested",
+        "test_mode_credentials_configured": "test_mode_credentials_not_configured",
+        "encrypted_transit_validated": "encrypted_transit_not_validated",
+        "edi_837_submission_contract_test_passed": "edi_837_submission_contract_test_not_passed",
+        "acknowledgement_handling_validated": "acknowledgement_handling_not_validated",
+        "rejection_retry_duplicate_controls_reviewed": "rejection_retry_duplicate_controls_not_reviewed",
+        "rollback_to_manual_reviewed": "rollback_to_manual_not_reviewed",
+        "metadata_only_audit_logging_verified": "metadata_only_audit_logging_not_verified",
+        "access_controls_reviewed": "access_controls_not_reviewed",
+        "retention_policy_reviewed": "retention_policy_not_reviewed",
+    }
+    blockers = [
+        blocker
+        for key, blocker in required_flags.items()
+        if not bool_value(section, key)
+    ]
+    return requirement(
+        requirement_id="manual_clearinghouse_submission_evidence",
+        name="Manual packet attests clearinghouse submission evidence",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={key: bool_value(section, key) for key in required_flags},
+    )
+
+
 def file_ingestion_surface_requirement(packet: dict[str, Any]) -> dict[str, Any]:
     section = packet.get("file_ingestion_surface_audit", {})
     expected_count = count_value(section, "expected_upload_surface_count")
@@ -848,6 +946,9 @@ def build_report(packet_path: Path) -> dict[str, Any]:
         production_corpus_requirement(packet if isinstance(packet, dict) else {}),
         retrieval_vector_backend_requirement(packet if isinstance(packet, dict) else {}),
         prediction_fairness_monitoring_requirement(packet if isinstance(packet, dict) else {}),
+        backup_disaster_recovery_requirement(packet if isinstance(packet, dict) else {}),
+        dependency_security_requirement(packet if isinstance(packet, dict) else {}),
+        clearinghouse_submission_requirement(packet if isinstance(packet, dict) else {}),
         file_ingestion_surface_requirement(packet if isinstance(packet, dict) else {}),
     ]
     if load_errors:
@@ -888,7 +989,7 @@ def build_report(packet_path: Path) -> dict[str, Any]:
         "notes": [
             "This validator reads a local JSON packet only and does not call external services.",
             "Approval references and consent values must remain in approved runtime configuration; this packet records only boolean readiness evidence.",
-            "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, and runtime-supervisor gates are complete.",
+            "A template packet is expected to be safe_to_review=true but production_gate_ready=false until Raphael, legal/BAA, corpus, retrieval-vector, fairness-monitoring, runtime-supervisor, backup/disaster-recovery, dependency-security, and clearinghouse-submission gates are complete.",
         ],
     }
 

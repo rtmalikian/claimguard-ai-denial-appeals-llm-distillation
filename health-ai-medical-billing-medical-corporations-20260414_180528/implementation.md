@@ -383,21 +383,27 @@ The manual production-gate packet validator now also verifies
 source-controlled manual gate checklist with required markers for student
 cutover approval, user-data model-improvement approval, approved
 non-synthetic denial/appeal pair evidence, semantic vector backend readiness,
-production fairness evidence, manual gate private packet rendering,
-file-ingestion surface audit readiness, boolean-only evidence, approval
-references outside source control, no PHI or production document content, and
-`production_gate_ready=false` without emitting checklist text. The manual gate
+production fairness evidence, backup/disaster-recovery evidence,
+dependency-security evidence, clearinghouse submission evidence, manual gate
+private packet rendering, file-ingestion surface audit readiness, boolean-only
+evidence, approval references outside source control, no PHI or production
+document content, and `production_gate_ready=false` without emitting checklist
+text. The manual gate
 path now also includes
 `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`, a
 source-controlled private packet renderer that refuses repository output,
 requires explicit student cutover, student runtime, model-improvement,
-production-corpus, retrieval-vector, prediction-fairness, file-ingestion,
-dependent-report-readiness, and no-raw-value attestations before approved
-mode, reads private manifest record ids, governance references, and a private
-aggregate manual-gate summary path from environment variables only, verifies
-the configured supervisor, model-improvement, production-corpus,
-retrieval-vector, prediction-fairness, and file-ingestion surface reports are
-ready, validates private summary booleans, positive aggregate counts, and
+production-corpus, retrieval-vector, prediction-fairness,
+backup/disaster-recovery, dependency-security, clearinghouse-submission,
+file-ingestion, dependent-report-readiness, and no-raw-value attestations
+before approved mode, reads private manifest record ids, governance
+references, backup/disaster-recovery references, dependency-security
+references, clearinghouse references, and a private aggregate manual-gate
+summary path from environment variables only, verifies the configured
+supervisor, model-improvement, production-corpus, retrieval-vector,
+prediction-fairness, backup/disaster-recovery, dependency-security,
+clearinghouse-submission, and file-ingestion surface reports are ready,
+validates private summary booleans, positive aggregate counts, and
 explicit no-raw-value flags before writing a ready packet, rejects unsupported
 private summary fields, writes `0600` private output, and reports redacted
 booleans/counts while preserving all external manual-gate blockers.
@@ -429,12 +435,20 @@ surface counts, metadata-only surface inspection attestation, and safe audit
 marker coverage attestation, so the manual packet reflects the currently ready
 UploadFile/File audit without storing raw filenames or uploaded document
 content.
+The manual production-gate packet now also carries
+`manual_backup_disaster_recovery_evidence`,
+`manual_dependency_security_evidence`, and
+`manual_clearinghouse_submission_evidence`, so the packet cannot pass until
+the dedicated backup/disaster-recovery, dependency-security, and clearinghouse
+submission evidence reports are safe, ready, and unblocked outside source
+control.
 The PHIplan production-readiness audit now also surfaces the manual packet's
 metadata-only `blocked_requirement_ids`, allowing reviewers to see open manual
 student cutover, model-improvement, production-corpus, retrieval-vector, and
-prediction-fairness gates from the top-level readiness report without exposing
-approval values, source paths, checksums, vectors, raw demographic values,
-outcome rows, PHI, secrets, or production document content.
+prediction-fairness, backup/disaster-recovery, dependency-security, and
+clearinghouse-submission gates from the top-level readiness report without
+exposing approval values, source paths, checksums, vectors, raw demographic
+values, outcome rows, PHI, secrets, or production document content.
 Production packaging now includes a multi-stage backend Dockerfile with a
 non-root runtime user, a production frontend Dockerfile that builds Vite assets
 and serves them through nginx, frontend health checks for development and
@@ -892,8 +906,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   wired into the PHIplan production-readiness audit
 - [x] Source-controlled manual production-gate checklist validation with
   required student cutover, model-improvement, production corpus,
-  retrieval-vector, prediction-fairness, file-ingestion surface, boolean-only,
-  no-approval-reference, no-PHI, and `production_gate_ready=false` markers
+  retrieval-vector, prediction-fairness, backup/disaster-recovery,
+  dependency-security, clearinghouse-submission, file-ingestion surface,
+  boolean-only, no-approval-reference, no-PHI, and `production_gate_ready=false` markers
   before marking the checklist sub-gate ready
 - [x] Manual production-gate packet now has a source-controlled private packet
   renderer that refuses repository output, requires explicit manual gate and
@@ -903,8 +918,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   manual-gate blockers
 - [x] Manual production-gate private packet renderer approved mode now refuses
   a ready packet unless the configured supervisor, model-improvement,
-  production-corpus, retrieval-vector, prediction-fairness, and file-ingestion
-  surface reports are safe or otherwise metadata-ready, ready, and unblocked
+  production-corpus, retrieval-vector, prediction-fairness,
+  backup/disaster-recovery, dependency-security, clearinghouse-submission, and
+  file-ingestion surface reports are safe or otherwise metadata-ready, ready,
+  and unblocked
 - [x] Manual production-gate packet startup guard, conservative production
   compose default, and PHIplan audit coverage for
   `PHI_PLAN_MANUAL_GATE_PACKET_REPORT`, with metadata-only logging and
@@ -1322,10 +1339,12 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   approval references, PHI, secrets, or production document content, including
   the source-controlled manual gate checklist, the private manual-packet
   renderer, and the dedicated model-improvement, production-corpus,
-  retrieval-vector, and prediction-fairness evidence-report readiness flags.
+  retrieval-vector, prediction-fairness, backup/disaster-recovery,
+  dependency-security, and clearinghouse-submission evidence-report readiness
+  flags.
   Local progress: the private manual-packet renderer now also verifies
-  configured dependent evidence reports and validates a private aggregate
-  manual-gate summary before writing a ready packet.
+  all nine configured dependent evidence reports and validates a private
+  aggregate manual-gate summary before writing a ready packet.
 
 ### ❌ Production-Blocked / External Evidence Still Required
 - EDI 837 clearinghouse claim submission remains blocked until payer or

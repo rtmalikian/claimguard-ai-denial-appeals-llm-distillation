@@ -2,6 +2,78 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 00:44:35 PDT - Manual gate expanded evidence domains
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: expand the manual PHIplan production-gate packet so it covers the
+  newer backup/disaster-recovery, dependency-security, and clearinghouse
+  submission evidence gates already required by the top-level PHIplan audit.
+  Keep approval references, private summary paths, raw scan output, raw EDI,
+  endpoint values, PHI, secrets, and production documents outside source
+  control while preserving `production_ready=false` and
+  `safe_current_state=true`.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-010000-manual-gate-expanded-evidence/root/PHIplan.md.bak` | Documented the expanded manual gate domains and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-010000-manual-gate-expanded-evidence/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-010000-manual-gate-expanded-evidence/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking for the nine-domain manual gate packet. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260602-010000-manual-gate-expanded-evidence/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `tests/unit/test_phi_plan_manual_gate_packet.py` | `backups/20260602-010000-manual-gate-expanded-evidence/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_packet.py.bak` | Added manual packet coverage for backup/disaster-recovery, dependency-security, and clearinghouse-submission sections. | Restore backup over `tests/unit/test_phi_plan_manual_gate_packet.py`. |
+| `tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py` | `backups/20260602-010000-manual-gate-expanded-evidence/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py.bak` | Updated approved renderer fixtures, private reference counts, and dependent report counts for nine domains. | Restore backup over `tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260602-010000-manual-gate-expanded-evidence/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Updated manual packet blocked requirement IDs surfaced in the PHIplan audit. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/data/production_gate_evidence/manual_gate_packet.template.json.bak` | Added boolean-only backup/disaster-recovery, dependency-security, and clearinghouse-submission sections with blocked defaults. | Restore backup over `../llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`. |
+| `../llm-distill/docs/phi-plan-manual-production-gate-checklist.md` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/docs/phi-plan-manual-production-gate-checklist.md.bak` | Added checklist markers and reviewer instructions for the three added evidence domains. | Restore backup over `../llm-distill/docs/phi-plan-manual-production-gate-checklist.md`. |
+| `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json.bak` | Refreshed manual gate evidence with `blocked_item_count=9`, `safe_to_review=true`, and `production_gate_ready=false`. | Restore backup over `../llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed top-level PHIplan evidence; current state remains safe and production readiness remains blocked. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+| `../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py.bak` | Added three dependent report paths, three private reference env names, and approved-mode attestations for the added domains. | Restore backup over `../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py`. |
+| `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py` | `backups/20260602-010000-manual-gate-expanded-evidence/llm-distill/scripts/validate_phi_plan_manual_gate_packet.py.bak` | Added three manual packet requirements and increased expected dependent report/private reference counts to 9 and 6. | Restore backup over `../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`. |
+
+### Files Added
+- `tests/fixtures/backup_disaster_recovery_ready_report.json`
+- `tests/fixtures/dependency_security_ready_report.json`
+- `tests/fixtures/clearinghouse_submission_ready_report.json`
+
+### Validation
+- `find backups/20260602-010000-manual-gate-expanded-evidence -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 72 tests with the existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py ../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_manual_gate_packet.py tests/unit/test_phi_plan_manual_gate_private_packet_renderer.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the application directory.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py`: passed and refreshed the checked-in report with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_manual_gate_packet.py --report /private/tmp/claimguard-manual-gate-expanded-report.json`: passed with `production_gate_ready=false`, `safe_to_review=true`, and `blocked=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py --dry-run`: passed; summary was redacted, did not render a file, and showed the added attestation flags as false by default.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed and refreshed the checked-in report with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-manual-gate-expanded-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-manual-gate-expanded-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- JSON syntax loop over the three new fixtures, manual gate template, manual gate report, and PHIplan production-readiness report: passed.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- The first JSON syntax check incorrectly passed multiple input files to
+  `python3 -m json.tool`; it returned usage error 2 and was rerun as a file
+  loop, which passed.
+- Avoided treating the added manual packet requirements as production evidence;
+  they intentionally remain blocked until private review packets and external
+  attestations exist.
+- Avoided adding raw private references, report payloads, scanner output, EDI,
+  PHI, secrets, production documents, endpoint values, or approval links to
+  source control.
+- Avoided enabling student-default production use, user-data model improvement,
+  clearinghouse submission, semantic vector retrieval, production corpus use,
+  dependency-security approval, backup/disaster-recovery approval, or final
+  PHIplan production readiness.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-010000-manual-gate-expanded-evidence/` and remove the
+  three synthetic metadata-only fixture files listed above.
+
 ## 2026-06-02 00:31:13 PDT - Security control surface audit
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
