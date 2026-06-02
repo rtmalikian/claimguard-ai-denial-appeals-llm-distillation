@@ -17,6 +17,12 @@ It also contains an operator run plan with command skeletons that show the
 required render and validation order without storing private input paths,
 private output paths, approval references, PHI, secrets, or production document
 content.
+The private evidence bundle template at
+`llm-distill/data/production_gate_evidence/private_evidence_bundle.template.json`
+maps every domain to its private input environment variable, validator, report,
+and no-raw-value boundary. Validate that source-controlled template with
+`llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py`
+before copying it to approved private storage.
 
 All final evidence must use boolean-only evidence and keep approval references
 outside source control, private summary paths outside source control, raw
@@ -26,7 +32,7 @@ document content.
 Audit markers: approval references outside source control; private summary
 paths outside source control; raw report paths outside source control; no PHI;
 no secrets; no production document content; operator run plan; command
-skeletons.
+skeletons; private evidence bundle template.
 
 ## Blocker Matrix
 
@@ -53,13 +59,18 @@ skeletons.
 4. Review the checked-in `operator_run_plan` command skeletons in that report
    and execute the domain renderers and validators using only private paths
    outside source control.
-5. Render the final manual production-gate packet with
+5. Copy
+   `llm-distill/data/production_gate_evidence/private_evidence_bundle.template.json`
+   outside source control, add private input paths only in approved private
+   storage, and validate the checked-in template with
+   `llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py`.
+6. Render the final manual production-gate packet with
    `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` only
    after all dependent reports pass.
-6. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
+7. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
    confirm `production_ready=true` only when every private or external blocker
    is cleared by valid private evidence.
-7. Confirm source-controlled reports still exclude approval references, private
+8. Confirm source-controlled reports still exclude approval references, private
    summary paths, raw report paths, PHI, secrets, raw EDI payloads, endpoint
    values, vulnerability details, demographic values, outcome rows, source
    text, vectors, and production document content.

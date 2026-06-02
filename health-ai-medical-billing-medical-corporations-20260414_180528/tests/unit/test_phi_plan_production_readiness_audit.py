@@ -1736,6 +1736,15 @@ def test_private_evidence_handoff_requirement_verifies_checked_in_handoff():
     assert requirement["evidence"]["operator_run_plan_manual_gate_runs_last"] is True
     assert requirement["evidence"]["operator_run_plan_raw_private_values_included"] is False
     assert requirement["evidence"]["operator_run_plan_raw_private_paths_included"] is False
+    assert requirement["evidence"]["bundle_template_safe_to_review"] is True
+    assert requirement["evidence"]["bundle_template_ready"] is True
+    assert requirement["evidence"]["bundle_template_domain_count"] == 9
+    assert requirement["evidence"]["bundle_template_private_input_env_count"] == 9
+    assert requirement["evidence"]["bundle_template_raw_approval_values_included"] is False
+    assert requirement["evidence"]["bundle_template_raw_document_content_included"] is False
+    assert requirement["evidence"]["bundle_template_raw_phi_included"] is False
+    assert requirement["evidence"]["bundle_template_raw_private_paths_included"] is False
+    assert requirement["evidence"]["bundle_template_raw_secret_included"] is False
     assert requirement["evidence"]["approval_references_included"] is False
     assert requirement["evidence"]["private_summary_paths_included"] is False
     assert requirement["evidence"]["raw_report_paths_included"] is False
@@ -1775,6 +1784,26 @@ def test_private_evidence_handoff_requirement_blocks_missing_handoff_report(tmp_
         blocker.startswith("missing file:")
         for blocker in requirement["blockers"]
     )
+
+
+def test_private_evidence_handoff_requirement_blocks_missing_bundle_template_report(tmp_path):
+    audit = _load_audit()
+    missing_report = tmp_path / "missing_bundle_template_report.json"
+
+    requirement = audit.private_evidence_handoff_requirement(
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
+        missing_report,
+    )
+
+    assert requirement["status"] == "blocked"
+    assert any(
+        blocker.startswith("missing file:")
+        for blocker in requirement["blockers"]
+    )
+    assert "private_evidence_bundle_template_report_not_ready" in requirement[
+        "blockers"
+    ]
 
 
 def test_private_evidence_handoff_requirement_blocks_missing_operator_run_plan(tmp_path):

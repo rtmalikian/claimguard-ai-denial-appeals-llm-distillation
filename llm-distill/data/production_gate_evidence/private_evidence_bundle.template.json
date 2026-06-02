@@ -1,0 +1,202 @@
+{
+  "artifact": "claimguard_phi_plan_private_evidence_bundle_template",
+  "copy_template_outside_source_control": true,
+  "domain_count": 9,
+  "domains": [
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 1,
+      "private_input_env": "CLAIMGUARD_PRIVATE_RUNTIME_SUPERVISOR_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "supervisor_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_student_cutover_private_env.py",
+        "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py"
+      ],
+      "requirement_id": "student_default_cutover_external_approval",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+      "validator_path": "llm-distill/scripts/validate_mlx_runtime_supervisor.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 2,
+      "private_input_env": "CLAIMGUARD_PRIVATE_MODEL_IMPROVEMENT_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "model_improvement_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_model_improvement_private_env.py"
+      ],
+      "requirement_id": "user_data_model_improvement_external_approval",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/model_improvement_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_model_improvement_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 3,
+      "private_input_env": "CLAIMGUARD_PRIVATE_RETRIEVAL_VECTOR_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "vector_backend_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_retrieval_vector_private_env.py",
+        "llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py"
+      ],
+      "requirement_id": "production_semantic_vector_backend",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/retrieval_vector_backend_report.json",
+      "validator_path": "llm-distill/scripts/validate_retrieval_vector_backend.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 4,
+      "private_input_env": "CLAIMGUARD_PRIVATE_PRODUCTION_CORPUS_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "production_corpus_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_production_corpus_private_evidence.py"
+      ],
+      "requirement_id": "production_corpus_expansion_beyond_synthetic",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_production_corpus_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 5,
+      "private_input_env": "CLAIMGUARD_PRIVATE_PREDICTION_FAIRNESS_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "prediction_fairness_monitoring_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_prediction_fairness_private_evidence.py"
+      ],
+      "requirement_id": "production_prediction_fairness_monitoring",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_prediction_fairness_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 6,
+      "private_input_env": "CLAIMGUARD_PRIVATE_BACKUP_DR_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "backup_disaster_recovery_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py"
+      ],
+      "requirement_id": "backup_disaster_recovery_evidence",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_backup_disaster_recovery_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 7,
+      "private_input_env": "CLAIMGUARD_PRIVATE_DEPENDENCY_SECURITY_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "dependency_security_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_dependency_security_private_evidence.py"
+      ],
+      "requirement_id": "dependency_security_evidence",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_dependency_security_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 8,
+      "private_input_env": "CLAIMGUARD_PRIVATE_CLEARINGHOUSE_SUBMISSION_EVIDENCE_PATH",
+      "private_input_flag": "--evidence",
+      "ready_key": "clearinghouse_submission_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py"
+      ],
+      "requirement_id": "clearinghouse_submission_evidence",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json",
+      "validator_path": "llm-distill/scripts/validate_clearinghouse_submission_evidence.py"
+    },
+    {
+      "copy_private_input_outside_source_control": true,
+      "execution_order": 9,
+      "private_input_env": "CLAIMGUARD_PRIVATE_MANUAL_GATE_PACKET_PATH",
+      "private_input_flag": "--packet",
+      "ready_key": "production_gate_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
+      ],
+      "requirement_id": "manual_production_gate_packet_evidence",
+      "source_control_boundary": {
+        "raw_approval_values_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_private_paths_included": false,
+        "raw_secret_included": false
+      },
+      "source_control_report_path": "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+      "validator_path": "llm-distill/scripts/validate_phi_plan_manual_gate_packet.py"
+    }
+  ],
+  "instructions": [
+    "Copy this template outside source control before adding private paths or approval references.",
+    "Populate only private storage with the values behind each private_input_env name.",
+    "Run the matching validator and commit only metadata-only reports that remain safe to review."
+  ],
+  "source_control_boundary": {
+    "raw_approval_values_included": false,
+    "raw_document_content_included": false,
+    "raw_phi_included": false,
+    "raw_private_paths_included": false,
+    "raw_secret_included": false
+  },
+  "source_control_safe": true
+}

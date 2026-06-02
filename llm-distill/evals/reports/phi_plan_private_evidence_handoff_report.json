@@ -242,13 +242,13 @@
       ]
     }
   ],
-  "generated_at": "2026-06-02T17:25:38.834878+00:00",
+  "generated_at": "2026-06-02T17:39:29.627564+00:00",
   "handoff_document": {
     "handoff_path": "llm-distill/docs/phi-plan-private-evidence-handoff.md",
-    "marker_count": 11,
+    "marker_count": 14,
     "missing_markers": [],
     "path_inside_source_control": true,
-    "required_marker_count": 11
+    "required_marker_count": 14
   },
   "handoff_ready": true,
   "notes": [

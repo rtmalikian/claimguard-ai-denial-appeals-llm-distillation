@@ -319,7 +319,7 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T17:25:40.237858+00:00",
+  "generated_at": "2026-06-02T17:39:30.468027+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, prediction fairness monitoring, backup/disaster-recovery, dependency-security, clearinghouse submission, and file-ingestion surface gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, PHI, secrets, raw report paths, and production document content outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -470,12 +470,22 @@
       "blockers": [],
       "evidence": {
         "approval_references_included": false,
+        "bundle_template_domain_count": 9,
+        "bundle_template_private_input_env_count": 9,
+        "bundle_template_raw_approval_values_included": false,
+        "bundle_template_raw_document_content_included": false,
+        "bundle_template_raw_phi_included": false,
+        "bundle_template_raw_private_paths_included": false,
+        "bundle_template_raw_secret_included": false,
+        "bundle_template_ready": true,
+        "bundle_template_report_path": "llm-distill/evals/reports/phi_plan_private_evidence_bundle_template_report.json",
+        "bundle_template_safe_to_review": true,
         "domain_count": 9,
         "handoff_path": "llm-distill/docs/phi-plan-private-evidence-handoff.md",
         "handoff_report_path": "llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json",
         "handoff_report_ready": true,
         "handoff_report_safe_to_review": true,
-        "marker_count": 42,
+        "marker_count": 45,
         "missing_markers": [],
         "operator_run_plan_manual_gate_runs_last": true,
         "operator_run_plan_raw_private_paths_included": false,
@@ -494,7 +504,7 @@
         "raw_private_summary_paths_included": false,
         "raw_report_paths_included": false,
         "raw_secret_included": false,
-        "required_marker_count": 42
+        "required_marker_count": 45
       },
       "name": "Private PHIplan evidence handoff maps remaining blockers to validators and renderers",
       "requirement_id": "private_evidence_handoff_ready",

@@ -1064,7 +1064,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   secrets, and production document content out of source control. It now also
   includes a safe `operator_run_plan` with command skeletons and execution
   order for the private renderers and validators, using only placeholders for
-  private paths and values. The
+  private paths and values. The source-controlled private evidence bundle
+  template at
+  `llm-distill/data/production_gate_evidence/private_evidence_bundle.template.json`
+  and validator
+  `llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py`
+  now provide the off-repository manifest structure operators must copy before
+  adding private input paths. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual

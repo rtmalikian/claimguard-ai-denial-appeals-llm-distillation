@@ -52,6 +52,9 @@ DEFAULT_PRIVATE_EVIDENCE_HANDOFF = (
 DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT = (
     REPORT_DIR / "phi_plan_private_evidence_handoff_report.json"
 )
+DEFAULT_PRIVATE_EVIDENCE_BUNDLE_TEMPLATE_REPORT = (
+    REPORT_DIR / "phi_plan_private_evidence_bundle_template_report.json"
+)
 
 DEFAULT_SETTINGS = SimpleNamespace(
     LLM_PROVIDER="nvidia_nim",
@@ -275,6 +278,9 @@ REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS = {
     "boolean-only evidence",
     "operator run plan",
     "command skeletons",
+    "private evidence bundle template",
+    "llm-distill/data/production_gate_evidence/private_evidence_bundle.template.json",
+    "llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py",
     "no PHI",
     "no secrets",
     "no production document content",
@@ -781,6 +787,7 @@ def monitoring_readiness_endpoint_requirement(
 def private_evidence_handoff_requirement(
     handoff_path: Path,
     handoff_report_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
+    bundle_template_report_path: Path = DEFAULT_PRIVATE_EVIDENCE_BUNDLE_TEMPLATE_REPORT,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     marker_count = 0
@@ -796,12 +803,23 @@ def private_evidence_handoff_requirement(
     operator_run_plan_manual_gate_runs_last: bool | None = None
     operator_run_plan_raw_private_values_included: bool | None = None
     operator_run_plan_raw_private_paths_included: bool | None = None
+    bundle_template_safe_to_review: bool | None = None
+    bundle_template_ready: bool | None = None
+    bundle_template_domain_count: int | None = None
+    bundle_template_private_input_env_count: int | None = None
     report_raw_value_flags: dict[str, bool | None] = {
         "raw_approval_values_included": None,
         "raw_private_summary_paths_included": None,
         "raw_report_paths_included": None,
         "raw_phi_or_secret_values_included": None,
         "raw_document_content_included": None,
+    }
+    bundle_template_raw_value_flags: dict[str, bool | None] = {
+        "bundle_template_raw_approval_values_included": None,
+        "bundle_template_raw_document_content_included": None,
+        "bundle_template_raw_phi_included": None,
+        "bundle_template_raw_private_paths_included": None,
+        "bundle_template_raw_secret_included": None,
     }
 
     try:
@@ -890,6 +908,50 @@ def private_evidence_handoff_requirement(
     if any(value is not False for value in report_raw_value_flags.values()):
         blockers.append("private_evidence_handoff_report_raw_value_flags_not_false")
 
+    bundle_template_report, bundle_template_errors = load_json(
+        bundle_template_report_path
+    )
+    blockers.extend(bundle_template_errors)
+    if isinstance(bundle_template_report, dict):
+        bundle_template_safe_to_review = bool(bundle_template_report.get("safe_to_review"))
+        bundle_template_ready = bool(bundle_template_report.get("template_ready"))
+        raw_bundle_domain_count = bundle_template_report.get("domain_count")
+        if not isinstance(raw_bundle_domain_count, bool) and isinstance(
+            raw_bundle_domain_count, int
+        ):
+            bundle_template_domain_count = raw_bundle_domain_count
+        raw_env_count = bundle_template_report.get("private_input_env_count")
+        if not isinstance(raw_env_count, bool) and isinstance(raw_env_count, int):
+            bundle_template_private_input_env_count = raw_env_count
+        bundle_raw_flag_keys = {
+            "bundle_template_raw_approval_values_included": (
+                "raw_approval_values_included"
+            ),
+            "bundle_template_raw_document_content_included": (
+                "raw_document_content_included"
+            ),
+            "bundle_template_raw_phi_included": "raw_phi_included",
+            "bundle_template_raw_private_paths_included": "raw_private_paths_included",
+            "bundle_template_raw_secret_included": "raw_secret_included",
+        }
+        for evidence_key, report_key in bundle_raw_flag_keys.items():
+            raw_value = bundle_template_report.get(report_key)
+            bundle_template_raw_value_flags[evidence_key] = (
+                raw_value if isinstance(raw_value, bool) else None
+            )
+    if bundle_template_safe_to_review is False:
+        blockers.append("private_evidence_bundle_template_report_not_safe_to_review")
+    if bundle_template_ready is not True:
+        blockers.append("private_evidence_bundle_template_report_not_ready")
+    if bundle_template_domain_count != len(PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS):
+        blockers.append("private_evidence_bundle_template_domain_count_invalid")
+    if bundle_template_private_input_env_count != len(
+        PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS
+    ):
+        blockers.append("private_evidence_bundle_template_env_count_invalid")
+    if any(value is not False for value in bundle_template_raw_value_flags.values()):
+        blockers.append("private_evidence_bundle_template_raw_value_flags_not_false")
+
     return requirement(
         requirement_id="private_evidence_handoff_ready",
         name="Private PHIplan evidence handoff maps remaining blockers to validators and renderers",
@@ -898,6 +960,7 @@ def private_evidence_handoff_requirement(
         evidence={
             "handoff_path": safe_report_path(handoff_path),
             "handoff_report_path": safe_report_path(handoff_report_path),
+            "bundle_template_report_path": safe_report_path(bundle_template_report_path),
             "path_inside_repo": path_inside_repo,
             "required_marker_count": len(REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS),
             "marker_count": marker_count,
@@ -918,7 +981,14 @@ def private_evidence_handoff_requirement(
             "operator_run_plan_raw_private_paths_included": (
                 operator_run_plan_raw_private_paths_included
             ),
+            "bundle_template_safe_to_review": bundle_template_safe_to_review,
+            "bundle_template_ready": bundle_template_ready,
+            "bundle_template_domain_count": bundle_template_domain_count,
+            "bundle_template_private_input_env_count": (
+                bundle_template_private_input_env_count
+            ),
             **report_raw_value_flags,
+            **bundle_template_raw_value_flags,
             "approval_references_included": False,
             "private_summary_paths_included": False,
             "raw_report_paths_included": False,
@@ -1908,6 +1978,9 @@ def build_report(
     audit_utils_module_path: Path = DEFAULT_AUDIT_UTILS_MODULE,
     private_evidence_handoff_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
     private_evidence_handoff_report_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
+    private_evidence_bundle_template_report_path: Path = (
+        DEFAULT_PRIVATE_EVIDENCE_BUNDLE_TEMPLATE_REPORT
+    ),
 ) -> dict[str, Any]:
     requirements = [
         current_runtime_default_requirement(settings_like),
@@ -1924,6 +1997,7 @@ def build_report(
         private_evidence_handoff_requirement(
             private_evidence_handoff_path,
             private_evidence_handoff_report_path,
+            private_evidence_bundle_template_report_path,
         ),
         manual_gate_packet_requirement(manual_gate_packet_report_path),
         student_cutover_requirement(
@@ -2089,6 +2163,11 @@ def main() -> int:
         type=Path,
         default=DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
     )
+    parser.add_argument(
+        "--private-evidence-bundle-template-report",
+        type=Path,
+        default=DEFAULT_PRIVATE_EVIDENCE_BUNDLE_TEMPLATE_REPORT,
+    )
     parser.add_argument("--fail-on-blocked", action="store_true")
     args = parser.parse_args()
 
@@ -2115,6 +2194,9 @@ def main() -> int:
         audit_utils_module_path=args.audit_utils_module,
         private_evidence_handoff_path=args.private_evidence_handoff,
         private_evidence_handoff_report_path=args.private_evidence_handoff_report,
+        private_evidence_bundle_template_report_path=(
+            args.private_evidence_bundle_template_report
+        ),
     )
     write_source_controlled_report_json(args.report, report, REPO_ROOT)
     print(

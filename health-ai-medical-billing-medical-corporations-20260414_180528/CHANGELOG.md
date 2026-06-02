@@ -2,6 +2,71 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 10:35:40 PDT - Private evidence bundle template
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a source-controlled PHIplan private evidence bundle template and
+  validator so operators can copy a complete nine-domain private manifest
+  structure outside source control before adding private input paths. Keep the
+  checked-in template, reports, audit evidence, tests, and docs free of private
+  paths, approval values, PHI, secrets, raw evidence, and production document
+  content.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-103039-private-evidence-bundle-template/PHIplan.md` | Documented the private evidence bundle template and validator in the PHIplan handoff section. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-103039-private-evidence-bundle-template/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `CHANGELOG.md` | `backups/20260602-103039-private-evidence-bundle-template/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-103039-private-evidence-bundle-template/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the private evidence bundle template. | Restore backup over `implementation.md`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260602-103039-private-evidence-bundle-template/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | Required the PHIplan audit to verify the bundle-template report and block when it is missing. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/docs/phi-plan-private-evidence-handoff.md` | `backups/20260602-103039-private-evidence-bundle-template/llm-distill/docs/phi-plan-private-evidence-handoff.md` | Added the private evidence bundle template to the handoff review sequence and audit markers. | Restore backup over `../llm-distill/docs/phi-plan-private-evidence-handoff.md`. |
+| `../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` | `backups/20260602-103039-private-evidence-bundle-template/llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` | Required bundle-template markers in the private handoff status report. | Restore backup over `../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-103039-private-evidence-bundle-template/llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | Loaded and verified the private bundle-template report as part of `private_evidence_handoff_ready`. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | `backups/20260602-103039-private-evidence-bundle-template/llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | Regenerated handoff evidence with bundle-template markers while keeping private evidence incomplete. | Restore backup over `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-103039-private-evidence-bundle-template/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Regenerated readiness evidence with bundle-template checks passing; production readiness remains blocked. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Files Added
+- `../llm-distill/data/production_gate_evidence/private_evidence_bundle.template.json`
+- `../llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py`
+- `../llm-distill/evals/reports/phi_plan_private_evidence_bundle_template_report.json`
+- `tests/unit/test_phi_plan_private_evidence_bundle_template.py`
+
+### Validation
+- `find backups/20260602-103039-private-evidence-bundle-template -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py ../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_private_evidence_bundle_template.py tests/unit/test_phi_plan_private_evidence_handoff.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the application directory.
+- First focused pytest attempt failed because `../llm-distill/evals/reports/phi_plan_private_evidence_bundle_template_report.json` had not been generated yet; after generating it, the same suite passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py --fail-on-blocked`: passed with `template_ready=True`, `domain_count=9`, `private_input_env_count=9`, and `blockers=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py --fail-on-source-control-blocked`: passed with `handoff_ready=True`, `private_evidence_complete=False`, and `private_blockers=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed and refreshed the checked-in report with `production_ready=false`, `safe_current_state=true`, `blocked=9`, and `warnings=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_private_evidence_bundle_template.py tests/unit/test_phi_plan_private_evidence_handoff.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 26 tests with the existing SQLAlchemy deprecation warning.
+- Template/report inspection: passed with `template_ready=True`, `domain_count=9`, `private_input_env_count=9`, `raw_private_paths_included=False`, and no raw secret markers.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_private_evidence_bundle_template_report.json >/dev/null`, `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json >/dev/null`, and `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json >/dev/null`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=32` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Initial staged secret scan flagged literal provider key-name denylist strings
+  in `../llm-distill/scripts/validate_phi_plan_private_evidence_bundle_template.py`;
+  replaced them with a generic secret-marker regex so no sensitive key names
+  are referenced in added lines.
+- Avoided storing any private evidence path, approval reference, endpoint
+  value, credential, PHI, production EDI payload, raw dependency finding,
+  demographic/outcome row, or production document content in the template,
+  validator output, reports, tests, or docs.
+- Avoided marking any private/external blocker ready; the template only proves
+  the source-controlled bundle structure is ready to copy into private storage.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-103039-private-evidence-bundle-template/` and remove the
+  four added files listed above.
+
 ## 2026-06-02 10:26:14 PDT - Private evidence operator run plan
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
