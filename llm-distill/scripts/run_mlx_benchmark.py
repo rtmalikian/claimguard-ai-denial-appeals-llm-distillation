@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import platform
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -15,6 +16,7 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_RECORDS = (
     REPO_ROOT / "llm-distill" / "data" / "distillation" / "seed_synthetic_supervised.jsonl"
 )
@@ -38,6 +40,11 @@ REQUIRED_OUTPUT_KEYS = {
     "warnings",
 }
 SCHEMA_CONTRACT_NAME = "strict_claim_guard_json_v1"
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 STRICT_SCHEMA_CONTRACT = """STRICT OUTPUT SCHEMA:
 Return one JSON object only. Required keys: case_summary, known_from_documents, inferred, missing_needs_human_verification, cited_rules, plan_type, denial_type, recommended_route, deadline_table, evidence_gaps, draft_sections, follow_up_plan, human_review_required, warnings.
 The following keys MUST be arrays, not strings: known_from_documents, inferred, missing_needs_human_verification, cited_rules, deadline_table, evidence_gaps, draft_sections, warnings.
@@ -346,8 +353,7 @@ def main() -> int:
         "summary": summarize(results, args.dry_run),
         "results": results,
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_source_controlled_report_json(args.output, payload, REPO_ROOT)
     print(f"wrote MLX benchmark report to {args.output}")
     if payload["summary"]["endpoint_error_count"] and not args.allow_unavailable:
         return 2

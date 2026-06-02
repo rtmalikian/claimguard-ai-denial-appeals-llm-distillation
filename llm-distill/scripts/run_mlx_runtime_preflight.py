@@ -9,6 +9,7 @@ import json
 import platform
 import shutil
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -18,11 +19,17 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_OUTPUT = (
     REPO_ROOT / "llm-distill" / "evals" / "reports" / "mlx_runtime_preflight_report.json"
 )
 DEFAULT_BASE_URL = "http://localhost:8080/v1"
 REQUIRED_COMMANDS = ("mlx_lm.server", "mlx_lm.lora", "mlx_lm.generate")
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 
 
 def package_status() -> dict[str, Any]:
@@ -213,8 +220,7 @@ def main() -> int:
             "A reachable /v1/models endpoint is runtime availability evidence, not model-quality or training evidence.",
         ],
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_source_controlled_report_json(args.output, payload, REPO_ROOT)
     print(f"wrote MLX runtime preflight report to {args.output}")
     if blockers and args.fail_on_blocked:
         return 2

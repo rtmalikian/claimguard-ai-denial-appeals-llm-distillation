@@ -14,12 +14,16 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 APP_ROOT = REPO_ROOT / "health-ai-medical-billing-medical-corporations-20260414_180528"
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
 from app.schemas.denial_workflow import DenialWorkflowAnalysisRequest  # noqa: E402
 from app.services.denial_workflow import DenialWorkflowService  # noqa: E402
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 
 
 @dataclass
@@ -196,8 +200,12 @@ def main() -> int:
     }
 
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        write_source_controlled_report_json(
+            args.output,
+            payload,
+            REPO_ROOT,
+            sort_keys=False,
+        )
         print(f"wrote workflow eval results to {args.output}")
     else:
         print(json.dumps(payload, indent=2))

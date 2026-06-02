@@ -819,6 +819,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   local generated workspace. The teacher-label ingestion and corpus-SFT export
   writers use the shared sanitizer for source-controlled reports while
   preserving temporary out-of-repo paths for scratch validation.
+- Add a shared `write_source_controlled_report_json(...)` helper for remaining
+  eval report writers. Workflow baseline evaluation, MLX runtime preflight,
+  MLX benchmark, student acceptance, and synthetic teacher-review reports now
+  sanitize outputs only when they are written inside this repository, while
+  temporary scratch outputs outside source control keep their original paths
+  for local debugging.
 - Add a full generated-corpus format and variation audit at
   `llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` with checked-in
   evidence at

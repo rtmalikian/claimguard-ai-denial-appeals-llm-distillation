@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from report_output_sanitizer import write_source_controlled_report_json
 from run_phi_scan import scan_text
 
 
@@ -482,8 +483,7 @@ def main() -> int:
         min_benchmark_records=args.min_benchmark_records,
         max_score_regression=args.max_score_regression,
     )
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_source_controlled_report_json(args.output, payload, REPO_ROOT)
     print(f"wrote student acceptance report to {args.output}")
     if payload["blocked_reasons"] and args.fail_on_blocked:
         return 2

@@ -2,6 +2,61 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 17:22:13 PDT - Eval report writer sanitizer helper
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route remaining eval report writers through a shared source-control
+  aware JSON helper so checked-in reports are sanitized while temporary
+  out-of-repo diagnostics remain fully inspectable.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/report_output_sanitizer.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/report_output_sanitizer.py` | Added `path_is_within(...)` and `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_workflow_eval.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/run_workflow_eval.py` | Writes workflow eval reports through the source-control aware sanitizer helper. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_mlx_runtime_preflight.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/run_mlx_runtime_preflight.py` | Writes MLX runtime preflight reports through the source-control aware sanitizer helper. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_mlx_benchmark.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/run_mlx_benchmark.py` | Writes MLX benchmark reports through the source-control aware sanitizer helper. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_student_acceptance.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/run_student_acceptance.py` | Writes student acceptance reports through the source-control aware sanitizer helper. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_synthetic_teacher_review.py` | `backups/20260601-171826-eval-report-writer-sanitizer/llm-distill/scripts/run_synthetic_teacher_review.py` | Writes synthetic teacher-review reports through the source-control aware sanitizer helper. | Restore backup over the same path. |
+| `tests/unit/test_report_output_sanitizer.py` | `backups/20260601-171826-eval-report-writer-sanitizer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py` | Added regression coverage for sanitized source-controlled outputs and raw out-of-repo scratch outputs. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-171826-eval-report-writer-sanitizer/PHIplan.md` | Documented the shared eval report writer sanitizer. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-171826-eval-report-writer-sanitizer/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-171826-eval-report-writer-sanitizer/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-171826-eval-report-writer-sanitizer/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-171826-eval-report-writer-sanitizer -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/report_output_sanitizer.py ../llm-distill/scripts/run_workflow_eval.py ../llm-distill/scripts/run_mlx_runtime_preflight.py ../llm-distill/scripts/run_mlx_benchmark.py ../llm-distill/scripts/run_student_acceptance.py ../llm-distill/scripts/run_synthetic_teacher_review.py tests/unit/test_report_output_sanitizer.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_report_output_sanitizer.py tests/unit/test_student_acceptance_gate.py -q`: passed, 7 tests.
+- `python3 ../llm-distill/scripts/run_workflow_eval.py --output /private/tmp/claimguard-workflow-eval-writer-sanitizer.json --fail-under 0.95`: passed; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 ../llm-distill/scripts/run_student_acceptance.py --output /private/tmp/claimguard-student-acceptance-writer-sanitizer.json --fail-on-blocked`: passed.
+- `python3 ../llm-distill/scripts/run_mlx_runtime_preflight.py --output /private/tmp/claimguard-mlx-runtime-preflight-writer-sanitizer.json`: passed.
+- `python3 ../llm-distill/scripts/run_mlx_benchmark.py --output /private/tmp/claimguard-mlx-benchmark-writer-sanitizer.json --dry-run --limit 1 --allow-unavailable`: passed.
+- `python3 ../llm-distill/scripts/run_synthetic_teacher_review.py --packet-output /private/tmp/claimguard-synthetic-teacher-review-packet-writer-sanitizer.jsonl --report-output /private/tmp/claimguard-synthetic-teacher-review-writer-sanitizer.json --fail-on-blocked`: passed.
+- `python3 -m json.tool` on the five temporary report outputs listed above: passed.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27`, `changed_count=0`.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/evals/reports --glob '*.json'`: passed with no matches.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-eval-writer-sanitizer-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-eval-writer-sanitizer-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+
+### Failed Or Avoided Approaches
+- Avoided changing checked-in eval report payloads in this slice; this hardens
+  future write boundaries only.
+- Avoided redacting out-of-repo scratch reports because those are local
+  diagnostics, not source-controlled public artifacts.
+- Avoided changing readiness booleans, private approval gates, benchmark
+  scores, adapter evidence, or model-training evidence.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-171826-eval-report-writer-sanitizer/`.
+- This slice improves eval report writer hygiene; it does not complete the full
+  PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:13:44 PDT - Distillation data artifact path hygiene
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

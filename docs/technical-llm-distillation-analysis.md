@@ -236,6 +236,12 @@ teacher-label ingestion writer and corpus-SFT export writer sanitize only
 source-controlled outputs, so temporary local scratch runs remain fully
 auditable and checked-in reports avoid workstation paths.
 
+The remaining eval report writers now share
+`write_source_controlled_report_json(...)`: workflow baseline evaluation, MLX
+runtime preflight, MLX benchmark, student acceptance, and synthetic
+teacher-review outputs sanitize repository-owned report files while preserving
+raw scratch paths for out-of-repo diagnostics.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit

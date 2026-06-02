@@ -48,3 +48,28 @@ def write_sanitized_report_json(
         json.dumps(safe_payload, indent=2, sort_keys=sort_keys) + "\n",
         encoding="utf-8",
     )
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
+
+
+def write_source_controlled_report_json(
+    path: Path,
+    payload: Any,
+    repo_root: Path,
+    *,
+    sort_keys: bool = True,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path_is_within(path, repo_root):
+        write_sanitized_report_json(path, payload, repo_root, sort_keys=sort_keys)
+    else:
+        path.write_text(
+            json.dumps(payload, indent=2, sort_keys=sort_keys) + "\n",
+            encoding="utf-8",
+        )

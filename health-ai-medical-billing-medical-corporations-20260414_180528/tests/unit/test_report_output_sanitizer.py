@@ -77,3 +77,41 @@ def test_write_sanitized_report_json_writes_clean_sorted_payload(tmp_path):
     assert "external_path_redacted" in text
     assert str(repo_root) not in text
     assert str(tmp_path) not in text
+
+
+def test_write_source_controlled_report_json_sanitizes_repo_outputs(tmp_path):
+    sanitizer = _load_sanitizer()
+    repo_root = tmp_path / "repo"
+    output = repo_root / "llm-distill" / "evals" / "reports" / "report.json"
+    payload = {
+        "repo_path": str(output),
+        "external_path": str(tmp_path / "scratch" / "private-report.json"),
+    }
+
+    sanitizer.write_source_controlled_report_json(output, payload, repo_root)
+
+    text = output.read_text(encoding="utf-8")
+    report = json.loads(text)
+    assert report["repo_path"] == "llm-distill/evals/reports/report.json"
+    assert report["external_path"] == "external_path_redacted"
+    assert str(repo_root) not in text
+    assert str(tmp_path / "scratch") not in text
+
+
+def test_write_source_controlled_report_json_preserves_scratch_outputs(tmp_path):
+    sanitizer = _load_sanitizer()
+    repo_root = tmp_path / "repo"
+    output = tmp_path / "scratch" / "report.json"
+    payload = {
+        "repo_path": str(repo_root / "llm-distill" / "evals" / "reports" / "report.json"),
+        "external_path": str(output),
+    }
+
+    sanitizer.write_source_controlled_report_json(output, payload, repo_root)
+
+    text = output.read_text(encoding="utf-8")
+    report = json.loads(text)
+    assert report["repo_path"] == str(
+        repo_root / "llm-distill" / "evals" / "reports" / "report.json"
+    )
+    assert report["external_path"] == str(output)
