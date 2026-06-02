@@ -247,6 +247,12 @@ private evidence handoff. That handoff maps every remaining private/external
 blocker to its validator, private renderer, and no-raw-value boundary without
 including approval references, private summary paths, raw report paths, PHI,
 secrets, or production document content.
+`llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` now
+generates
+`llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`, a
+redacted status report with `handoff_ready=true`,
+`private_evidence_complete=false`, nine private blocker domains, and explicit
+raw-value exclusion flags.
 
 The direct PHIplan evidence reports for MLX runtime supervision, model
 improvement, retrieval-vector backend readiness, production-corpus evidence,
@@ -656,6 +662,10 @@ Safety and validation:
   audit, access, retention, governance, runbook, and private summary evidence
   without publishing raw EDI payloads, endpoint URLs, credentials, approval
   references, PHI, secrets, or production claim content.
+- `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` for the
+  source-controlled private evidence handoff status report that maps each
+  private/external blocker to its validator, renderer, current ready flag,
+  blocked requirement IDs, and no-raw-value boundary.
 - Targeted pytest tests for validators, reports, and manual gates.
 
 ## Reproduce The Core Checks
@@ -667,6 +677,7 @@ python3 llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py --fail-on-bl
 python3 llm-distill/scripts/validate_retrieval_vector_backend.py
 python3 llm-distill/scripts/validate_prediction_fairness_evidence.py
 python3 llm-distill/scripts/run_distillation_readiness_audit.py
+python3 llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py --fail-on-source-control-blocked
 python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py
 python3 llm-distill/scripts/validate_phi_plan_manual_gate_packet.py
 python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py

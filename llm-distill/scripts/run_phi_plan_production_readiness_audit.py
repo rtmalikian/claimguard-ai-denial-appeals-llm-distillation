@@ -49,6 +49,9 @@ DEFAULT_AUDIT_UTILS_MODULE = APP_ROOT / "app" / "utils" / "audit.py"
 DEFAULT_PRIVATE_EVIDENCE_HANDOFF = (
     REPO_ROOT / "llm-distill" / "docs" / "phi-plan-private-evidence-handoff.md"
 )
+DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT = (
+    REPORT_DIR / "phi_plan_private_evidence_handoff_report.json"
+)
 
 DEFAULT_SETTINGS = SimpleNamespace(
     LLM_PROVIDER="nvidia_nim",
@@ -254,6 +257,8 @@ REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS = {
     "llm-distill/scripts/render_dependency_security_private_evidence.py",
     "llm-distill/scripts/validate_clearinghouse_submission_evidence.py",
     "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+    "llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py",
+    "llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json",
     "approval references outside source control",
     "private summary paths outside source control",
     "raw report paths outside source control",
@@ -761,11 +766,26 @@ def monitoring_readiness_endpoint_requirement(
     )
 
 
-def private_evidence_handoff_requirement(handoff_path: Path) -> dict[str, Any]:
+def private_evidence_handoff_requirement(
+    handoff_path: Path,
+    handoff_report_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
+) -> dict[str, Any]:
     blockers: list[str] = []
     marker_count = 0
     missing_markers: list[str] = []
     path_inside_repo = False
+    report_safe_to_review: bool | None = None
+    report_handoff_ready: bool | None = None
+    report_private_evidence_complete: bool | None = None
+    report_private_blocker_count: int | None = None
+    report_domain_count: int | None = None
+    report_raw_value_flags: dict[str, bool | None] = {
+        "raw_approval_values_included": None,
+        "raw_private_summary_paths_included": None,
+        "raw_report_paths_included": None,
+        "raw_phi_or_secret_values_included": None,
+        "raw_document_content_included": None,
+    }
 
     try:
         handoff_path.expanduser().resolve().relative_to(REPO_ROOT.resolve())
@@ -790,6 +810,32 @@ def private_evidence_handoff_requirement(handoff_path: Path) -> dict[str, Any]:
         if missing_markers:
             blockers.append("private_evidence_handoff_markers_missing")
 
+    handoff_report, report_errors = load_json(handoff_report_path)
+    blockers.extend(report_errors)
+    if isinstance(handoff_report, dict):
+        report_safe_to_review = bool(handoff_report.get("safe_to_review"))
+        report_handoff_ready = bool(handoff_report.get("handoff_ready"))
+        report_private_evidence_complete = bool(
+            handoff_report.get("private_evidence_complete")
+        )
+        raw_private_blocker_count = handoff_report.get("private_blocker_count")
+        if not isinstance(raw_private_blocker_count, bool) and isinstance(
+            raw_private_blocker_count, int
+        ):
+            report_private_blocker_count = raw_private_blocker_count
+        raw_domain_count = handoff_report.get("domain_count")
+        if not isinstance(raw_domain_count, bool) and isinstance(raw_domain_count, int):
+            report_domain_count = raw_domain_count
+        for flag in report_raw_value_flags:
+            raw_value = handoff_report.get(flag)
+            report_raw_value_flags[flag] = raw_value if isinstance(raw_value, bool) else None
+    if report_safe_to_review is False:
+        blockers.append("private_evidence_handoff_report_not_safe_to_review")
+    if report_handoff_ready is False:
+        blockers.append("private_evidence_handoff_report_not_ready")
+    if any(value is not False for value in report_raw_value_flags.values()):
+        blockers.append("private_evidence_handoff_report_raw_value_flags_not_false")
+
     return requirement(
         requirement_id="private_evidence_handoff_ready",
         name="Private PHIplan evidence handoff maps remaining blockers to validators and renderers",
@@ -797,10 +843,17 @@ def private_evidence_handoff_requirement(handoff_path: Path) -> dict[str, Any]:
         blockers=blockers,
         evidence={
             "handoff_path": safe_report_path(handoff_path),
+            "handoff_report_path": safe_report_path(handoff_report_path),
             "path_inside_repo": path_inside_repo,
             "required_marker_count": len(REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS),
             "marker_count": marker_count,
             "missing_markers": missing_markers,
+            "handoff_report_safe_to_review": report_safe_to_review,
+            "handoff_report_ready": report_handoff_ready,
+            "private_evidence_complete": report_private_evidence_complete,
+            "private_blocker_count": report_private_blocker_count,
+            "domain_count": report_domain_count,
+            **report_raw_value_flags,
             "approval_references_included": False,
             "private_summary_paths_included": False,
             "raw_report_paths_included": False,
@@ -1789,6 +1842,7 @@ def build_report(
     core_security_module_path: Path = DEFAULT_CORE_SECURITY_MODULE,
     audit_utils_module_path: Path = DEFAULT_AUDIT_UTILS_MODULE,
     private_evidence_handoff_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+    private_evidence_handoff_report_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
 ) -> dict[str, Any]:
     requirements = [
         current_runtime_default_requirement(settings_like),
@@ -1802,7 +1856,10 @@ def build_report(
         file_ingestion_surface_requirement(file_ingestion_surface_report_path),
         monitoring_gate_metrics_requirement(monitoring_module_path),
         monitoring_readiness_endpoint_requirement(monitoring_module_path),
-        private_evidence_handoff_requirement(private_evidence_handoff_path),
+        private_evidence_handoff_requirement(
+            private_evidence_handoff_path,
+            private_evidence_handoff_report_path,
+        ),
         manual_gate_packet_requirement(manual_gate_packet_report_path),
         student_cutover_requirement(
             settings_like,
@@ -1962,6 +2019,11 @@ def main() -> int:
         type=Path,
         default=DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
     )
+    parser.add_argument(
+        "--private-evidence-handoff-report",
+        type=Path,
+        default=DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
+    )
     parser.add_argument("--fail-on-blocked", action="store_true")
     args = parser.parse_args()
 
@@ -1987,6 +2049,7 @@ def main() -> int:
         core_security_module_path=args.core_security_module,
         audit_utils_module_path=args.audit_utils_module,
         private_evidence_handoff_path=args.private_evidence_handoff,
+        private_evidence_handoff_report_path=args.private_evidence_handoff_report,
     )
     write_source_controlled_report_json(args.report, report, REPO_ROOT)
     print(

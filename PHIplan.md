@@ -1053,6 +1053,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   remaining private/external blocker to its validator, private renderer, and
   no-raw-value boundary without storing approval references, private summary
   paths, raw report paths, PHI, secrets, or production document content. The
+  handoff is now validated by
+  `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py`, which
+  writes the checked-in redacted status report at
+  `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`.
+  That report records `handoff_ready=true`,
+  `private_evidence_complete=false`, and nine private blocker domains while
+  keeping raw approval values, private summary paths, report paths, PHI,
+  secrets, and production document content out of source control. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual

@@ -1,0 +1,372 @@
+{
+  "artifact": "claimguard_phi_plan_private_evidence_handoff_status",
+  "domain_count": 9,
+  "domain_statuses": [
+    {
+      "blocked_item_count": 9,
+      "blocked_requirement_ids": [
+        "manual_backup_disaster_recovery_evidence",
+        "manual_clearinghouse_submission_evidence",
+        "manual_dependency_security_evidence",
+        "manual_gate_private_summary_metadata",
+        "manual_prediction_fairness_monitoring_evidence",
+        "manual_production_corpus_evidence",
+        "manual_retrieval_vector_backend_evidence",
+        "manual_student_default_cutover_evidence",
+        "manual_user_data_model_improvement_evidence"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "production_gate_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py"
+      ],
+      "report_path": "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "manual_production_gate_packet_evidence",
+      "validator_paths": [
+        "llm-distill/scripts/validate_phi_plan_manual_gate_packet.py"
+      ]
+    },
+    {
+      "blocked_item_count": 3,
+      "blocked_requirement_ids": [
+        "mlx_runtime_supervisor_operator_controls",
+        "mlx_runtime_supervisor_private_runtime_metadata",
+        "mlx_runtime_supervisor_runtime_validation"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "supervisor_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_student_cutover_private_env.py",
+        "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/mlx_runtime_supervisor_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "student_default_cutover_external_approval",
+      "validator_paths": [
+        "llm-distill/scripts/validate_mlx_runtime_supervisor.py"
+      ]
+    },
+    {
+      "blocked_item_count": 1,
+      "blocked_requirement_ids": [
+        "model_improvement_legal_controls"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "model_improvement_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_model_improvement_private_env.py"
+      ],
+      "report_path": "llm-distill/evals/reports/model_improvement_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "user_data_model_improvement_external_approval",
+      "validator_paths": [
+        "llm-distill/scripts/validate_model_improvement_evidence.py"
+      ]
+    },
+    {
+      "blocked_item_count": 3,
+      "blocked_requirement_ids": [
+        "retrieval_vector_backend_configuration",
+        "retrieval_vector_backend_index_state",
+        "retrieval_vector_backend_runtime_validation"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "vector_backend_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_retrieval_vector_private_env.py",
+        "llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/retrieval_vector_backend_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "production_semantic_vector_backend",
+      "validator_paths": [
+        "llm-distill/scripts/validate_retrieval_vector_backend.py"
+      ]
+    },
+    {
+      "blocked_item_count": 2,
+      "blocked_requirement_ids": [
+        "production_corpus_manifest_pair_evidence",
+        "production_corpus_private_summary_metadata"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "production_corpus_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_production_corpus_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "production_corpus_expansion_beyond_synthetic",
+      "validator_paths": [
+        "llm-distill/scripts/validate_production_corpus_evidence.py"
+      ]
+    },
+    {
+      "blocked_item_count": 4,
+      "blocked_requirement_ids": [
+        "prediction_fairness_calibrated_threshold",
+        "prediction_fairness_continuous_monitoring",
+        "prediction_fairness_governance_controls",
+        "prediction_fairness_private_monitoring_summary"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "prediction_fairness_monitoring_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_prediction_fairness_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/prediction_fairness_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "production_prediction_fairness_monitoring",
+      "validator_paths": [
+        "llm-distill/scripts/validate_prediction_fairness_evidence.py"
+      ]
+    },
+    {
+      "blocked_item_count": 6,
+      "blocked_requirement_ids": [
+        "backup_disaster_recovery_governance_controls",
+        "backup_disaster_recovery_key_recovery",
+        "backup_disaster_recovery_private_summary_metadata",
+        "backup_disaster_recovery_ready_flag",
+        "backup_disaster_recovery_restore_validation",
+        "backup_disaster_recovery_storage_controls"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "backup_disaster_recovery_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "backup_disaster_recovery_evidence",
+      "validator_paths": [
+        "llm-distill/scripts/validate_backup_disaster_recovery_evidence.py"
+      ]
+    },
+    {
+      "blocked_item_count": 5,
+      "blocked_requirement_ids": [
+        "dependency_security_governance_controls",
+        "dependency_security_private_summary_metadata",
+        "dependency_security_ready_flag",
+        "dependency_security_remediation_controls",
+        "dependency_security_scan_controls"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "dependency_security_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_dependency_security_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/dependency_security_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "dependency_security_evidence",
+      "validator_paths": [
+        "llm-distill/scripts/validate_dependency_security_evidence.py"
+      ]
+    },
+    {
+      "blocked_item_count": 6,
+      "blocked_requirement_ids": [
+        "clearinghouse_submission_audit_retention_controls",
+        "clearinghouse_submission_connectivity_controls",
+        "clearinghouse_submission_governance_controls",
+        "clearinghouse_submission_private_summary_metadata",
+        "clearinghouse_submission_ready_flag",
+        "clearinghouse_submission_transaction_controls"
+      ],
+      "missing_renderer_paths": [],
+      "missing_validator_paths": [],
+      "outside_source_control_paths": [],
+      "private_evidence_ready": false,
+      "raw_private_values_included": false,
+      "raw_report_values_included": false,
+      "ready_key": "clearinghouse_submission_ready",
+      "renderer_paths": [
+        "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py"
+      ],
+      "report_path": "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json",
+      "report_safe_to_review": true,
+      "requirement_id": "clearinghouse_submission_evidence",
+      "validator_paths": [
+        "llm-distill/scripts/validate_clearinghouse_submission_evidence.py"
+      ]
+    }
+  ],
+  "generated_at": "2026-06-02T08:13:34.419914+00:00",
+  "handoff_document": {
+    "handoff_path": "llm-distill/docs/phi-plan-private-evidence-handoff.md",
+    "marker_count": 9,
+    "missing_markers": [],
+    "path_inside_source_control": true,
+    "required_marker_count": 9
+  },
+  "handoff_ready": true,
+  "notes": [
+    "This report is source-control handoff evidence, not private approval evidence.",
+    "Private evidence remains incomplete until every domain-specific report is ready."
+  ],
+  "private_blocker_count": 9,
+  "private_blockers": [
+    {
+      "blocked_requirement_ids": [
+        "manual_backup_disaster_recovery_evidence",
+        "manual_clearinghouse_submission_evidence",
+        "manual_dependency_security_evidence",
+        "manual_gate_private_summary_metadata",
+        "manual_prediction_fairness_monitoring_evidence",
+        "manual_production_corpus_evidence",
+        "manual_retrieval_vector_backend_evidence",
+        "manual_student_default_cutover_evidence",
+        "manual_user_data_model_improvement_evidence"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "manual_production_gate_packet_evidence"
+    },
+    {
+      "blocked_requirement_ids": [
+        "mlx_runtime_supervisor_operator_controls",
+        "mlx_runtime_supervisor_private_runtime_metadata",
+        "mlx_runtime_supervisor_runtime_validation"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "student_default_cutover_external_approval"
+    },
+    {
+      "blocked_requirement_ids": [
+        "model_improvement_legal_controls"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "user_data_model_improvement_external_approval"
+    },
+    {
+      "blocked_requirement_ids": [
+        "retrieval_vector_backend_configuration",
+        "retrieval_vector_backend_index_state",
+        "retrieval_vector_backend_runtime_validation"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "production_semantic_vector_backend"
+    },
+    {
+      "blocked_requirement_ids": [
+        "production_corpus_manifest_pair_evidence",
+        "production_corpus_private_summary_metadata"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "production_corpus_expansion_beyond_synthetic"
+    },
+    {
+      "blocked_requirement_ids": [
+        "prediction_fairness_calibrated_threshold",
+        "prediction_fairness_continuous_monitoring",
+        "prediction_fairness_governance_controls",
+        "prediction_fairness_private_monitoring_summary"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "production_prediction_fairness_monitoring"
+    },
+    {
+      "blocked_requirement_ids": [
+        "backup_disaster_recovery_governance_controls",
+        "backup_disaster_recovery_key_recovery",
+        "backup_disaster_recovery_private_summary_metadata",
+        "backup_disaster_recovery_ready_flag",
+        "backup_disaster_recovery_restore_validation",
+        "backup_disaster_recovery_storage_controls"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "backup_disaster_recovery_evidence"
+    },
+    {
+      "blocked_requirement_ids": [
+        "dependency_security_governance_controls",
+        "dependency_security_private_summary_metadata",
+        "dependency_security_ready_flag",
+        "dependency_security_remediation_controls",
+        "dependency_security_scan_controls"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "dependency_security_evidence"
+    },
+    {
+      "blocked_requirement_ids": [
+        "clearinghouse_submission_audit_retention_controls",
+        "clearinghouse_submission_connectivity_controls",
+        "clearinghouse_submission_governance_controls",
+        "clearinghouse_submission_private_summary_metadata",
+        "clearinghouse_submission_ready_flag",
+        "clearinghouse_submission_transaction_controls"
+      ],
+      "blockers": [
+        "domain_private_evidence_not_complete"
+      ],
+      "requirement_id": "clearinghouse_submission_evidence"
+    }
+  ],
+  "private_evidence_complete": false,
+  "raw_approval_values_included": false,
+  "raw_document_content_included": false,
+  "raw_phi_or_secret_values_included": false,
+  "raw_private_summary_paths_included": false,
+  "raw_report_paths_included": false,
+  "safe_to_review": true,
+  "source_control_blocker_count": 0,
+  "source_control_blockers": []
+}

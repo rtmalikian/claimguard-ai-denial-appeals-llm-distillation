@@ -496,6 +496,13 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     assert handoff_requirement["status"] == "ready"
     assert handoff_requirement["evidence"]["path_inside_repo"] is True
     assert handoff_requirement["evidence"]["missing_markers"] == []
+    assert handoff_requirement["evidence"]["handoff_report_safe_to_review"] is True
+    assert handoff_requirement["evidence"]["handoff_report_ready"] is True
+    assert handoff_requirement["evidence"]["private_evidence_complete"] is False
+    assert handoff_requirement["evidence"]["private_blocker_count"] == 9
+    assert handoff_requirement["evidence"]["domain_count"] == 9
+    assert handoff_requirement["evidence"]["raw_approval_values_included"] is False
+    assert handoff_requirement["evidence"]["raw_private_summary_paths_included"] is False
     assert handoff_requirement["evidence"]["approval_references_included"] is False
     assert handoff_requirement["evidence"]["private_summary_paths_included"] is False
     assert handoff_requirement["evidence"]["raw_report_paths_included"] is False
@@ -1712,12 +1719,18 @@ def test_private_evidence_handoff_requirement_verifies_checked_in_handoff():
     audit = _load_audit()
 
     requirement = audit.private_evidence_handoff_requirement(
-        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF_REPORT,
     )
 
     assert requirement["status"] == "ready"
     assert requirement["evidence"]["path_inside_repo"] is True
     assert requirement["evidence"]["missing_markers"] == []
+    assert requirement["evidence"]["handoff_report_safe_to_review"] is True
+    assert requirement["evidence"]["handoff_report_ready"] is True
+    assert requirement["evidence"]["private_evidence_complete"] is False
+    assert requirement["evidence"]["private_blocker_count"] == 9
+    assert requirement["evidence"]["domain_count"] == 9
     assert requirement["evidence"]["approval_references_included"] is False
     assert requirement["evidence"]["private_summary_paths_included"] is False
     assert requirement["evidence"]["raw_report_paths_included"] is False
@@ -1741,3 +1754,19 @@ def test_private_evidence_handoff_requirement_blocks_external_incomplete_handoff
     assert requirement["evidence"]["handoff_path"] == "external_path_redacted"
     assert requirement["evidence"]["path_inside_repo"] is False
     assert "manual_production_gate_packet_evidence" in requirement["evidence"]["missing_markers"]
+
+
+def test_private_evidence_handoff_requirement_blocks_missing_handoff_report(tmp_path):
+    audit = _load_audit()
+    missing_report = tmp_path / "missing_handoff_report.json"
+
+    requirement = audit.private_evidence_handoff_requirement(
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+        missing_report,
+    )
+
+    assert requirement["status"] == "blocked"
+    assert any(
+        blocker.startswith("missing file:")
+        for blocker in requirement["blockers"]
+    )

@@ -9,6 +9,11 @@ source-controlled validators, private renderers, and public runbooks that
 operators must use before production readiness can be claimed. It is an
 operator checklist, not an approval record.
 
+The source-controlled handoff status is validated by
+`llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` and written
+to `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`.
+That report remains safe to review while private evidence is still incomplete.
+
 All final evidence must use boolean-only evidence and keep approval references
 outside source control, private summary paths outside source control, raw
 report paths outside source control, no PHI, no secrets, and no production
@@ -38,13 +43,15 @@ no secrets; no production document content.
    approved governance systems or approved private storage.
 2. Run the matching validator for each private packet and confirm the checked
    report is safe to review, ready, unblocked, and metadata-only.
-3. Render the final manual production-gate packet with
+3. Run `llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` to
+   refresh `llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`.
+4. Render the final manual production-gate packet with
    `llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py` only
    after all dependent reports pass.
-4. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
+5. Rerun `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` and
    confirm `production_ready=true` only when every private or external blocker
    is cleared by valid private evidence.
-5. Confirm source-controlled reports still exclude approval references, private
+6. Confirm source-controlled reports still exclude approval references, private
    summary paths, raw report paths, PHI, secrets, raw EDI payloads, endpoint
    values, vulnerability details, demographic values, outcome rows, source
    text, vectors, and production document content.

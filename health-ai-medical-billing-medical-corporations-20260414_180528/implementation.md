@@ -459,6 +459,10 @@ private evidence handoff at
 remaining private/external blocker to its validator, private renderer, and
 no-raw-value boundary without storing approval references, private summary
 paths, raw report paths, PHI, secrets, or production document content.
+`llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py` now writes
+`llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` with
+safe handoff status, nine private blocker domains, and no raw approval,
+private summary, report-path, PHI, secret, or production document values.
 Production packaging now includes a multi-stage backend Dockerfile with a
 non-root runtime user, a production frontend Dockerfile that builds Vite assets
 and serves them through nginx, frontend health checks for development and
@@ -1358,7 +1362,7 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   PHIplan report next action now names the same expanded evidence scope and
   no-raw-value boundary, and the source-controlled private evidence handoff now
   maps every remaining private/external blocker to its validator and private
-  renderer.
+  renderer with a checked-in redacted status report.
 
 ### ❌ Production-Blocked / External Evidence Still Required
 - EDI 837 clearinghouse claim submission remains blocked until payer or
