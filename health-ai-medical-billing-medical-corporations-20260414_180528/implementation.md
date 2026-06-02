@@ -280,6 +280,13 @@ residual-risk, training-scope, no-PHI, and source/license scope without
 storing raw documents, source paths, checksums, approval references, PHI, or
 secrets; the remaining corpus gate is an approved non-synthetic paired
 denial/appeal source with outside-source-control pair/source review.
+FastAPI startup now also fails fast in production if the production corpus
+evidence report is missing, unsafe, not ready, or has blocked requirement IDs.
+Production compose forwards `PRODUCTION_CORPUS_EVIDENCE_REPORT` with a
+repository-relative default, and the startup guard reports only metadata-level
+booleans and blocker IDs without raw documents, source text, source paths,
+checksums, private manifest paths, approval-reference values, PHI, secrets,
+report paths, or raw evidence values.
 User-data model-improvement evidence now also has a boolean-only template,
 validator, and checked-in report; the report is safe to review but not
 production-ready, and the PHIplan audit blocks until legal approval, BAA
@@ -968,6 +975,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   counts, no-raw-value flags, unsupported-field rejection, and count mismatch
   refusal, writes `0600` output, and reports redacted booleans/counts while
   preserving external non-synthetic-pair blockers
+- [x] Production corpus startup guard, conservative production compose
+  default, and PHIplan audit coverage for
+  `PRODUCTION_CORPUS_EVIDENCE_REPORT`, with metadata-only logging and
+  production fail-fast behavior until non-synthetic paired corpus evidence is
+  safe, ready, and unblocked
 - [x] Boolean-only user-data model-improvement evidence template, validator,
   and report wired into PHIplan production-readiness blockers
 - [x] Boolean-only prediction fairness monitoring evidence template, validator,
@@ -1756,6 +1768,12 @@ query indexes.
   private summary paths, approval references, pair ids, source paths, checksums,
   PHI, secrets, and production document content out of evidence and validator
   reports.
+- [x] Production startup guard added for `PRODUCTION_CORPUS_EVIDENCE_REPORT`.
+  Production startup now rejects missing, unsafe, unready, or blocked
+  production corpus evidence; production compose forwards the report path with
+  a repository-relative default and the guard omits raw documents, source text,
+  source paths, checksums, private manifest paths, approval references, PHI,
+  secrets, report paths, and raw evidence from logs and responses.
 - [ ] Configure real legal approval reference, BAA confirmation, and consent
   notice version before enabling user-data model improvement. Local progress:
   model-improvement evidence now requires the checked-in operator runbook at

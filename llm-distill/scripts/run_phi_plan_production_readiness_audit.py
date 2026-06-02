@@ -67,6 +67,9 @@ DEFAULT_SETTINGS = SimpleNamespace(
     CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT=(
         "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
     ),
+    PRODUCTION_CORPUS_EVIDENCE_REPORT=(
+        "llm-distill/evals/reports/production_corpus_evidence_report.json"
+    ),
     BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT=(
         "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json"
     ),
@@ -114,6 +117,9 @@ REQUIRED_PRODUCTION_COMPOSE_GUARD_DEFAULTS = {
     ),
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT": (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
+    ),
+    "PRODUCTION_CORPUS_EVIDENCE_REPORT": (
+        "llm-distill/evals/reports/production_corpus_evidence_report.json"
     ),
     "BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT": (
         "llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json"

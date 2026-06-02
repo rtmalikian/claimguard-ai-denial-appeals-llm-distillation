@@ -23,6 +23,9 @@ from app.utils.dependency_security_config import (
 )
 from app.utils.model_improvement import validate_model_improvement_startup_config
 from app.utils.prediction_fairness_config import validate_prediction_fairness_startup_config
+from app.utils.production_corpus_config import (
+    validate_production_corpus_startup_config,
+)
 from app.utils.retrieval_vector_config import validate_retrieval_vector_startup_config
 from app.utils.student_default_config import validate_student_default_startup_config
 from app.utils.error_responses import (
@@ -72,6 +75,7 @@ async def startup_event():
     validate_nvidia_startup_config()
     validate_model_improvement_startup_config()
     validate_prediction_fairness_startup_config()
+    validate_production_corpus_startup_config()
     validate_backup_disaster_recovery_startup_config()
     validate_dependency_security_startup_config()
     validate_clearinghouse_submission_startup_config()
