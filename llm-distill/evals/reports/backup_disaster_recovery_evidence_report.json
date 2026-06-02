@@ -1,0 +1,310 @@
+{
+  "artifact": "backup_disaster_recovery_evidence_validation_report",
+  "backup_disaster_recovery_ready": false,
+  "blocked_item_count": 6,
+  "blocked_items": [
+    {
+      "blockers": [
+        "off_repository_backup_storage_not_configured",
+        "backup_artifacts_not_encrypted_at_rest",
+        "scheduler_least_privilege_not_verified",
+        "backup_restore_access_not_reviewed",
+        "retention_period_not_approved"
+      ],
+      "evidence": {
+        "backup_artifacts_encrypted_at_rest": false,
+        "backup_restore_access_reviewed": false,
+        "off_repository_backup_storage_configured": false,
+        "retention_period_approved": false,
+        "scheduler_least_privilege_verified": false,
+        "values_redacted": true
+      },
+      "name": "Backup storage, encryption, scheduler, access, and retention controls are ready",
+      "requirement_id": "backup_disaster_recovery_storage_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "restore_verification_not_completed",
+        "restore_verification_not_metadata_only",
+        "disaster_recovery_smoke_not_completed",
+        "recovery_objectives_not_approved",
+        "rollback_restore_procedure_not_reviewed"
+      ],
+      "evidence": {
+        "disaster_recovery_smoke_completed": false,
+        "recovery_objectives_approved": false,
+        "restore_verification_completed": false,
+        "restore_verification_metadata_only": false,
+        "rollback_restore_procedure_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Restore verification and disaster-recovery smoke evidence are ready",
+      "requirement_id": "backup_disaster_recovery_restore_validation",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "encryption_key_recovery_not_tested",
+        "key_custody_not_reviewed"
+      ],
+      "evidence": {
+        "encryption_key_recovery_tested": false,
+        "key_custody_reviewed": false,
+        "no_key_values_in_evidence": true,
+        "values_redacted": true
+      },
+      "name": "Encryption-key recovery and custody controls are ready",
+      "requirement_id": "backup_disaster_recovery_key_recovery",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "metadata_only_audit_not_reviewed",
+        "incident_recording_without_phi_not_reviewed"
+      ],
+      "evidence": {
+        "incident_recording_without_phi_reviewed": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Backup/DR audit and incident-recording governance controls are ready",
+      "requirement_id": "backup_disaster_recovery_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_backup_summary_path_not_configured",
+        "private_backup_summary_not_checked",
+        "private_backup_summary_private_reference_count_missing",
+        "private_backup_summary_backup_artifact_count_missing",
+        "private_backup_summary_restore_verification_count_missing",
+        "private_backup_summary_key_recovery_artifact_count_missing",
+        "private_backup_summary_retention_policy_count_missing"
+      ],
+      "evidence": {
+        "private_backup_summary_backup_artifact_count": 0,
+        "private_backup_summary_checked": false,
+        "private_backup_summary_key_recovery_artifact_count": 0,
+        "private_backup_summary_path_configured": false,
+        "private_backup_summary_path_env": "CLAIMGUARD_BACKUP_DR_PRIVATE_SUMMARY_PATH",
+        "private_backup_summary_path_value_included": false,
+        "private_backup_summary_private_reference_count": 0,
+        "private_backup_summary_restore_verification_count": 0,
+        "private_backup_summary_retention_policy_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private backup/DR summary metadata is present without raw values",
+      "requirement_id": "backup_disaster_recovery_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "backup_disaster_recovery_ready is not true"
+      ],
+      "evidence": {
+        "backup_disaster_recovery_ready": false,
+        "values_redacted": true
+      },
+      "name": "Backup/DR evidence is explicitly marked ready",
+      "requirement_id": "backup_disaster_recovery_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "evidence": {
+    "evidence_path": "llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json",
+    "private_evidence_renderer": "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
+    "runbook": "health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md",
+    "values_redacted": true
+  },
+  "generated_at": "2026-06-02T05:47:44.468997+00:00",
+  "requirements": [
+    {
+      "blockers": [],
+      "evidence": {
+        "artifact": "claimguard_backup_disaster_recovery_evidence",
+        "evidence_status": "draft_not_production_ready",
+        "values_redacted": true,
+        "version_configured": true
+      },
+      "name": "Backup/DR evidence has the required structure",
+      "requirement_id": "backup_disaster_recovery_evidence_format",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "evidence_path": "llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json",
+        "forbidden_value_key_count": 0,
+        "no_backup_storage_values_attested": true,
+        "no_database_row_values_attested": true,
+        "no_encryption_key_values_attested": true,
+        "no_phi_or_secret_values_attested": true,
+        "phi_finding_count": 0,
+        "phi_finding_types": [],
+        "private_backup_summary_path_value_included_false": true,
+        "private_backup_summary_raw_values_included_false": true,
+        "values_redacted": true
+      },
+      "name": "Backup/DR evidence contains no PHI, secrets, backup paths, database rows, or key values",
+      "requirement_id": "backup_disaster_recovery_no_phi_secret_or_values",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "runbook_exists": true,
+        "runbook_inside_source_control": true,
+        "runbook_missing_marker_count": 0,
+        "runbook_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md",
+        "runbook_values_included": false,
+        "source_control_runbook_documented": true,
+        "values_redacted": true
+      },
+      "name": "Source-controlled backup/DR runbook has required safety markers",
+      "requirement_id": "backup_disaster_recovery_runbook",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "phi_finding_count": 0,
+        "private_evidence_renderer_exists": true,
+        "private_evidence_renderer_inside_source_control": true,
+        "private_evidence_renderer_missing_marker_count": 0,
+        "private_evidence_renderer_path": "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
+        "private_evidence_renderer_values_included": false,
+        "source_control_private_evidence_renderer_documented": true,
+        "values_redacted": true
+      },
+      "name": "Private backup/DR evidence renderer exists with no-source-control and redaction markers",
+      "requirement_id": "backup_disaster_recovery_private_evidence_renderer",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "off_repository_backup_storage_not_configured",
+        "backup_artifacts_not_encrypted_at_rest",
+        "scheduler_least_privilege_not_verified",
+        "backup_restore_access_not_reviewed",
+        "retention_period_not_approved"
+      ],
+      "evidence": {
+        "backup_artifacts_encrypted_at_rest": false,
+        "backup_restore_access_reviewed": false,
+        "off_repository_backup_storage_configured": false,
+        "retention_period_approved": false,
+        "scheduler_least_privilege_verified": false,
+        "values_redacted": true
+      },
+      "name": "Backup storage, encryption, scheduler, access, and retention controls are ready",
+      "requirement_id": "backup_disaster_recovery_storage_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "restore_verification_not_completed",
+        "restore_verification_not_metadata_only",
+        "disaster_recovery_smoke_not_completed",
+        "recovery_objectives_not_approved",
+        "rollback_restore_procedure_not_reviewed"
+      ],
+      "evidence": {
+        "disaster_recovery_smoke_completed": false,
+        "recovery_objectives_approved": false,
+        "restore_verification_completed": false,
+        "restore_verification_metadata_only": false,
+        "rollback_restore_procedure_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Restore verification and disaster-recovery smoke evidence are ready",
+      "requirement_id": "backup_disaster_recovery_restore_validation",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "encryption_key_recovery_not_tested",
+        "key_custody_not_reviewed"
+      ],
+      "evidence": {
+        "encryption_key_recovery_tested": false,
+        "key_custody_reviewed": false,
+        "no_key_values_in_evidence": true,
+        "values_redacted": true
+      },
+      "name": "Encryption-key recovery and custody controls are ready",
+      "requirement_id": "backup_disaster_recovery_key_recovery",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "metadata_only_audit_not_reviewed",
+        "incident_recording_without_phi_not_reviewed"
+      ],
+      "evidence": {
+        "incident_recording_without_phi_reviewed": false,
+        "metadata_only_audit_reviewed": false,
+        "values_redacted": true
+      },
+      "name": "Backup/DR audit and incident-recording governance controls are ready",
+      "requirement_id": "backup_disaster_recovery_governance_controls",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "private_backup_summary_path_not_configured",
+        "private_backup_summary_not_checked",
+        "private_backup_summary_private_reference_count_missing",
+        "private_backup_summary_backup_artifact_count_missing",
+        "private_backup_summary_restore_verification_count_missing",
+        "private_backup_summary_key_recovery_artifact_count_missing",
+        "private_backup_summary_retention_policy_count_missing"
+      ],
+      "evidence": {
+        "private_backup_summary_backup_artifact_count": 0,
+        "private_backup_summary_checked": false,
+        "private_backup_summary_key_recovery_artifact_count": 0,
+        "private_backup_summary_path_configured": false,
+        "private_backup_summary_path_env": "CLAIMGUARD_BACKUP_DR_PRIVATE_SUMMARY_PATH",
+        "private_backup_summary_path_value_included": false,
+        "private_backup_summary_private_reference_count": 0,
+        "private_backup_summary_restore_verification_count": 0,
+        "private_backup_summary_retention_policy_count": 0,
+        "values_redacted": true
+      },
+      "name": "Private backup/DR summary metadata is present without raw values",
+      "requirement_id": "backup_disaster_recovery_private_summary_metadata",
+      "status": "blocked",
+      "warnings": []
+    },
+    {
+      "blockers": [
+        "backup_disaster_recovery_ready is not true"
+      ],
+      "evidence": {
+        "backup_disaster_recovery_ready": false,
+        "values_redacted": true
+      },
+      "name": "Backup/DR evidence is explicitly marked ready",
+      "requirement_id": "backup_disaster_recovery_ready_flag",
+      "status": "blocked",
+      "warnings": []
+    }
+  ],
+  "safe_to_review": true
+}

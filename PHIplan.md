@@ -649,6 +649,21 @@ plan plus the active ClaimGuard `AGENTS.md`.
   testing, disaster recovery sequence, recovery objectives, and pre-production
   evidence checks without adding backup artifacts, credentials, PHI, production
   EDI files, raw documents, or production data to the repository.
+- Add a boolean-only backup/disaster-recovery evidence gate at
+  `llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json`
+  with validation in
+  `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py` and a
+  private renderer at
+  `llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py`.
+  The checked-in report at
+  `llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json`
+  is safe to review and keeps `backup_disaster_recovery_ready=false` until
+  off-repository encrypted backup storage, metadata-only restore verification,
+  encryption-key recovery, retention approval, disaster-recovery smoke
+  evidence, governance review, and private aggregate summary counts are
+  completed outside source control. The PHIplan production-readiness audit now
+  consumes this report as a private/external production blocker without
+  changing the conservative current runtime state.
 - Add public GitHub documentation drift validation with
   `llm-distill/scripts/validate_public_repo_docs.py`. The validator checks that
   `README.md` links to
@@ -1454,6 +1469,15 @@ plan plus the active ClaimGuard `AGENTS.md`.
   role-scoped retention/deletion and audit-dashboard coverage in code, and
   refresh `llm-distill/evals/reports/file_ingestion_surface_audit_report.json`
   before treating it as a production document repository.
+- Complete off-repository backup/disaster-recovery evidence before production
+  approval: configure encrypted backup storage outside source control, verify
+  restore without row-level output, test encryption-key recovery, approve
+  retention and recovery objectives, complete disaster-recovery smoke checks,
+  render private boolean-only evidence with
+  `llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py`,
+  then rerun
+  `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py` and the
+  PHIplan production-readiness audit.
 - Obtain and configure real legal approval reference, BAA confirmation, and
   consent notice version, then rerun
   `llm-distill/scripts/validate_model_improvement_evidence.py`, before enabling
@@ -2241,3 +2265,18 @@ from
 and remove
 `health-ai-medical-billing-medical-corporations-20260414_180528/alembic/versions/20260601_222245_expand_claim_status_workflow.py`
 if rolling back the expanded claim-status workflow slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`,
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json`, and
+`docs/technical-llm-distillation-analysis.md` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-223239-backup-dr-evidence-gate/`;
+remove
+`llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json`,
+`llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`,
+`llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py`,
+`llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json`, and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_backup_disaster_recovery_evidence.py`
+if rolling back the backup/disaster-recovery evidence gate slice.

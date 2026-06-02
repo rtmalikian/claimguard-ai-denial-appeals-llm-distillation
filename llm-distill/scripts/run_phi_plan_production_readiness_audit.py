@@ -31,6 +31,9 @@ DEFAULT_PRODUCTION_CORPUS_EVIDENCE_REPORT = REPORT_DIR / "production_corpus_evid
 DEFAULT_MODEL_IMPROVEMENT_EVIDENCE_REPORT = REPORT_DIR / "model_improvement_evidence_report.json"
 DEFAULT_FILE_INGESTION_SURFACE_REPORT = REPORT_DIR / "file_ingestion_surface_audit_report.json"
 DEFAULT_PREDICTION_FAIRNESS_EVIDENCE_REPORT = REPORT_DIR / "prediction_fairness_evidence_report.json"
+DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT = (
+    REPORT_DIR / "backup_disaster_recovery_evidence_report.json"
+)
 DEFAULT_PRODUCTION_COMPOSE = APP_ROOT / "docker-compose.production.yml"
 DEFAULT_MONITORING_MODULE = APP_ROOT / "app" / "api" / "v1" / "monitoring.py"
 
@@ -160,6 +163,7 @@ PRIVATE_OR_EXTERNAL_BLOCKER_REQUIREMENT_IDS = {
     "production_semantic_vector_backend",
     "production_corpus_expansion_beyond_synthetic",
     "production_prediction_fairness_monitoring",
+    "backup_disaster_recovery_evidence",
 }
 SOURCE_CONTROL_READY_REQUIREMENT_IDS = {
     "current_runtime_default_safe",
@@ -822,6 +826,44 @@ def prediction_fairness_monitoring_requirement(
     )
 
 
+def backup_disaster_recovery_requirement(
+    backup_disaster_recovery_report_path: Path | None = DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT,
+) -> dict[str, Any]:
+    report_path: str | None = None
+    report_safe_to_review: bool | None = None
+    report_ready: bool | None = None
+    report_blocked_requirement_ids: list[str] = []
+    errors: list[str] = []
+    if backup_disaster_recovery_report_path is not None:
+        report_path = safe_report_path(backup_disaster_recovery_report_path)
+        backup_report, backup_errors = load_json(backup_disaster_recovery_report_path)
+        errors.extend(backup_errors)
+        if isinstance(backup_report, dict):
+            report_safe_to_review = bool(backup_report.get("safe_to_review"))
+            report_ready = bool(backup_report.get("backup_disaster_recovery_ready"))
+            report_blocked_requirement_ids = blocked_requirement_ids_from_report(backup_report)
+
+    blockers: list[str] = list(errors)
+    if report_ready is False:
+        blockers.append("backup_disaster_recovery_evidence_report_not_ready")
+    if report_safe_to_review is False:
+        blockers.append("backup_disaster_recovery_evidence_report_not_safe_to_review")
+
+    return requirement(
+        requirement_id="backup_disaster_recovery_evidence",
+        name="Backup and disaster-recovery evidence is ready",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "backup_disaster_recovery_report_path": report_path,
+            "backup_disaster_recovery_report_safe_to_review": report_safe_to_review,
+            "backup_disaster_recovery_report_ready": report_ready,
+            "backup_disaster_recovery_blocked_requirement_ids": report_blocked_requirement_ids,
+            "values_redacted": True,
+        },
+    )
+
+
 def vector_backend_requirement(
     settings_like: Any,
     vector_backend_report_path: Path | None = None,
@@ -1171,6 +1213,12 @@ def build_next_required_actions(requirements: list[dict[str, Any]]) -> list[str]
             "grouping review, monitoring ownership, latest run evidence, legal/privacy review, "
             "and boolean-only evidence from validate_prediction_fairness_evidence.py are complete."
         )
+    if "backup_disaster_recovery_evidence" in blocked_ids:
+        actions.append(
+            "Keep PHIplan production readiness blocked until off-repository encrypted backup storage, "
+            "metadata-only restore verification, encryption-key recovery, retention approval, disaster-recovery "
+            "smoke evidence, and boolean-only evidence from validate_backup_disaster_recovery_evidence.py are complete."
+        )
     if "file_ingestion_surface_audit_ready" in blocked_ids:
         actions.append(
             "Run llm-distill/scripts/audit_file_ingestion_surfaces.py and keep every UploadFile/File "
@@ -1292,6 +1340,7 @@ def build_report(
     model_improvement_report_path: Path | None = None,
     file_ingestion_surface_report_path: Path = DEFAULT_FILE_INGESTION_SURFACE_REPORT,
     prediction_fairness_report_path: Path | None = DEFAULT_PREDICTION_FAIRNESS_EVIDENCE_REPORT,
+    backup_disaster_recovery_report_path: Path | None = DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT,
     production_compose_path: Path = DEFAULT_PRODUCTION_COMPOSE,
     monitoring_module_path: Path = DEFAULT_MONITORING_MODULE,
 ) -> dict[str, Any]:
@@ -1314,6 +1363,7 @@ def build_report(
             production_corpus_report_path=production_corpus_report_path,
         ),
         prediction_fairness_monitoring_requirement(prediction_fairness_report_path),
+        backup_disaster_recovery_requirement(backup_disaster_recovery_report_path),
         synthetic_900_adapter_requirement(synthetic_900_run_report_path),
         external_phi_service_guard_requirement(settings_like),
     ]
@@ -1417,6 +1467,11 @@ def main() -> int:
     parser.add_argument("--model-improvement-report", type=Path, default=DEFAULT_MODEL_IMPROVEMENT_EVIDENCE_REPORT)
     parser.add_argument("--file-ingestion-surface-report", type=Path, default=DEFAULT_FILE_INGESTION_SURFACE_REPORT)
     parser.add_argument("--prediction-fairness-report", type=Path, default=DEFAULT_PREDICTION_FAIRNESS_EVIDENCE_REPORT)
+    parser.add_argument(
+        "--backup-disaster-recovery-report",
+        type=Path,
+        default=DEFAULT_BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT,
+    )
     parser.add_argument("--production-compose", type=Path, default=DEFAULT_PRODUCTION_COMPOSE)
     parser.add_argument("--monitoring-module", type=Path, default=DEFAULT_MONITORING_MODULE)
     parser.add_argument("--fail-on-blocked", action="store_true")
@@ -1434,6 +1489,7 @@ def main() -> int:
         model_improvement_report_path=args.model_improvement_report,
         file_ingestion_surface_report_path=args.file_ingestion_surface_report,
         prediction_fairness_report_path=args.prediction_fairness_report,
+        backup_disaster_recovery_report_path=args.backup_disaster_recovery_report,
         production_compose_path=args.production_compose,
         monitoring_module_path=args.monitoring_module,
     )

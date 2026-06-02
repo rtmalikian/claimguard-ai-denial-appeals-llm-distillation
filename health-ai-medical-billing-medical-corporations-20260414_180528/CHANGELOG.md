@@ -2,6 +2,70 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 22:45:24 PDT - Backup and disaster-recovery evidence gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a boolean-only backup/disaster-recovery production evidence gate
+  for off-repository encrypted backup storage, metadata-only restore
+  verification, encryption-key recovery, retention approval, and
+  disaster-recovery smoke evidence without storing backup paths, database rows,
+  key material, PHI, secrets, or production content in source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-223239-backup-dr-evidence-gate/root/PHIplan.md.bak` | Documented the backup/DR evidence gate, remaining private production work, and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `docs/backup-disaster-recovery.md` | `backups/20260601-223239-backup-dr-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md.bak` | Added explicit `backup_disaster_recovery_ready=false` and restore-no-row-output markers for machine validation. | Restore backup over `docs/backup-disaster-recovery.md`. |
+| `implementation.md` | `backups/20260601-223239-backup-dr-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and operational-security checklist for backup/DR evidence validation. | Restore backup over `implementation.md`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260601-223239-backup-dr-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added backup/DR evidence fixtures and assertions to PHIplan production-readiness audit tests. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-223239-backup-dr-evidence-gate/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added backup/DR evidence as a private/external production blocker while preserving `safe_current_state=true` semantics. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-223239-backup-dr-evidence-gate/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence to show seven private/external blockers and one warning. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-223239-backup-dr-evidence-gate/docs/technical-llm-distillation-analysis.md.bak` | Updated public technical breakdown counts and tool list for the backup/DR gate. | Restore backup over `../docs/technical-llm-distillation-analysis.md`. |
+| `CHANGELOG.md` | `backups/20260601-223239-backup-dr-evidence-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-223239-backup-dr-evidence-gate/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Files Added
+- `../llm-distill/data/backup_disaster_recovery_evidence/backup_disaster_recovery_evidence.template.json`
+- `../llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json`
+- `../llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`
+- `../llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py`
+- `tests/unit/test_backup_disaster_recovery_evidence.py`
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/validate_backup_disaster_recovery_evidence.py llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_backup_disaster_recovery_evidence.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_backup_disaster_recovery_evidence.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 18 tests with one existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`: passed with `backup_disaster_recovery_ready=false`, `safe_to_review=true`, and `blocked_item_count=6`.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=7`, and `warning_item_count=1`.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-backup-dr-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, and no blocked requirements.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+
+### Failed Or Avoided Approaches
+- Avoided storing backup paths, private summary paths, restore output,
+  database rows, encryption-key values, scheduler details, approval references,
+  PHI, credentials, or production document content in source control.
+- Avoided marking PHIplan production readiness complete from documentation or
+  template evidence alone; the new gate remains blocked until private
+  off-repository operational evidence exists.
+- Avoided making backup/DR readiness a `safe_current_state` blocker because
+  the current conservative runtime defaults are still safe while production
+  approval remains blocked.
+- Corrective note: the initial backup list missed
+  `tests/unit/test_phi_plan_production_readiness_audit.py`; a rollback backup
+  was created from `HEAD` in the same backup directory before completion and is
+  documented above.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-223239-backup-dr-evidence-gate/` and remove the five added
+  backup/DR evidence files listed above.
+- This slice strengthens PHIplan production evidence governance; it does not
+  approve production backup operations, student default routing, user-data
+  model improvement, production vector retrieval, non-synthetic corpus
+  training, or production fairness monitoring.
+
 ## 2026-06-01 22:22:45 PDT - Expanded claim-status workflow
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

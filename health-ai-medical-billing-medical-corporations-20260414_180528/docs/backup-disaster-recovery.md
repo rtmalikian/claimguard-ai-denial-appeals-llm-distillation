@@ -15,6 +15,12 @@ depends on the manual production-gate packet, legal/BAA/consent evidence,
 student runtime cutover approval, production vector backend evidence, and
 approved non-synthetic corpus evidence.
 
+Current evidence status: `backup_disaster_recovery_ready=false` until
+off-repository encrypted backup storage, metadata-only restore verification,
+encryption-key recovery, retention approval, disaster-recovery smoke evidence,
+and private boolean-only backup/DR summary counts are validated outside source
+control.
+
 ## Storage Rules
 
 - Store backup output outside this repository, outside `backups/`, and outside
@@ -87,6 +93,7 @@ requirements before production use.
 
 Every scheduled backup cycle must verify that the backup file can be read and
 restored into an isolated database. Verification must not print row-level data.
+Restore verification must not print table rows.
 
 Safe verification commands:
 
@@ -174,4 +181,3 @@ targets for a production candidate:
 - [ ] Retention period has legal and operational approval.
 - [ ] PHIplan production-readiness audit is rerun after backup evidence is
   approved.
-

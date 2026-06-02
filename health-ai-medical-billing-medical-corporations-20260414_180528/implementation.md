@@ -468,6 +468,14 @@ runbook covering automated PostgreSQL dump procedure, off-repository encrypted
 storage rules, restore verification, recovery sequence, recovery objectives,
 and pre-production evidence without storing backup artifacts, credentials, PHI,
 or production document content in the repository.
+Backup/disaster-recovery readiness now also has a boolean-only evidence
+template, validator, private evidence renderer, and checked-in report. The
+PHIplan production-readiness audit consumes this report as a private/external
+production blocker while keeping the conservative current runtime state safe;
+the report remains not ready until off-repository encrypted storage,
+metadata-only restore verification, key recovery, retention approval,
+disaster-recovery smoke evidence, governance review, and private aggregate
+summary counts are complete outside source control.
 The public GitHub-facing README now links to a technical LLM distillation
 breakdown with analysis statistics and tools used, and the repository includes
 a public-doc validator that checks the link, section headings, report links,
@@ -1119,6 +1127,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Backup and disaster recovery runbook with off-repository encrypted
   backup storage rules, automated dump procedure, restore verification, and
   metadata-only evidence guidance
+- [x] Boolean-only backup/disaster-recovery evidence template, validator,
+  private evidence renderer, checked-in safe-but-blocked report, and PHIplan
+  production-readiness audit linkage for off-repository backup/restore/key
+  recovery evidence
 - [x] Public GitHub README link to a technical LLM distillation breakdown with
   analysis statistics and tools used, plus validator coverage for link
   presence, report links, aggregate stats, tool markers, attribution, and
@@ -2139,6 +2151,14 @@ seed can be treated as comprehensive.
 - [x] Automated database backup procedure documented in `docs/backup-disaster-recovery.md`
 - [x] Disaster recovery plan documented in `docs/backup-disaster-recovery.md`
 - [x] Backup verification documented in `docs/backup-disaster-recovery.md`
+- [x] Boolean-only backup/disaster-recovery evidence validation added through
+  `llm-distill/scripts/validate_backup_disaster_recovery_evidence.py`, with a
+  private renderer for final off-repository backup, restore, key-recovery,
+  retention, and disaster-recovery smoke evidence
+- [ ] Production backup/disaster-recovery evidence remains blocked until
+  private encrypted backup storage, restore verification, key recovery,
+  retention approval, and disaster-recovery smoke evidence are complete outside
+  source control
 
 ### 1.2 Dependency Vulnerabilities
 | Package | Issue |

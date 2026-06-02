@@ -1,0 +1,49 @@
+{
+  "artifact": "claimguard_backup_disaster_recovery_evidence",
+  "version": "1.0",
+  "evidence_status": "draft_not_production_ready",
+  "prepared_by": "ClaimGuard AI architected by Raphael Malikian <rtmalikian@gmail.com>",
+  "prepared_at": "2026-06-01T00:00:00Z",
+  "backup_disaster_recovery_ready": false,
+  "no_phi_or_secret_values_attested": true,
+  "no_backup_storage_values_attested": true,
+  "no_database_row_values_attested": true,
+  "no_encryption_key_values_attested": true,
+  "private_backup_summary_path_env": "CLAIMGUARD_BACKUP_DR_PRIVATE_SUMMARY_PATH",
+  "private_backup_summary_path_configured": false,
+  "private_backup_summary_path_value_included": false,
+  "private_backup_summary_checked": false,
+  "private_backup_summary_private_reference_count": 0,
+  "private_backup_summary_backup_artifact_count": 0,
+  "private_backup_summary_restore_verification_count": 0,
+  "private_backup_summary_key_recovery_artifact_count": 0,
+  "private_backup_summary_retention_policy_count": 0,
+  "private_backup_summary_raw_values_included": false,
+  "backup_storage_controls": {
+    "off_repository_backup_storage_configured": false,
+    "backup_artifacts_encrypted_at_rest": false,
+    "scheduler_least_privilege_verified": false,
+    "backup_restore_access_reviewed": false,
+    "retention_period_approved": false
+  },
+  "restore_validation_controls": {
+    "restore_verification_completed": false,
+    "restore_verification_metadata_only": false,
+    "disaster_recovery_smoke_completed": false,
+    "recovery_objectives_approved": false,
+    "rollback_restore_procedure_reviewed": false
+  },
+  "key_recovery_controls": {
+    "encryption_key_recovery_tested": false,
+    "key_custody_reviewed": false,
+    "no_key_values_in_evidence": true
+  },
+  "governance_controls": {
+    "source_control_runbook_documented": true,
+    "runbook_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md",
+    "source_control_private_evidence_renderer_documented": true,
+    "private_evidence_renderer_path": "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
+    "metadata_only_audit_reviewed": false,
+    "incident_recording_without_phi_reviewed": false
+  }
+}
