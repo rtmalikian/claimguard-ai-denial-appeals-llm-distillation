@@ -79,7 +79,7 @@
     }
   },
   "letter_count": 1800,
-  "manifest_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+  "manifest_path": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
   "notes": [
     "Fictitious payer and provider organization names are synthetic.",
     "Patient, authorization, and coverage context uses placeholders rather than real identifiers.",
@@ -87,14 +87,14 @@
     "Each text file includes a synthetic formatting profile documenting intended layout, typography, format family, and length variation.",
     "Font variation is represented as metadata so the training corpus remains plain text and PHI-scannable."
   ],
-  "output_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+  "output_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
   "pair_count": 900,
   "phi_scan": {
     "finding_count": 0,
     "findings": [],
     "values_redacted": true
   },
-  "readme_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/README.md",
+  "readme_path": "llm-distill/data/corpus/generated_synthetic_pairs/README.md",
   "safety": {
     "external_model_calls_made": false,
     "real_claim_data_used": false,

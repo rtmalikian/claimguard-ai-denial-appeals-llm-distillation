@@ -842,6 +842,9 @@ def resolve_report_path(raw_path: str, base_dir: Path) -> Path:
     path = Path(raw_path)
     if path.is_absolute():
         return path
+    repo_candidate = (REPO_ROOT / path).resolve()
+    if repo_candidate.exists():
+        return repo_candidate
     return (base_dir / path).resolve()
 
 

@@ -4,7 +4,7 @@
   "blockers": [],
   "evidence": {
     "checksum_mismatch_count": 0,
-    "corpus_dir": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs",
+    "corpus_dir": "llm-distill/data/corpus/generated_synthetic_pairs",
     "counts": {
       "document_role": {
         "appeal_letter": 900,
@@ -68,14 +68,14 @@
       "real_patient_data_used": false,
       "synthetic_only": true
     },
-    "source_manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
+    "source_manifest": "llm-distill/data/corpus/generated_synthetic_pairs/manifest_synthetic_900.json",
     "source_record_count": 1800,
     "variant_counts": {
       "font_family": 8,
       "layout_profile": 12,
       "typography_profile": 8
     },
-    "visual_manifest": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/corpus/generated_synthetic_pairs/visual_manifest_synthetic_900.json",
+    "visual_manifest": "llm-distill/data/corpus/generated_synthetic_pairs/visual_manifest_synthetic_900.json",
     "visual_record_count": 1800
   },
   "generated_at": "2026-05-31T02:55:48.092113+00:00",

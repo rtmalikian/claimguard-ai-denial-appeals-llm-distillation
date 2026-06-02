@@ -218,6 +218,15 @@ write through the same sanitizer. That keeps future regenerated eval reports
 from reintroducing local workstation paths before the batch `--check` gate
 runs.
 
+The generated synthetic corpus reports and seed MLX SFT artifacts use the same
+public-path posture. `generation_report.json`, `visual_render_report.json`,
+`llm-distill/data/distillation/mlx_sft_seed/manifest.json`, and
+`train_lora_command.txt` publish repository-relative paths for checked-in
+manifest, data, source, and adapter references, while the audit resolvers still
+validate the corresponding files in the repository. The GitHub docs validator
+checks these four public artifacts, the README screenshot references, and the
+README link to this technical breakdown.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit

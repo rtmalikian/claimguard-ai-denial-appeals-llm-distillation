@@ -5,12 +5,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT = (
     REPO_ROOT / "llm-distill" / "data" / "distillation" / "seed_synthetic_supervised.jsonl"
 )
@@ -33,6 +35,22 @@ REQUIRED_RECORD_KEYS = {
 }
 TRAINING_APPROVED_STATUSES = {"large_teacher_reviewed", "human_reviewed"}
 REQUIRED_MICRO_SKILLS = {f"MS{index:02d}" for index in range(1, 13)}
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import (  # noqa: E402
+    sanitize_report_string,
+    write_sanitized_report_json,
+)
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -167,9 +185,16 @@ def build_train_command(
     ]
 
 
+def public_command(command: list[str]) -> list[str]:
+    return [sanitize_report_string(item, REPO_ROOT) for item in command]
+
+
 def write_command_file(path: Path, train_command: list[str], training_allowed: bool) -> None:
     status = "training_allowed" if training_allowed else "review_required_do_not_run"
-    wrapped = " \\\n  ".join(train_command)
+    public_output = path_is_within(path, REPO_ROOT)
+    command = public_command(train_command) if public_output else train_command
+    wrapped = " \\\n  ".join(command)
+    run_context_lines = ["Run from the repository root:", ""] if public_output else []
     path.write_text(
         "\n".join(
             [
@@ -183,6 +208,7 @@ def write_command_file(path: Path, train_command: list[str], training_allowed: b
                 "",
                 "Training command:",
                 "",
+                *run_context_lines,
                 wrapped,
                 "",
                 "Do not run this command on pending seed labels. Replace labels with reviewed large-teacher or human-approved outputs first.",
@@ -256,7 +282,10 @@ def write_manifest(
             "Use --mask-prompt so loss is applied to the assistant completion for chat SFT.",
         ],
     }
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    if path_is_within(path, REPO_ROOT):
+        write_sanitized_report_json(path, payload, REPO_ROOT)
+    else:
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def main() -> int:

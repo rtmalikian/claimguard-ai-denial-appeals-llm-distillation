@@ -27,6 +27,15 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from run_phi_scan import scan_text  # noqa: E402
+from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 TYPOGRAPHY_STYLES: dict[str, dict[str, str | int]] = {
@@ -423,7 +432,10 @@ def render_visual_layouts(
             "HTML files are local no-PHI artifacts for layout and OCR-style stress testing.",
         ],
     }
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    if path_is_within(report_path, REPO_ROOT):
+        write_sanitized_report_json(report_path, report, REPO_ROOT)
+    else:
+        report_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
     return report
 
 

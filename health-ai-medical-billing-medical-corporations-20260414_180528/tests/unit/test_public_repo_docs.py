@@ -25,6 +25,8 @@ def test_public_readme_links_technical_distillation_breakdown_with_stats_and_too
     assert report["blockers"] == []
     assert report["evidence"]["readme_links_technical_breakdown"] is True
     assert report["evidence"]["architect_attribution_present"] is True
+    assert report["evidence"]["readme_screenshot_count"] == 3
+    assert report["evidence"]["public_generated_artifact_count"] == 4
     assert report["evidence"]["required_tool_marker_count"] >= 10
     assert report["evidence"]["expected_stat_count"] >= 20
     assert report["evidence"]["values_redacted"] is True

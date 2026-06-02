@@ -16,6 +16,17 @@ ARCHITECT_EMAIL_LOCAL = "rtmalikian"
 ARCHITECT_EMAIL_DOMAIN = "gmail.com"
 README_PATH = Path("README.md")
 TECHNICAL_DOC_PATH = Path("docs/technical-llm-distillation-analysis.md")
+README_SCREENSHOT_PATHS = (
+    Path("docs/screenshots/claimguard-login.png"),
+    Path("docs/screenshots/claimguard-claim-analysis.png"),
+    Path("docs/screenshots/claimguard-denial-workflow.png"),
+)
+PUBLIC_GENERATED_ARTIFACT_PATHS = (
+    Path("llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json"),
+    Path("llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json"),
+    Path("llm-distill/data/distillation/mlx_sft_seed/manifest.json"),
+    Path("llm-distill/data/distillation/mlx_sft_seed/train_lora_command.txt"),
+)
 
 REQUIRED_README_MARKERS = (
     "Healthcare Claim Denial Prediction",
@@ -192,6 +203,39 @@ def _validate_no_sensitive_values(
             blockers.append(f"{relative_path}:private_or_phi_pattern:{label}")
 
 
+def _validate_existing_referenced_files(
+    blockers: list[str],
+    repo_root: Path,
+    readme_text: str,
+) -> None:
+    if str(TECHNICAL_DOC_PATH) in readme_text and not (repo_root / TECHNICAL_DOC_PATH).is_file():
+        blockers.append(f"README.md:broken_link:{TECHNICAL_DOC_PATH}")
+    for screenshot_path in README_SCREENSHOT_PATHS:
+        if str(screenshot_path) not in readme_text:
+            blockers.append(f"README.md:missing_screenshot_link:{screenshot_path}")
+        elif not (repo_root / screenshot_path).is_file():
+            blockers.append(f"README.md:broken_screenshot_link:{screenshot_path}")
+
+
+def _validate_public_generated_artifacts(
+    blockers: list[str],
+    repo_root: Path,
+) -> int:
+    checked_count = 0
+    for artifact_path in PUBLIC_GENERATED_ARTIFACT_PATHS:
+        full_path = repo_root / artifact_path
+        if not full_path.is_file():
+            blockers.append(f"missing:{artifact_path}")
+            continue
+        checked_count += 1
+        _validate_no_sensitive_values(
+            blockers,
+            artifact_path,
+            full_path.read_text(encoding="utf-8"),
+        )
+    return checked_count
+
+
 def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
     blockers: list[str] = []
     repo_root = repo_root.resolve()
@@ -219,6 +263,7 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
         blockers.append(f"{TECHNICAL_DOC_PATH}:missing_architect_attribution")
 
     _append_missing_markers(blockers, readme_text, REQUIRED_README_MARKERS, "README.md:missing_marker")
+    _validate_existing_referenced_files(blockers, repo_root, readme_text)
     _append_missing_markers(
         blockers,
         technical_text,
@@ -240,6 +285,7 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
 
     _validate_no_sensitive_values(blockers, README_PATH, readme_text)
     _validate_no_sensitive_values(blockers, TECHNICAL_DOC_PATH, technical_text)
+    public_generated_artifact_count = _validate_public_generated_artifacts(blockers, repo_root)
 
     expected_stats = _collect_expected_stats(repo_root)
     for stat_name, expected_value in expected_stats.items():
@@ -261,6 +307,8 @@ def validate_public_docs(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
             "readme_links_technical_breakdown": "docs/technical-llm-distillation-analysis.md"
             in readme_text,
             "architect_attribution_present": readme_has_architect and technical_doc_has_architect,
+            "readme_screenshot_count": len(README_SCREENSHOT_PATHS),
+            "public_generated_artifact_count": public_generated_artifact_count,
             "required_tool_marker_count": len(REQUIRED_TOOL_MARKERS),
             "expected_stat_count": len(expected_stats),
             "values_redacted": True,

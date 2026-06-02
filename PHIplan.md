@@ -801,6 +801,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   plus `visual_render_report.json` with 1,800 rendered HTML files, eight font
   family variants, twelve layout variants, eight typography variants, and zero
   PHI/PII findings.
+- Sanitize generated public artifact paths for the synthetic corpus reports and
+  seed MLX SFT manifest/command. `generation_report.json`,
+  `visual_render_report.json`, `llm-distill/data/distillation/mlx_sft_seed/manifest.json`,
+  and `train_lora_command.txt` now publish repository-relative source,
+  manifest, data, and adapter paths. The corpus audit and distillation
+  readiness resolvers first honor repository-relative paths before falling back
+  to report-local paths, so validation still inspects the real checked-in
+  artifacts without exposing local workstation paths in GitHub-facing files.
 - Add a full generated-corpus format and variation audit at
   `llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` with checked-in
   evidence at

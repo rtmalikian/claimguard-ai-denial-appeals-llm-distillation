@@ -2,6 +2,61 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 17:01:23 PDT - Public generated artifact path hygiene
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: keep GitHub-facing synthetic corpus reports, visual layout evidence,
+  and seed MLX SFT artifacts free of local workstation paths while preserving
+  temporary local fixture behavior and current approval gates.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py` | Writes source-controlled generation reports through the sanitizer while leaving out-of-repo temporary outputs fully resolvable. | Restore backup over the same path. |
+| `../llm-distill/scripts/render_synthetic_corpus_visual_layouts.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/render_synthetic_corpus_visual_layouts.py` | Applies the same conditional sanitized write behavior to visual layout reports. | Restore backup over the same path. |
+| `../llm-distill/scripts/prepare_mlx_sft_data.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/prepare_mlx_sft_data.py` | Sanitizes source-controlled seed SFT manifests and command files while preserving temporary local paths outside source control. | Restore backup over the same path. |
+| `../llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` | Resolves repository-relative public report paths before falling back to report-local paths. | Restore backup over the same path. |
+| `../llm-distill/scripts/run_distillation_readiness_audit.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/run_distillation_readiness_audit.py` | Resolves repository-relative generation-report paths during top-level readiness checks. | Restore backup over the same path. |
+| `../llm-distill/scripts/validate_public_repo_docs.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/scripts/validate_public_repo_docs.py` | Added README screenshot/link checks and local-path checks for four public generated artifacts. | Restore backup over the same path. |
+| `tests/unit/test_public_repo_docs.py` | `backups/20260601-165543-public-generated-artifact-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_public_repo_docs.py` | Verifies public-doc evidence includes three screenshots and four generated artifacts. | Restore backup over the same path. |
+| `../llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json` | Converted checked-in manifest, output, and README paths to repository-relative values. | Restore backup over the same path. |
+| `../llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json` | Converted checked-in corpus, source-manifest, and visual-manifest paths to repository-relative values. | Restore backup over the same path. |
+| `../llm-distill/data/distillation/mlx_sft_seed/manifest.json` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/data/distillation/mlx_sft_seed/manifest.json` | Converted checked-in source-data, data-dir, and adapter references to repository-relative values without changing `training_allowed=false`. | Restore backup over the same path. |
+| `../llm-distill/data/distillation/mlx_sft_seed/train_lora_command.txt` | `backups/20260601-165543-public-generated-artifact-path-hygiene/llm-distill/data/distillation/mlx_sft_seed/train_lora_command.txt` | Converted the example command to repository-relative paths and documented that it runs from repo root. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-165543-public-generated-artifact-path-hygiene/PHIplan.md` | Documented generated public artifact path hygiene. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-165543-public-generated-artifact-path-hygiene/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the LLM distillation analysis breakdown. | Restore backup over the same path. |
+| `CHANGELOG.md` | `backups/20260601-165543-public-generated-artifact-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-165543-public-generated-artifact-path-hygiene/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-165543-public-generated-artifact-path-hygiene -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py ../llm-distill/scripts/render_synthetic_corpus_visual_layouts.py ../llm-distill/scripts/prepare_mlx_sft_data.py ../llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py ../llm-distill/scripts/run_distillation_readiness_audit.py ../llm-distill/scripts/validate_public_repo_docs.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_public_repo_docs.py tests/unit/test_synthetic_corpus_generator.py tests/unit/test_synthetic_corpus_visual_layouts.py tests/unit/test_synthetic_corpus_format_audit.py tests/unit/test_distillation_readiness_audit.py -q`: passed, 27 tests.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --json --fail-on-blocked`: passed with `ready=true`, `readme_screenshot_count=3`, and `public_generated_artifact_count=4`.
+- `python3 ../llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py --output /private/tmp/claimguard-synthetic-corpus-path-hygiene-audit.json --fail-on-blocked`: passed with `ready=true`, `pair_count=900`, `letter_count=1800`, and `phi_findings=0`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-distillation-path-hygiene-audit.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27`, `changed_count=0`.
+- `python3 -m json.tool` on `../llm-distill/data/corpus/generated_synthetic_pairs/generation_report.json`, `../llm-distill/data/corpus/generated_synthetic_pairs/visual_render_report.json`, and `../llm-distill/data/distillation/mlx_sft_seed/manifest.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/"` on the four public generated artifacts: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided regenerating the seed SFT manifest from current script defaults
+  because that would change training-command parameters outside this
+  path-hygiene slice.
+- Avoided redacting temporary out-of-repo generator outputs so local tests and
+  operators can still audit scratch corpora.
+- Avoided changing readiness booleans, production blockers, warning counts, or
+  any private approval gate.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-165543-public-generated-artifact-path-hygiene/`.
+- This slice improves GitHub-facing artifact hygiene; it does not complete the
+  full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 16:50:16 PDT - Eval report generator sanitized writes
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

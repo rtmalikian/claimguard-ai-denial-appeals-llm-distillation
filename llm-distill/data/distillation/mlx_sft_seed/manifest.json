@@ -1,5 +1,5 @@
 {
-  "adapter_path": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
+  "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
   "artifact": "claimguard_mlx_sft_seed",
   "blocked_reasons": [
     "One or more records are pending large-teacher or human review."
@@ -50,7 +50,7 @@
     "MS11",
     "MS12"
   ],
-  "source_data": "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
+  "source_data": "llm-distill/data/distillation/seed_synthetic_supervised.jsonl",
   "split_counts": {
     "test": 1,
     "train": 8,
@@ -65,7 +65,7 @@
     "Qwen/Qwen3-4B-MLX-4bit",
     "--train",
     "--data",
-    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_seed",
+    "llm-distill/data/distillation/mlx_sft_seed",
     "--iters",
     "600",
     "--batch-size",
@@ -76,7 +76,7 @@
     "lora",
     "--mask-prompt",
     "--adapter-path",
-    "/Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed"
+    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed"
   ],
   "training_allowed": false
 }

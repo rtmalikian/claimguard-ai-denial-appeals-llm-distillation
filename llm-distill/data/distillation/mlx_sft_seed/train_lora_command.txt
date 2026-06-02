@@ -8,12 +8,14 @@ python3 -m pip install "mlx-lm[train]"
 
 Training command:
 
+Run from the repository root:
+
 mlx_lm.lora \
   --model \
   Qwen/Qwen3-4B-MLX-4bit \
   --train \
   --data \
-  /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/data/distillation/mlx_sft_seed \
+  llm-distill/data/distillation/mlx_sft_seed \
   --iters \
   600 \
   --batch-size \
@@ -24,6 +26,6 @@ mlx_lm.lora \
   lora \
   --mask-prompt \
   --adapter-path \
-  /Users/raphael/Coding/Claimguard_AI_Insurance_Denials/llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed
+  llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed
 
 Do not run this command on pending seed labels. Replace labels with reviewed large-teacher or human-approved outputs first.
