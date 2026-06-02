@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = Path(__file__).resolve().parent
 APP_ROOT = REPO_ROOT / "health-ai-medical-billing-medical-corporations-20260414_180528"
 REPORT_DIR = REPO_ROOT / "llm-distill" / "evals" / "reports"
 DEFAULT_REPORT = REPORT_DIR / "phi_plan_production_readiness_report.json"
@@ -53,6 +54,11 @@ DEFAULT_SETTINGS = SimpleNamespace(
     RETRIEVAL_SEMANTIC_BACKEND_CONFIGURED=False,
     RETRIEVAL_HASH_FALLBACK_DISABLED_FOR_PRODUCTION=False,
 )
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 
 PRODUCTION_PAIR_SOURCE_TYPES = {
     "real_deidentified_pair",
@@ -1333,8 +1339,7 @@ def main() -> int:
         production_compose_path=args.production_compose,
         monitoring_module_path=args.monitoring_module,
     )
-    args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_source_controlled_report_json(args.report, report, REPO_ROOT)
     print(
         f"Wrote {args.report} production_ready={report['production_ready']} "
         f"safe_current_state={report['safe_current_state']} "

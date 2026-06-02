@@ -903,6 +903,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   It now serializes source-controlled evidence paths as repository-relative
   paths and redacts outside-report paths in load errors so the checked-in
   top-level readiness report does not expose local workstation paths. The
+  top-level PHIplan audit CLI now writes through
+  `write_source_controlled_report_json(...)` too, so future regenerations of
+  `llm-distill/evals/reports/phi_plan_production_readiness_report.json`
+  apply the same source-control-aware path sanitizer while preserving
+  out-of-repo scratch reports for local diagnostics. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual

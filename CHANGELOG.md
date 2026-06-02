@@ -2,6 +2,53 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 17:30:20 PDT - PHIplan readiness source-controlled writer
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route the top-level PHIplan production-readiness audit CLI through the
+  shared source-control-aware JSON writer so checked-in PHIplan readiness
+  reports keep repository-relative paths and out-of-repo scratch reports remain
+  inspectable.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Writes PHIplan production-readiness reports through `write_source_controlled_report_json(...)`. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added CLI-level regression coverage for sanitized source-controlled PHIplan report output. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/root/PHIplan.md.bak` | Documented the top-level PHIplan audit writer hardening. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/app/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py -q`: passed, 18 tests with 1 existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-phi-readiness-writer-sanitizer.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 -m json.tool /private/tmp/claimguard-phi-readiness-writer-sanitizer-final.json`: passed.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- Strict secret/PII-like token scan over `llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`, `PHIplan.md`, `CHANGELOG.md`, and `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`: passed with no matches after excluding ordinary `risk-...` substrings.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing PHIplan readiness booleans, approval gates, private runtime
+  evidence, production corpus evidence, fairness evidence, or model-training
+  state.
+- Avoided rewriting the checked-in PHIplan report in this slice; the change
+  hardens future top-level report writes at the CLI boundary.
+- Avoided redacting out-of-repo scratch reports because those remain local
+  diagnostics outside source control.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-172803-phi-readiness-source-controlled-writer/`.
+- This slice improves PHIplan readiness report writer hygiene; it does not
+  complete the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:22:13 PDT - Eval report writer sanitizer helper
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
