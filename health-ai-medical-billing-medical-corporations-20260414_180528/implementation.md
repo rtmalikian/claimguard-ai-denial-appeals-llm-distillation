@@ -487,6 +487,13 @@ review, and private aggregate summary counts are complete outside source
 control. Raw scanner output, vulnerability detail values, approval references,
 registry URLs, credentials, PHI, secrets, and production documents must remain
 outside source control.
+FastAPI startup now also fails fast in production if the dependency security
+evidence report is missing, unsafe, not ready, or has blocked requirement IDs.
+Production compose forwards `DEPENDENCY_SECURITY_EVIDENCE_REPORT` with a
+repository-relative default, and the startup guard reports only metadata-level
+booleans and blocker IDs without raw scanner output, vulnerability details,
+private registry URLs, approval-reference values, PHI, secrets, report paths,
+or raw evidence values.
 Clearinghouse submission readiness now also has a boolean-only evidence
 template, validator, private evidence renderer, runbook, and checked-in report.
 The PHIplan production-readiness audit consumes this report as a
@@ -1168,6 +1175,11 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   evidence renderer, runbook, checked-in safe-but-blocked report, and PHIplan
   production-readiness audit linkage for private Python/frontend/container
   scan, remediation, rebuild/retest, governance, and no-raw-value evidence
+- [x] Dependency security production startup guard, conservative production
+  compose default, and PHIplan audit coverage for
+  `DEPENDENCY_SECURITY_EVIDENCE_REPORT`, with metadata-only logging and
+  production fail-fast behavior until dependency security evidence is safe,
+  ready, and unblocked
 - [x] Boolean-only clearinghouse submission evidence template, validator,
   private evidence renderer, runbook, checked-in safe-but-blocked report, and
   PHIplan production-readiness audit linkage for private payer/clearinghouse
@@ -2222,6 +2234,13 @@ seed can be treated as comprehensive.
   private renderer for final Python dependency, frontend dependency, container
   image, lockfile, remediation/approval, compensating-control, rebuild/retest,
   upgrade-plan, and governance evidence.
+- [x] Production startup guard added for
+  `DEPENDENCY_SECURITY_EVIDENCE_REPORT`. Production startup now rejects
+  missing, unsafe, unready, or blocked dependency security evidence; production
+  compose forwards the report path with a repository-relative default and the
+  guard omits raw scanner output, vulnerability details, private registry URLs,
+  approval references, PHI, secrets, report paths, and raw evidence from logs
+  and responses.
 - [ ] Production dependency security remains blocked until scans and
   remediation or private approval are complete outside source control, with no
   raw scan output, vulnerability detail values, approval references, registry

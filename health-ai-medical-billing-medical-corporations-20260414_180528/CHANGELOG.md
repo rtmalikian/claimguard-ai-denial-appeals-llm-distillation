@@ -2,6 +2,71 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 23:40:09 PDT - Dependency security startup guard
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a production startup guard so ClaimGuard cannot start in
+  production while dependency security evidence is missing, unsafe, not ready,
+  or blocked. Keep dependency scans, vulnerability details, private registry
+  URLs, approval-reference values, PHI, secrets, raw report paths, and
+  production documents outside source control while preserving the current
+  `production_ready=false` and `safe_current_state=true` posture.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260601-233710-dependency-security-startup-guard/root/PHIplan.md.bak` | Documented the dependency security startup guard, remaining private production evidence, and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260601-233710-dependency-security-startup-guard/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `implementation.md` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking and dependency security checklist for startup gating. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `app/core/config.py` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py.bak` | Added the `DEPENDENCY_SECURITY_EVIDENCE_REPORT` setting. | Restore backup over `app/core/config.py`. |
+| `app/main.py` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py.bak` | Runs the dependency security startup guard during FastAPI startup. | Restore backup over `app/main.py`. |
+| `docker-compose.production.yml` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/root/docker-compose.production.yml.bak` | Forwards `DEPENDENCY_SECURITY_EVIDENCE_REPORT` with a repository-relative default. | Restore backup over `docker-compose.production.yml`. |
+| `tests/unit/test_production_compose_env.py` | `backups/20260601-233710-dependency-security-startup-guard/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py.bak` | Added production compose assertions for the dependency security evidence report default. | Restore backup over `tests/unit/test_production_compose_env.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260601-233710-dependency-security-startup-guard/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added dependency security report settings to default-state and production compose guard checks. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260601-233710-dependency-security-startup-guard/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence after adding the compose guard setting. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Files Added
+- `app/utils/dependency_security_config.py`
+- `tests/unit/test_dependency_security_startup_config.py`
+
+### Validation
+- `find backups/20260601-233710-dependency-security-startup-guard -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_dependency_security_startup_config.py tests/unit/test_production_compose_env.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 24 tests with one existing SQLAlchemy deprecation warning.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/dependency_security_config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_startup_config.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-dependency-security-startup-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-dependency-security-startup-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided running or committing raw dependency scanner output, vulnerability
+  detail values, private registry URLs, approval-reference values, credentials,
+  PHI, secrets, or production documents.
+- Avoided marking dependency security evidence ready; private scans,
+  remediation or approval, rebuild/retest, and governance review remain
+  incomplete outside source control.
+- Avoided changing dependency versions or lockfiles in this startup-guard
+  slice.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-233710-dependency-security-startup-guard/` and remove the
+  two added dependency security startup guard files listed above.
+- This slice strengthens production startup safety only; it does not complete
+  dependency scans, dependency remediation, backup/DR readiness, clearinghouse
+  submission, payer gateway calls, production EHR/RCM integration, student
+  default routing, user-data model improvement, production vector retrieval,
+  non-synthetic corpus training, or production fairness monitoring.
+
 ## 2026-06-01 23:30:54 PDT - Clearinghouse submission startup guard
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

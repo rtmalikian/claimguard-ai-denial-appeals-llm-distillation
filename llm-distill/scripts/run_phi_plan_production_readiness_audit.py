@@ -67,6 +67,9 @@ DEFAULT_SETTINGS = SimpleNamespace(
     CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT=(
         "llm-distill/evals/reports/clearinghouse_submission_evidence_report.json"
     ),
+    DEPENDENCY_SECURITY_EVIDENCE_REPORT=(
+        "llm-distill/evals/reports/dependency_security_evidence_report.json"
+    ),
 )
 
 if str(SCRIPT_DIR) not in sys.path:
@@ -108,6 +111,9 @@ REQUIRED_PRODUCTION_COMPOSE_GUARD_DEFAULTS = {
     ),
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT": (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
+    ),
+    "DEPENDENCY_SECURITY_EVIDENCE_REPORT": (
+        "llm-distill/evals/reports/dependency_security_evidence_report.json"
     ),
     "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED": "false",
     "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL": "true",

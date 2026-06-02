@@ -679,6 +679,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   aggregate summary counts are complete outside source control. The PHIplan
   production-readiness audit consumes this report as a private/external
   production blocker without changing the conservative current runtime state.
+- Add a production startup guard for dependency security evidence. FastAPI
+  startup now consumes `DEPENDENCY_SECURITY_EVIDENCE_REPORT` and fails fast in
+  production if the dependency security evidence report is missing, unsafe, not
+  ready, or has blocked requirement IDs. The guard logs and reports only
+  metadata-level booleans and blocker IDs without raw scanner output,
+  vulnerability detail values, private registry URLs, approval-reference
+  values, PHI, secrets, or evidence-report paths. Production compose forwards
+  the report setting with a repository-relative default, and the PHIplan
+  production-readiness audit verifies that setting as part of the startup guard
+  environment.
 - Add a boolean-only clearinghouse submission evidence gate at
   `llm-distill/data/clearinghouse_submission_evidence/clearinghouse_submission_evidence.template.json`
   with validation in
@@ -1542,6 +1552,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   PHIplan production-readiness audit. Do not commit raw scanner output,
   vulnerability detail values, approval references, registry URLs,
   credentials, PHI, secrets, or production documents.
+- Keep production API startup blocked until the dependency security evidence
+  report is safe, ready, and unblocked. Operators may configure
+  `DEPENDENCY_SECURITY_EVIDENCE_REPORT` privately, but the runtime guard must
+  not log raw scanner output, vulnerability detail values, private registry
+  URLs, approval-reference values, PHI, secrets, or raw report paths.
 - Complete private clearinghouse submission evidence before production
   approval: confirm payer or clearinghouse enrollment, configure test-mode
   credentials and production endpoint values privately, validate encrypted
@@ -2385,6 +2400,22 @@ remove
 `llm-distill/evals/reports/dependency_security_evidence_report.json`, and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_evidence.py`
 if rolling back the dependency security evidence gate slice.
+
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/main.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_production_compose_env.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-233710-dependency-security-startup-guard/`;
+remove
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/dependency_security_config.py`
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_dependency_security_startup_config.py`
+if rolling back the dependency security startup guard slice.
 
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `docs/technical-llm-distillation-analysis.md`,

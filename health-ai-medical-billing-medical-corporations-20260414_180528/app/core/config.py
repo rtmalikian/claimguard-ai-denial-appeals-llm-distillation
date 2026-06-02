@@ -96,6 +96,9 @@ class Settings(BaseSettings):
     PREDICTION_FAIRNESS_EVIDENCE_REPORT: str = (
         "llm-distill/evals/reports/prediction_fairness_evidence_report.json"
     )
+    DEPENDENCY_SECURITY_EVIDENCE_REPORT: str = (
+        "llm-distill/evals/reports/dependency_security_evidence_report.json"
+    )
     CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ENABLED: bool = False
     CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_ROLLBACK_TO_MANUAL: bool = True
     CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT: str = (
