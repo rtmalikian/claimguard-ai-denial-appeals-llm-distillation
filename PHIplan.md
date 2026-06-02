@@ -809,6 +809,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   readiness resolvers first honor repository-relative paths before falling back
   to report-local paths, so validation still inspects the real checked-in
   artifacts without exposing local workstation paths in GitHub-facing files.
+- Extend the same path hygiene to reviewed-label and corpus-SFT generated
+  distillation data artifacts. `teacher_label_ingestion_report.json`,
+  `llm-distill/data/distillation/mlx_sft_reviewed/manifest.json`,
+  `llm-distill/data/distillation/mlx_sft_reviewed/train_lora_command.txt`,
+  `llm-distill/data/distillation/mlx_sft_corpus/manifest.json`, and
+  `llm-distill/data/distillation/mlx_sft_corpus/train_lora_command.txt` now
+  use repository-relative input, output, data, and adapter references in the
+  local generated workspace. The teacher-label ingestion and corpus-SFT export
+  writers use the shared sanitizer for source-controlled reports while
+  preserving temporary out-of-repo paths for scratch validation.
 - Add a full generated-corpus format and variation audit at
   `llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` with checked-in
   evidence at

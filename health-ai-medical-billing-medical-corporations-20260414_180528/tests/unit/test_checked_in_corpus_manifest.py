@@ -32,10 +32,10 @@ def test_checked_in_corpus_manifest_exports_training_pairs_without_public_notes(
         record for record in records if record["source_type"] == "public_government_source"
     ]
 
-    assert payload["version"] == "1.2"
-    assert len(records) == 10
+    assert payload["version"] == "1.3"
+    assert len(records) == 13
     assert len(training_records) == 6
-    assert len(public_records) == 4
+    assert len(public_records) == 7
     assert {record["pair_id"] for record in training_records} == {
         "PAIR-SYN-CORPUS-TRAIN",
         "PAIR-SYN-CORPUS-VALID",
@@ -67,7 +67,7 @@ def test_checked_in_corpus_manifest_exports_training_pairs_without_public_notes(
 
     assert exported_manifest["training_allowed"] is True
     assert exported_manifest["pair_count"] == 3
-    assert exported_manifest["ignored_records"]["not_training_eligible"] == 4
+    assert exported_manifest["ignored_records"]["not_training_eligible"] == 7
     assert exported_manifest["coverage_counts"]["source_type"] == {
         "synthetic_deidentified_pair": 3
     }

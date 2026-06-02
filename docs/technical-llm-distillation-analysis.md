@@ -227,6 +227,15 @@ validate the corresponding files in the repository. The GitHub docs validator
 checks these four public artifacts, the README screenshot references, and the
 README link to this technical breakdown.
 
+Reviewed-label and corpus-SFT generated data artifacts follow the same local
+path-hygiene rule:
+`teacher_label_ingestion_report.json`, the reviewed MLX SFT manifest/command,
+and the corpus MLX SFT manifest/command publish repository-relative paths for
+local generated inputs, outputs, data directories, and adapter references. The
+teacher-label ingestion writer and corpus-SFT export writer sanitize only
+source-controlled outputs, so temporary local scratch runs remain fully
+auditable and checked-in reports avoid workstation paths.
+
 The top-level distillation readiness audit also sanitizes its checked-in JSON
 output recursively: source-controlled paths are written relative to the
 repository, and outside local paths are redacted before publication. The audit

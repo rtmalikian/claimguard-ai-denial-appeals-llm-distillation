@@ -175,6 +175,61 @@ def test_corpus_sft_export_preserves_pairs_splits_and_coverage(tmp_path):
     assert assistant_payload["draft_sections"][0]["draft_status"] == "draft_for_human_review"
 
 
+def test_corpus_sft_export_sanitizes_source_controlled_manifest_paths(tmp_path, monkeypatch):
+    exporter = _load_exporter()
+    fake_repo = tmp_path / "repo"
+    source_dir = fake_repo / "llm-distill" / "data" / "corpus" / "sources"
+    source_dir.mkdir(parents=True)
+    records = []
+    for split in ["train", "valid", "test"]:
+        pair_id = f"PAIR-{split.upper()}"
+        denial_path = source_dir / f"{pair_id}-denial.txt"
+        appeal_path = source_dir / f"{pair_id}-appeal.txt"
+        records.append(
+            _record(
+                path=denial_path,
+                text=f"Deidentified denial example {pair_id} with missing documentation.",
+                document_id=f"DOC-{pair_id}-DENIAL",
+                role="denial_letter",
+                pair_id=pair_id,
+                split=split,
+            )
+        )
+        records.append(
+            _record(
+                path=appeal_path,
+                text=f"Draft appeal for {pair_id}. Cite attached records and request review.",
+                document_id=f"DOC-{pair_id}-APPEAL",
+                role="appeal_letter",
+                pair_id=pair_id,
+                split=split,
+            )
+        )
+    manifest_path = fake_repo / "llm-distill" / "data" / "corpus" / "manifest.json"
+    output_dir = fake_repo / "llm-distill" / "data" / "distillation" / "mlx_sft_corpus"
+    adapter_path = fake_repo / "llm-distill" / "models" / "adapters" / "corpus"
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_manifest(manifest_path, records)
+    monkeypatch.setattr(exporter, "REPO_ROOT", fake_repo)
+    monkeypatch.setitem(exporter.write_command_file.__globals__, "REPO_ROOT", fake_repo)
+
+    exporter.export_corpus_sft(
+        manifest_path=manifest_path,
+        output_dir=output_dir,
+        model="test-model",
+        adapter_path=adapter_path,
+    )
+
+    manifest_text = (output_dir / "manifest.json").read_text(encoding="utf-8")
+    command_text = (output_dir / "train_lora_command.txt").read_text(encoding="utf-8")
+    assert str(fake_repo) not in manifest_text
+    assert str(fake_repo) not in command_text
+    assert "llm-distill/data/corpus/manifest.json" in manifest_text
+    assert "llm-distill/models/adapters/corpus" in manifest_text
+    assert "llm-distill/models/adapters/corpus" in command_text
+    assert "Run from the repository root:" in command_text
+
+
 def test_corpus_sft_export_blocks_phi_scan_findings_without_values(tmp_path):
     exporter = _load_exporter()
     denial_path = tmp_path / "denial.txt"

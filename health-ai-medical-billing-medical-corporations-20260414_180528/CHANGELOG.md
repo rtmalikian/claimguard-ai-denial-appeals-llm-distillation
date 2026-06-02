@@ -2,6 +2,59 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 17:13:44 PDT - Distillation data artifact path hygiene
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: harden remaining reviewed-label and corpus-SFT JSON writers so
+  source-controlled outputs use sanitized repository-relative paths, while
+  preserving fully resolvable paths for temporary out-of-repo scratch runs.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../llm-distill/scripts/export_corpus_sft_data.py` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/scripts/export_corpus_sft_data.py` | Writes source-controlled corpus-SFT manifests through the shared sanitizer while preserving out-of-repo scratch output paths. | Restore backup over the same path. |
+| `../llm-distill/scripts/ingest_teacher_labels.py` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/scripts/ingest_teacher_labels.py` | Writes source-controlled teacher-label ingestion reports through the shared sanitizer while preserving out-of-repo scratch output paths. | Restore backup over the same path. |
+| `tests/unit/test_corpus_sft_export.py` | `backups/20260601-170732-public-distillation-data-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_corpus_sft_export.py` | Added regression coverage for repository-relative corpus-SFT manifest and command output. | Restore backup over the same path. |
+| `tests/unit/test_teacher_label_ingestion_report.py` | New file | Added regression coverage for repository-relative teacher-label ingestion report output. | Delete the file if rolling back this slice. |
+| `tests/unit/test_checked_in_corpus_manifest.py` | `backups/20260601-170732-public-distillation-data-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_checked_in_corpus_manifest.py` | Updated stale checked-in corpus manifest expectations to version `1.3`, 13 total records, and 7 public source records. | Restore backup over the same path. |
+| `../PHIplan.md` | `backups/20260601-170732-public-distillation-data-path-hygiene/PHIplan.md` | Documented reviewed-label and corpus-SFT generated artifact path hygiene. | Restore backup over `../PHIplan.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260601-170732-public-distillation-data-path-hygiene/docs/technical-llm-distillation-analysis.md` | Added the same technical note to the distillation analysis breakdown. | Restore backup over the same path. |
+| `../llm-distill/data/distillation/teacher_label_ingestion_report.json` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/data/distillation/teacher_label_ingestion_report.json` | Local ignored generated artifact sanitized on disk to use repository-relative paths. | Restore backup over the same local ignored path. |
+| `../llm-distill/data/distillation/mlx_sft_reviewed/manifest.json` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/data/distillation/mlx_sft_reviewed/manifest.json` | Local ignored reviewed-SFT manifest sanitized on disk to use repository-relative paths. | Restore backup over the same local ignored path. |
+| `../llm-distill/data/distillation/mlx_sft_reviewed/train_lora_command.txt` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/data/distillation/mlx_sft_reviewed/train_lora_command.txt` | Local ignored reviewed-SFT command sanitized on disk and marked as repository-root runnable. | Restore backup over the same local ignored path. |
+| `../llm-distill/data/distillation/mlx_sft_corpus/manifest.json` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/data/distillation/mlx_sft_corpus/manifest.json` | Local ignored corpus-SFT manifest sanitized on disk to use repository-relative paths. | Restore backup over the same local ignored path. |
+| `../llm-distill/data/distillation/mlx_sft_corpus/train_lora_command.txt` | `backups/20260601-170732-public-distillation-data-path-hygiene/llm-distill/data/distillation/mlx_sft_corpus/train_lora_command.txt` | Local ignored corpus-SFT command sanitized on disk and marked as repository-root runnable. | Restore backup over the same local ignored path. |
+| `CHANGELOG.md` | `backups/20260601-170732-public-distillation-data-path-hygiene/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-170732-public-distillation-data-path-hygiene/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-170732-public-distillation-data-path-hygiene -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/export_corpus_sft_data.py ../llm-distill/scripts/ingest_teacher_labels.py ../llm-distill/scripts/validate_public_repo_docs.py tests/unit/test_public_repo_docs.py tests/unit/test_checked_in_corpus_manifest.py tests/unit/test_corpus_sft_export.py tests/unit/test_teacher_label_ingestion_report.py`: passed.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m pytest tests/unit/test_public_repo_docs.py tests/unit/test_checked_in_corpus_manifest.py tests/unit/test_corpus_sft_export.py tests/unit/test_distillation_readiness_audit.py tests/unit/test_teacher_label_ingestion_report.py -q`: passed, 31 tests, 1 existing SQLAlchemy deprecation warning.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --json --fail-on-blocked`: passed with `ready=true`, `readme_screenshot_count=3`, and `public_generated_artifact_count=4`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-distillation-data-path-hygiene-audit.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-distillation-data-path-hygiene-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 -m json.tool` on `../llm-distill/data/distillation/teacher_label_ingestion_report.json`, `../llm-distill/data/distillation/mlx_sft_reviewed/manifest.json`, and `../llm-distill/data/distillation/mlx_sft_corpus/manifest.json`: passed.
+- `rg -n "/Users/raphael|/private/tmp|/tmp/" ../llm-distill/data ../llm-distill/evals --glob '!**/rendered_html/**' --glob '!**/*.png' --glob '!../llm-distill/data/runtime_supervision/claimguard.mlx-student.launchd.template.plist'`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided force-adding ignored reviewed-label or corpus-SFT output directories
+  to Git; they remain local generated artifacts.
+- Avoided changing readiness booleans, warning counts, private approval gates,
+  adapter evidence, or model-training evidence.
+- Avoided redacting out-of-repo scratch outputs so local temporary audits remain
+  inspectable.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-170732-public-distillation-data-path-hygiene/` and delete
+  `tests/unit/test_teacher_label_ingestion_report.py`.
+- This slice improves distillation data artifact hygiene; it does not complete
+  the full PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:01:23 PDT - Public generated artifact path hygiene
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

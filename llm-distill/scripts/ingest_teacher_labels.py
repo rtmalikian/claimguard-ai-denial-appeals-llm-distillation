@@ -17,6 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -52,6 +53,14 @@ UNSAFE_PHRASES = [
     "independent medical judgment",
     "legal advice",
 ]
+
+
+def path_is_within(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -208,7 +217,10 @@ def assert_no_phi(path: Path) -> None:
 
 def write_report(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    if path_is_within(path, REPO_ROOT):
+        write_sanitized_report_json(path, payload, REPO_ROOT)
+    else:
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
 def main() -> int:
