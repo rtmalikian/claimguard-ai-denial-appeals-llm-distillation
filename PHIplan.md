@@ -936,7 +936,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   path serialization at the source write boundary. The teacher-label preflight,
   offline teacher-review packet, and reviewed distillation pipeline reports now
   use the source-control-aware writer too, so checked-in outputs stay sanitized
-  while out-of-repo scratch reports can keep local diagnostic paths.
+  while out-of-repo scratch reports can keep local diagnostic paths. The
+  remaining public report writers for file-ingestion audits, public-source
+  audits, generated synthetic corpus audits, synthetic document-analysis
+  extraction, MLX bootstrap/preflight, teacher-label ingestion, seed/corpus SFT
+  manifests, generated corpus creation, and synthetic visual layout rendering
+  now use the same source-control-aware writer boundary; only the shared
+  sanitizer helper itself retains the lower-level always-sanitize function.
 - Add a boolean-only manual production-gate packet template at
   `llm-distill/data/production_gate_evidence/manual_gate_packet.template.json`
   and a validator at
@@ -1981,3 +1987,19 @@ Restore `PHIplan.md`, `CHANGELOG.md`,
 and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_synthetic_document_analysis_extraction_audit.py`
 if rolling back the synthetic document-analysis extraction audit slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py`,
+`llm-distill/scripts/audit_file_ingestion_surfaces.py`,
+`llm-distill/scripts/audit_public_source_notes.py`,
+`llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py`,
+`llm-distill/scripts/audit_synthetic_document_analysis_extraction.py`,
+`llm-distill/scripts/bootstrap_mlx_runtime.py`,
+`llm-distill/scripts/export_corpus_sft_data.py`,
+`llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py`,
+`llm-distill/scripts/ingest_teacher_labels.py`,
+`llm-distill/scripts/prepare_mlx_sft_data.py`,
+`llm-distill/scripts/render_synthetic_corpus_visual_layouts.py`, and
+`llm-distill/scripts/run_mlx_finetune.py` from
+`backups/20260601-175531-remaining-public-report-writer-boundary/` if rolling
+back the remaining public report-writer source-control boundary slice.

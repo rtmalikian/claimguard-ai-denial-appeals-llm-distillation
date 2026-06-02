@@ -41,7 +41,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from report_output_sanitizer import (  # noqa: E402
     sanitize_report_string,
-    write_sanitized_report_json,
+    write_source_controlled_report_json,
 )
 
 
@@ -282,10 +282,7 @@ def write_manifest(
             "Use --mask-prompt so loss is applied to the assistant completion for chat SFT.",
         ],
     }
-    if path_is_within(path, REPO_ROOT):
-        write_sanitized_report_json(path, payload, REPO_ROOT)
-    else:
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    write_source_controlled_report_json(path, payload, REPO_ROOT)
 
 
 def main() -> int:

@@ -19,6 +19,22 @@ TEACHER_REVIEW_PIPELINE_REPORT_SCRIPTS = (
     REPO_ROOT / "llm-distill" / "scripts" / "run_teacher_label_batch.py",
     REPO_ROOT / "llm-distill" / "scripts" / "run_teacher_review_packet.py",
 )
+PUBLIC_REPORT_WRITER_SCRIPTS = (
+    REPO_ROOT / "llm-distill" / "scripts" / "audit_file_ingestion_surfaces.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "audit_public_source_notes.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "audit_synthetic_denial_appeal_corpus.py",
+    REPO_ROOT
+    / "llm-distill"
+    / "scripts"
+    / "audit_synthetic_document_analysis_extraction.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "bootstrap_mlx_runtime.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "export_corpus_sft_data.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "generate_synthetic_denial_appeal_corpus.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "ingest_teacher_labels.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "prepare_mlx_sft_data.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "render_synthetic_corpus_visual_layouts.py",
+    REPO_ROOT / "llm-distill" / "scripts" / "run_mlx_finetune.py",
+)
 
 
 def _load_sanitizer() -> ModuleType:
@@ -144,6 +160,14 @@ def test_phi_plan_evidence_validators_use_source_controlled_report_writer():
 
 def test_teacher_review_pipeline_reports_use_source_controlled_writer():
     for script_path in TEACHER_REVIEW_PIPELINE_REPORT_SCRIPTS:
+        text = script_path.read_text(encoding="utf-8")
+
+        assert "write_source_controlled_report_json" in text
+        assert "write_sanitized_report_json" not in text
+
+
+def test_public_report_writers_use_source_controlled_writer():
+    for script_path in PUBLIC_REPORT_WRITER_SCRIPTS:
         text = script_path.read_text(encoding="utf-8")
 
         assert "write_source_controlled_report_json" in text

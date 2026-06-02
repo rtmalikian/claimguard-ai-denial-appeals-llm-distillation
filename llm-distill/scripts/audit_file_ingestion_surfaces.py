@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from report_output_sanitizer import write_sanitized_report_json
+from report_output_sanitizer import write_source_controlled_report_json
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -353,8 +353,7 @@ def main() -> int:
     args = parser.parse_args()
 
     report = audit_file_ingestion_surfaces(api_root=args.api_root)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    write_sanitized_report_json(args.output, report, REPO_ROOT)
+    write_source_controlled_report_json(args.output, report, REPO_ROOT)
     print(f"wrote file-ingestion surface audit report to {args.output}")
     if args.fail_on_blocked and not report["ready"]:
         return 2

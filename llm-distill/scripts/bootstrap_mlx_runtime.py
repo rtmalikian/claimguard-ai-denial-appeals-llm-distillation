@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from report_output_sanitizer import write_sanitized_report_json
+from report_output_sanitizer import write_source_controlled_report_json
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -149,8 +149,7 @@ def summarize_audit(report: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    write_sanitized_report_json(path, payload, REPO_ROOT)
+    write_source_controlled_report_json(path, payload, REPO_ROOT)
 
 
 def install_commands(args: argparse.Namespace, python_path: Path) -> list[dict[str, Any]]:

@@ -32,7 +32,7 @@ REQUIRED_NOTE_MARKERS = (
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -236,8 +236,7 @@ def main() -> int:
     args = parser.parse_args()
 
     report = audit_public_source_notes(registry_path=args.registry, manifest_path=args.manifest)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    write_sanitized_report_json(args.output, report, REPO_ROOT)
+    write_source_controlled_report_json(args.output, report, REPO_ROOT)
     print(
         f"wrote public source note coverage report to {args.output} "
         f"ready={report['ready']} blocked={report['blocker_count']}"

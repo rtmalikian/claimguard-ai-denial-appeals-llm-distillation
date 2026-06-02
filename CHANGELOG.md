@@ -2,6 +2,67 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-01 17:59:57 PDT - Remaining public report writer boundary
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: route the remaining public report writers through
+  `write_source_controlled_report_json(...)` so checked-in reports keep
+  repository-relative sanitized paths while out-of-repo scratch reports retain
+  local diagnostic paths.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/audit_file_ingestion_surfaces.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/audit_file_ingestion_surfaces.py.bak` | Writes file-ingestion surface reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/audit_public_source_notes.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/audit_public_source_notes.py.bak` | Writes public-source note coverage reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/audit_synthetic_denial_appeal_corpus.py.bak` | Writes synthetic corpus format audit reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/audit_synthetic_document_analysis_extraction.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/audit_synthetic_document_analysis_extraction.py.bak` | Writes synthetic document-analysis extraction audit reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/bootstrap_mlx_runtime.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/bootstrap_mlx_runtime.py.bak` | Writes MLX runtime bootstrap reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/export_corpus_sft_data.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/export_corpus_sft_data.py.bak` | Writes guarded corpus SFT manifests through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/generate_synthetic_denial_appeal_corpus.py.bak` | Writes generated synthetic corpus reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/ingest_teacher_labels.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/ingest_teacher_labels.py.bak` | Writes teacher-label ingestion reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/prepare_mlx_sft_data.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/prepare_mlx_sft_data.py.bak` | Writes seed MLX SFT manifests through the source-control-aware writer while preserving existing command-file sanitization. | Restore backup over the same path. |
+| `llm-distill/scripts/render_synthetic_corpus_visual_layouts.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/render_synthetic_corpus_visual_layouts.py.bak` | Writes synthetic visual layout render reports through the source-control-aware writer. | Restore backup over the same path. |
+| `llm-distill/scripts/run_mlx_finetune.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/llm-distill/scripts/run_mlx_finetune.py.bak` | Writes MLX fine-tune preflight/run reports through the source-control-aware writer. | Restore backup over the same path. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py.bak` | Added static coverage that the remaining public report writers do not reintroduce the older always-sanitize writer. | Restore backup over the same path. |
+| `PHIplan.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/root/PHIplan.md.bak` | Documented the expanded shared report-writer boundary and rollback note. | Restore backup over `PHIplan.md`. |
+| `health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/app/CHANGELOG.md.bak` | Added matching application changelog tracking. | Restore backup over the same path. |
+| `CHANGELOG.md` | `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/root/CHANGELOG.md.bak` | Added this rollback-ready root changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Validation
+- `find health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary -type f | sort`: passed; 15 backup files exist.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ...`: passed for the 11 changed scripts and `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_report_output_sanitizer.py -q`: passed, 7 tests.
+- `rg -n "write_sanitized_report_json" llm-distill/scripts -g '*.py'`: passed; only `llm-distill/scripts/report_output_sanitizer.py` retains the lower-level helper definition/delegation.
+- Scratch writer smokes to `/private/tmp` passed and produced valid JSON for `audit_file_ingestion_surfaces.py`, `audit_public_source_notes.py`, `audit_synthetic_denial_appeal_corpus.py`, `audit_synthetic_document_analysis_extraction.py`, `run_mlx_finetune.py`, `prepare_mlx_sft_data.py`, `export_corpus_sft_data.py`, `ingest_teacher_labels.py`, `generate_synthetic_denial_appeal_corpus.py`, and `render_synthetic_corpus_visual_layouts.py`.
+- `python3 llm-distill/scripts/bootstrap_mlx_runtime.py --skip-install --skip-fine-tune-preflight --venv-path /private/tmp/claimguard-no-venv --runtime-report /private/tmp/claimguard-runtime-preflight-writer.json --audit-report /private/tmp/claimguard-bootstrap-audit-writer.json --output /private/tmp/claimguard-bootstrap-writer.json --timeout-seconds 30`: wrote valid JSON and returned `2` as expected because the non-install scratch venv did not exist; no package install or training run was attempted.
+- Targeted pytest over `test_report_output_sanitizer.py`, `test_file_ingestion_surface_audit.py`, `test_public_source_note_coverage.py`, `test_synthetic_corpus_format_audit.py`, `test_synthetic_document_analysis_extraction_audit.py`, `test_synthetic_corpus_generator.py`, `test_synthetic_corpus_visual_layouts.py`, `test_teacher_label_ingestion_report.py`, and `test_corpus_sft_export.py`: passed, 35 tests with one existing SQLAlchemy deprecation warning.
+- `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- `if rg -n "/Users/raphael|/private/tmp|/tmp/" llm-distill/evals/reports --glob '*.json'; then exit 1; else echo 'no local path matches in checked-in eval reports'; fi`: passed with no local path matches.
+- `python3 llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-remaining-writers-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; the existing local development `ENCRYPTION_KEYS` warning was emitted and no key material was written.
+- `python3 llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-remaining-writers-distillation-readiness.json --fail-on-blocked`: passed with `distillation_ready=true`, `release_ready=true`, `blocked_item_count=0`, and `warning_item_count=2`.
+- Strict secret/PII-like token scan over all changed files: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided changing readiness booleans, checked-in eval report JSON artifacts,
+  model routing, synthetic corpus contents, teacher-label semantics, MLX
+  training behavior, student-default routing, or production gate requirements.
+- Avoided installing MLX packages, running LoRA training, approving private
+  evidence, writing secrets, or enabling any production path.
+- Avoided broad cleanup of unrelated JSONL/data writers that are not public
+  report outputs.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-175531-remaining-public-report-writer-boundary/`.
+- This slice improves report-output hygiene; it does not complete the full
+  PHIplan objective or approve production/student-default use.
+
 ## 2026-06-01 17:49:36 PDT - Teacher review report writer boundary
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

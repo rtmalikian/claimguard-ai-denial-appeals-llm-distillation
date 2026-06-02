@@ -25,7 +25,7 @@ if str(DISTILL_DIR / "scripts") not in sys.path:
     sys.path.insert(0, str(DISTILL_DIR / "scripts"))
 
 from app.services.document_analysis import DocumentAnalysisService  # noqa: E402
-from report_output_sanitizer import write_sanitized_report_json  # noqa: E402
+from report_output_sanitizer import write_source_controlled_report_json  # noqa: E402
 from run_phi_scan import scan_text  # noqa: E402
 
 
@@ -184,8 +184,7 @@ def main() -> int:
     args = parser.parse_args()
 
     report = build_report(args.manifest, args.corpus_dir, min_denials=args.min_denials)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    write_sanitized_report_json(args.output, report, REPO_ROOT)
+    write_source_controlled_report_json(args.output, report, REPO_ROOT)
     print(f"wrote synthetic document-analysis extraction report to {args.output}")
     if report["blockers"] and args.fail_on_blocked:
         return 2
