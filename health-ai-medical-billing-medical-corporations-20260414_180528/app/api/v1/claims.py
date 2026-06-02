@@ -608,7 +608,10 @@ def validate_required_claim_submission_fields(
             )
         )
 
-    service_date_value = _first_present_metadata_value(data, SERVICE_DATE_METADATA_KEYS)
+    service_date_value = _first_metadata_value_for_mapping(
+        data,
+        SERVICE_DATE_METADATA_KEYS,
+    )
     if service_date_value is None:
         issues.append(
             RequiredClaimFieldIssue(

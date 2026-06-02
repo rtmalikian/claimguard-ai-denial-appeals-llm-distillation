@@ -89,6 +89,40 @@ def test_required_claim_field_validator_rejects_invalid_service_date_safely():
     assert "not-a-date" not in str([issue.safe_detail() for issue in issues])
 
 
+def test_required_claim_field_validator_accepts_service_line_service_date():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "place_of_service_code": "11",
+            "service_lines": [{"date_of_service": "2026-01-15"}],
+        }
+    )
+
+    assert issues == []
+
+
+def test_required_claim_field_validator_rejects_invalid_service_line_date_safely():
+    from app.api.v1.claims import validate_required_claim_submission_fields
+
+    issues = validate_required_claim_submission_fields(
+        {
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "place_of_service_code": "11",
+            "service_lines": [{"service_date": "not-a-service-line-date"}],
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == ["invalid_service_date_metadata"]
+    assert details[0]["field"] == "service_date"
+    assert details[0]["safe_context"]["raw_field_value_included"] is False
+    assert "not-a-service-line-date" not in str(details)
+
+
 def test_required_claim_field_validator_rejects_invalid_place_of_service_safely():
     from app.api.v1.claims import validate_required_claim_submission_fields
 
@@ -366,6 +400,48 @@ async def test_submit_claim_blocks_non_identifier_payer_subscriber_before_predic
     assert detail["safe_context"]["raw_field_values_included"] is False
     assert "synthetic billing queue" not in str(detail)
     assert "synthetic subscriber label" not in str(detail)
+    mock_predict.assert_not_called()
+    db.add.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("app.services.prediction.PredictionService.predict_denial", new_callable=AsyncMock)
+async def test_submit_claim_blocks_invalid_service_line_date_before_prediction(
+    mock_predict,
+):
+    from app.api.v1.claims import submit_claim
+    from app.schemas.claim import ClaimSubmitRequest
+
+    db = MagicMock()
+    request = ClaimSubmitRequest(
+        patient_id=1,
+        provider_id=1,
+        claim_data={
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "place_of_service_code": "11",
+            "service_lines": [{"date_of_service": "invalid-service-line-date"}],
+        },
+        diagnosis_codes=["Z00.00"],
+        procedure_codes=["99213"],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await submit_claim(
+            request=request,
+            current_user={"id": 42, "role": "billing_staff"},
+            db=db,
+        )
+
+    assert exc_info.value.status_code == 400
+    detail = exc_info.value.detail
+    assert detail["error_code"] == "missing_required_claim_fields"
+    assert [issue["error_code"] for issue in detail["issues"]] == [
+        "invalid_service_date_metadata"
+    ]
+    assert detail["safe_context"]["raw_field_values_included"] is False
+    assert "invalid-service-line-date" not in str(detail)
     mock_predict.assert_not_called()
     db.add.assert_not_called()
     db.commit.assert_not_called()

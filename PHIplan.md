@@ -1331,6 +1331,14 @@ plan plus the active ClaimGuard `AGENTS.md`.
   fields. Safe missing-field errors omit raw payer/subscriber values, raw claim
   payloads, patient identifiers, provider identifiers, PHI, secrets, and
   production claim content.
+- Extend direct-claim service-date validation to service-line metadata.
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now accepts required `service_date` or `date_of_service` metadata from
+  service-line collections as well as top-level claim data, and invalid
+  service-line dates are blocked before prediction, persistence, or audit-log
+  creation. Safe errors omit raw date values, raw claim payloads, patient
+  identifiers, provider identifiers, PHI, secrets, and production claim
+  content.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2182,3 +2190,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-192042-payer-subscriber-metadata-validation/`
 if rolling back the payer/subscriber metadata validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-192853-service-line-service-date-validation/`
+if rolling back the service-line service-date validation slice.

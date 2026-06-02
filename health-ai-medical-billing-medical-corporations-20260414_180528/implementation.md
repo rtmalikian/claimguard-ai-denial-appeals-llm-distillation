@@ -1898,7 +1898,7 @@ STATE_TRANSITIONS = {
 | Payer ID / Insurance | Required and validated for direct claim submission |
 | Subscriber ID | Required and validated for direct claim submission |
 | Group Number | Required when direct claim metadata explicitly marks group number as required |
-| Service Date | Missing - CRITICAL |
+| Service Date | Required and validated for direct claim submission, including service-line aliases |
 | Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Required when direct claim metadata explicitly marks prior authorization as required |
 | NDC Codes (drugs) | Validated when supplied in direct claim metadata |
@@ -1937,6 +1937,10 @@ STATE_TRANSITIONS = {
   accepted identifier/name aliases rather than allowing arbitrary nested
   objects to satisfy critical claim fields. Safe missing-field errors omit raw
   payer/subscriber values, raw claim data, PHI, and production claim content.
+- [x] Direct claim submission now accepts service date metadata from top-level
+  claim data or service-line aliases, and invalid service-line dates are
+  blocked before prediction with safe errors that omit raw date values, raw
+  claim data, PHI, and production claim content.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Place-of-service metadata is now required for direct claim submission and
