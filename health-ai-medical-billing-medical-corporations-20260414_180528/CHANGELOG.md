@@ -2,6 +2,61 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-01 18:39:56 PDT - Provider NPI validation enforcement
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: close the remaining provider NPI validation gap by enforcing local
+  10-digit NPI check-digit validation at model assignment, updating synthetic
+  provider seed data, and proving valid, invalid, and normalized synthetic NPI
+  handling without adding PHI, real provider records, production claim data, or
+  secrets.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `app/models/__init__.py` | `backups/20260601-183739-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/app/models/__init__.py.bak` | Added `Provider.npi` normalization and check-digit validation through the existing healthcare-code utility. | Restore backup over `app/models/__init__.py`. |
+| `backend/seed_db.py` | `backups/20260601-183739-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/backend/seed_db.py.bak` | Replaced invalid synthetic provider seed NPIs with valid synthetic check-digit examples. | Restore backup over `backend/seed_db.py`. |
+| `tests/unit/test_models.py` | `backups/20260601-183739-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_models.py.bak` | Updated provider model tests for valid NPI creation, invalid check-digit rejection, and whitespace normalization. | Restore backup over `tests/unit/test_models.py`. |
+| `../PHIplan.md` | `backups/20260601-183739-provider-npi-validation/root/PHIplan.md.bak` | Documented model-level provider NPI enforcement and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `implementation.md` | `backups/20260601-183739-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Converted the stale No NPI Validation issue into completed implementation evidence. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260601-183739-provider-npi-validation/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `../CHANGELOG.md` | `backups/20260601-183739-provider-npi-validation/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+
+### Validation
+- `find backups/20260601-183739-provider-npi-validation -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile app/models/__init__.py backend/seed_db.py tests/unit/test_models.py`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_models.py tests/unit/test_healthcare_code_validation.py -q`: passed, 28 tests with four existing deprecation warnings.
+- `PYTHONPATH=. python3 - <<'PY' ...`: passed from the application directory; valid synthetic NPIs normalized, and invalid `1234567890` raised `provider_npi_failed_check_digit_validation`.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-provider-npi-validation-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=6`, and `warning_item_count=1`; production gates remain private/external.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-provider-npi-validation-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=27` and `changed_count=0`.
+- New-lines-only token/SSN scan over changed files with `git diff -U0 ... | rg ...`: passed with no token-shaped secret or SSN matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided adding a database migration because the existing `providers.npi`
+  column remains a 10-character string; this slice adds application/model
+  validation rather than changing schema shape.
+- Avoided using real provider records, real NPI examples, PHI, production claim
+  data, or external NPI registry calls.
+- An initial pytest invocation used app-directory working directory with
+  repo-root test paths and returned file-not-found; it was rerun with
+  app-relative test paths and passed.
+- Avoided changing PHIplan production-readiness booleans, student-default
+  routing, model-improvement gates, production corpus gates, retrieval-vector
+  gates, prediction-fairness gates, or manual production-gate status.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260601-183739-provider-npi-validation/`.
+- This slice closes a source-controlled healthcare data-integrity gap; it does
+  not complete the full PHIplan objective or approve production/student-default
+  use.
+
 ## 2026-06-01 18:25:48 PDT - MLX LoRA executable override
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

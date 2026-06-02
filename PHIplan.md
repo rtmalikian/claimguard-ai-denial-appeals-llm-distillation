@@ -1268,6 +1268,13 @@ plan plus the active ClaimGuard `AGENTS.md`.
   EDI 835 parsing now validates CARC group/reason and LQ remark codes without
   returning raw code values, segment payloads, claim text, patient identifiers,
   provider identifiers, PHI, or production document content.
+- Enforce local NPI check-digit validation at provider model assignment.
+  `health-ai-medical-billing-medical-corporations-20260414_180528/app/models/__init__.py`
+  now normalizes `Provider.npi` and rejects invalid check digits before the
+  synthetic provider seed data or any ORM path can persist an invalid provider
+  identifier. Tests cover valid, invalid, and whitespace-normalized synthetic
+  NPIs without introducing PHI, raw claim data, production provider records, or
+  secrets.
 - Add conservative diagnosis/procedure linkage metadata validation. Claim
   prediction and claim submission now require diagnosis-code support when
   procedure-code metadata is present, validate explicit diagnosis-pointer
@@ -2049,3 +2056,13 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-182120-mlx-lora-executable-override/`
 if rolling back the MLX LoRA executable override slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/models/__init__.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/backend/seed_db.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_models.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-183739-provider-npi-validation/`
+if rolling back the provider NPI validation slice.

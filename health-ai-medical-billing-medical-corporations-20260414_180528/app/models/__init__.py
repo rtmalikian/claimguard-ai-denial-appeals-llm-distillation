@@ -11,11 +11,12 @@ from sqlalchemy import (
     JSON,
     Date,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.sql import func
 
 from app.db.database import Base
 from app.services.claim_state import CANONICAL_CLAIM_STATUSES, CLAIM_STATUS_PENDING
+from app.utils.healthcare_codes import is_valid_npi, normalize_healthcare_code
 
 
 CLAIM_STATUS_CHECK_NAME = "ck_claims_status_canonical"
@@ -55,6 +56,13 @@ class Provider(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     claims = relationship("Claim", back_populates="provider")
+
+    @validates("npi")
+    def validate_npi(self, key: str, value: object) -> str:
+        normalized_npi = normalize_healthcare_code(value)
+        if not is_valid_npi(normalized_npi):
+            raise ValueError("provider_npi_failed_check_digit_validation")
+        return normalized_npi
 
 
 class User(Base):

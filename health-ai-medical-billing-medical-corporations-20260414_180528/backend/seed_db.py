@@ -299,9 +299,9 @@ def seed_providers(db: Session):
         return
 
     providers = [
-        Provider(npi="1234567890", name="Dr. Sarah Johnson", specialty="Family Medicine"),
-        Provider(npi="2345678901", name="Dr. Michael Chen", specialty="Internal Medicine"),
-        Provider(npi="3456789012", name="Dr. Emily Rodriguez", specialty="Cardiology"),
+        Provider(npi="1234567893", name="Dr. Sarah Johnson", specialty="Family Medicine"),
+        Provider(npi="2345678900", name="Dr. Michael Chen", specialty="Internal Medicine"),
+        Provider(npi="3456789015", name="Dr. Emily Rodriguez", specialty="Cardiology"),
     ]
 
     for p in providers:

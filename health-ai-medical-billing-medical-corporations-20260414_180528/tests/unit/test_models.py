@@ -152,14 +152,35 @@ class TestProviderModel:
     def test_provider_creation(self):
         provider = Provider(
             id=1,
-            npi="1234567890",
+            npi="1234567893",
             name="Dr. Smith",
             specialty="Internal Medicine",
         )
 
-        assert provider.npi == "1234567890"
+        assert provider.npi == "1234567893"
         assert provider.name == "Dr. Smith"
         assert provider.specialty == "Internal Medicine"
+
+    def test_provider_rejects_invalid_npi_check_digit(self):
+        with pytest.raises(ValueError) as exc_info:
+            Provider(
+                id=1,
+                npi="1234567890",
+                name="Dr. Smith",
+                specialty="Internal Medicine",
+            )
+
+        assert str(exc_info.value) == "provider_npi_failed_check_digit_validation"
+
+    def test_provider_normalizes_npi_spacing(self):
+        provider = Provider(
+            id=1,
+            npi=" 123 456 7893 ",
+            name="Dr. Smith",
+            specialty="Internal Medicine",
+        )
+
+        assert provider.npi == "1234567893"
 
 
 class TestDenialPatternModel:

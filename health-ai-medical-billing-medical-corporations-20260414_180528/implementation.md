@@ -1905,19 +1905,12 @@ STATE_TRANSITIONS = {
 | Referring Provider NPI | Missing |
 
 ### 2.3 No NPI Validation
-| Location | Issue |
-|----------|-------|
-| `models/__init__.py:27` | NPI stored without 10-digit checksum validation |
-
-**Fix (Luhn algorithm):**
-```python
-def validate_npi(npi: str) -> bool:
-    if not npi.isdigit() or len(npi) != 10:
-        return False
-    digits = [int(d) for d in npi]
-    check = sum(digits[-2::-2]) + sum(sum(divmod(2*d, 10)) for d in digits[-1::-2])
-    return check % 10 == 0
-```
+- [x] `Provider.npi` now normalizes whitespace and validates the 10-digit NPI
+  check digit through `app/utils/healthcare_codes.py` before model assignment.
+- [x] Synthetic provider seed NPIs now use valid check digits, and
+  `tests/unit/test_models.py` covers valid, invalid, and normalized NPI
+  assignment without logging or returning raw claim, patient, document, PHI, or
+  production data.
 
 ### 2.4 No ICD-10/CPT Validation
 - [x] Diagnosis-code format validation before prediction, submission, and EDI
