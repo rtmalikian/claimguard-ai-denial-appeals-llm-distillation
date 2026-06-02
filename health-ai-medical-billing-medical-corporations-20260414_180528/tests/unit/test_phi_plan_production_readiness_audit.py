@@ -453,6 +453,7 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         "file_ingestion_surface_audit_ready",
         "monitoring_gate_metrics_ready",
         "monitoring_readiness_endpoint_ready",
+        "private_evidence_handoff_ready",
         "production_compose_startup_guard_env",
         "security_control_surface_ready",
     ]
@@ -487,6 +488,17 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
     )
     assert security_requirement["evidence"]["raw_sentinel_values_included"] is False
     assert security_requirement["evidence"]["raw_auth_token_included"] is False
+    handoff_requirement = next(
+        item
+        for item in report["requirements"]
+        if item["requirement_id"] == "private_evidence_handoff_ready"
+    )
+    assert handoff_requirement["status"] == "ready"
+    assert handoff_requirement["evidence"]["path_inside_repo"] is True
+    assert handoff_requirement["evidence"]["missing_markers"] == []
+    assert handoff_requirement["evidence"]["approval_references_included"] is False
+    assert handoff_requirement["evidence"]["private_summary_paths_included"] is False
+    assert handoff_requirement["evidence"]["raw_report_paths_included"] is False
     compose_requirement = next(
         item
         for item in report["requirements"]
@@ -1694,3 +1706,38 @@ def test_vector_backend_requirement_redacts_url_or_credential_shaped_backend():
     assert requirement["evidence"]["vector_backend_has_url_or_credentials"] is True
     assert raw_backend not in serialized
     assert "runtimeuser" not in serialized
+
+
+def test_private_evidence_handoff_requirement_verifies_checked_in_handoff():
+    audit = _load_audit()
+
+    requirement = audit.private_evidence_handoff_requirement(
+        audit.DEFAULT_PRIVATE_EVIDENCE_HANDOFF
+    )
+
+    assert requirement["status"] == "ready"
+    assert requirement["evidence"]["path_inside_repo"] is True
+    assert requirement["evidence"]["missing_markers"] == []
+    assert requirement["evidence"]["approval_references_included"] is False
+    assert requirement["evidence"]["private_summary_paths_included"] is False
+    assert requirement["evidence"]["raw_report_paths_included"] is False
+    assert requirement["evidence"]["raw_phi_included"] is False
+    assert requirement["evidence"]["raw_secret_included"] is False
+
+
+def test_private_evidence_handoff_requirement_blocks_external_incomplete_handoff(tmp_path):
+    audit = _load_audit()
+    external_handoff = tmp_path / "phi-plan-private-evidence-handoff.md"
+    external_handoff.write_text(
+        "# PHIplan Private Evidence Handoff\n\nboolean-only evidence\n",
+        encoding="utf-8",
+    )
+
+    requirement = audit.private_evidence_handoff_requirement(external_handoff)
+
+    assert requirement["status"] == "blocked"
+    assert "private_evidence_handoff_document_outside_repo" in requirement["blockers"]
+    assert "private_evidence_handoff_markers_missing" in requirement["blockers"]
+    assert requirement["evidence"]["handoff_path"] == "external_path_redacted"
+    assert requirement["evidence"]["path_inside_repo"] is False
+    assert "manual_production_gate_packet_evidence" in requirement["evidence"]["missing_markers"]

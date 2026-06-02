@@ -453,6 +453,12 @@ The top-level report's manual-gate next required action now matches that
 expanded evidence scope and explicitly keeps approval references, private
 summary paths, raw report paths, PHI, secrets, and production document content
 outside source control.
+The PHIplan production-readiness audit now also verifies the source-controlled
+private evidence handoff at
+`llm-distill/docs/phi-plan-private-evidence-handoff.md`, which maps every
+remaining private/external blocker to its validator, private renderer, and
+no-raw-value boundary without storing approval references, private summary
+paths, raw report paths, PHI, secrets, or production document content.
 Production packaging now includes a multi-stage backend Dockerfile with a
 non-root runtime user, a production frontend Dockerfile that builds Vite assets
 and serves them through nginx, frontend health checks for development and
@@ -1350,7 +1356,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   all nine configured dependent evidence reports and validates a private
   aggregate manual-gate summary before writing a ready packet; the top-level
   PHIplan report next action now names the same expanded evidence scope and
-  no-raw-value boundary.
+  no-raw-value boundary, and the source-controlled private evidence handoff now
+  maps every remaining private/external blocker to its validator and private
+  renderer.
 
 ### ❌ Production-Blocked / External Evidence Still Required
 - EDI 837 clearinghouse claim submission remains blocked until payer or

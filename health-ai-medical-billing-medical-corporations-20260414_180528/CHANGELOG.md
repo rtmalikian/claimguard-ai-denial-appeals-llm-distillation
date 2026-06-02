@@ -2,6 +2,62 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 01:04:00 PDT - Private evidence handoff gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a source-controlled PHIplan private evidence handoff gate that
+  maps every remaining private/external blocker to its validator, private
+  renderer, and no-raw-value boundary. Keep production readiness blocked until
+  private evidence is actually complete outside source control, while making
+  the remaining operator path explicit and auditable.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-005837-private-evidence-handoff-gate/root/PHIplan.md.bak` | Documented the new private evidence handoff source-control gate. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-005837-private-evidence-handoff-gate/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `../docs/technical-llm-distillation-analysis.md` | `backups/20260602-005837-private-evidence-handoff-gate/docs/technical-llm-distillation-analysis.md.bak` | Updated PHIplan completion-audit counts and source-control-ready IDs for the new handoff gate. | Restore backup over `../docs/technical-llm-distillation-analysis.md`. |
+| `implementation.md` | `backups/20260602-005837-private-evidence-handoff-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking for the private evidence handoff gate. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260602-005837-private-evidence-handoff-gate/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260602-005837-private-evidence-handoff-gate/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Added positive and negative coverage for the private evidence handoff requirement and updated source-control-ready IDs. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-005837-private-evidence-handoff-gate/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Regenerated checked-in PHIplan evidence with 18 total requirements and 8 source-control-ready requirements; private blockers remain. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-005837-private-evidence-handoff-gate/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added `private_evidence_handoff_ready`, required handoff markers, report evidence, and CLI path override. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+
+### Files Added
+- `../llm-distill/docs/phi-plan-private-evidence-handoff.md`
+
+### Validation
+- `find backups/20260602-005837-private-evidence-handoff-gate -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py tests/unit/test_phi_plan_production_readiness_audit.py`: passed from the application directory.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed after the marker fix and refreshed the checked-in report with `production_ready=false`, `safe_current_state=true`, `blocked=9`, `warnings=1`, `total_requirement_count=18`, and `source_control_ready_requirement_count=8`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-private-evidence-handoff-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked=9`, and `warnings=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 18 tests with the existing SQLAlchemy deprecation warning.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json >/dev/null`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+
+### Failed Or Avoided Approaches
+- The first focused pytest run failed 8 tests and the first regenerated
+  PHIplan report showed `blocked=10` because the new handoff document split
+  three required no-raw-value markers across line breaks. The document was
+  updated with explicit audit marker text, then the requirement passed with
+  38 of 38 markers and the report returned to the expected 9 private/external
+  blockers.
+- Avoided marking any private/manual production gate ready; the new gate only
+  verifies source-controlled handoff documentation.
+- Avoided adding approval references, private summary paths, raw report paths,
+  PHI, secrets, raw EDI, endpoint values, vulnerability scan details,
+  demographic values, outcome rows, or production document content to source
+  control.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-005837-private-evidence-handoff-gate/` and remove
+  `../llm-distill/docs/phi-plan-private-evidence-handoff.md`.
+
 ## 2026-06-02 00:54:13 PDT - PHIplan next actions expanded manual gate scope
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

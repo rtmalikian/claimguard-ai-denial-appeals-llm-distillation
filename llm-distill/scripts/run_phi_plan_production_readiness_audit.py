@@ -46,6 +46,9 @@ DEFAULT_AUTH_MIDDLEWARE_MODULE = APP_ROOT / "app" / "middleware" / "auth.py"
 DEFAULT_CORE_AUTH_MODULE = APP_ROOT / "app" / "core" / "auth.py"
 DEFAULT_CORE_SECURITY_MODULE = APP_ROOT / "app" / "core" / "security.py"
 DEFAULT_AUDIT_UTILS_MODULE = APP_ROOT / "app" / "utils" / "audit.py"
+DEFAULT_PRIVATE_EVIDENCE_HANDOFF = (
+    REPO_ROOT / "llm-distill" / "docs" / "phi-plan-private-evidence-handoff.md"
+)
 
 DEFAULT_SETTINGS = SimpleNamespace(
     LLM_PROVIDER="nvidia_nim",
@@ -219,6 +222,46 @@ REQUIRED_MONITORING_READINESS_ENDPOINT_MARKERS = {
     "raw_evidence_included",
     "raw_approval_or_reference_values_included",
 }
+REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS = {
+    "PHIplan Private Evidence Handoff",
+    "Current status: source-control-ready but production-blocked.",
+    "manual_production_gate_packet_evidence",
+    "student_default_cutover_external_approval",
+    "user_data_model_improvement_external_approval",
+    "production_semantic_vector_backend",
+    "production_corpus_expansion_beyond_synthetic",
+    "production_prediction_fairness_monitoring",
+    "backup_disaster_recovery_evidence",
+    "dependency_security_evidence",
+    "clearinghouse_submission_evidence",
+    "llm-distill/scripts/validate_phi_plan_manual_gate_packet.py",
+    "llm-distill/scripts/render_phi_plan_manual_gate_private_packet.py",
+    "llm-distill/scripts/render_student_cutover_private_env.py",
+    "llm-distill/scripts/validate_mlx_runtime_supervisor.py",
+    "llm-distill/scripts/render_mlx_runtime_supervisor_private_evidence.py",
+    "llm-distill/scripts/validate_model_improvement_evidence.py",
+    "llm-distill/scripts/render_model_improvement_private_env.py",
+    "llm-distill/scripts/validate_retrieval_vector_backend.py",
+    "llm-distill/scripts/render_retrieval_vector_private_env.py",
+    "llm-distill/scripts/render_retrieval_vector_runtime_private_evidence.py",
+    "llm-distill/scripts/validate_production_corpus_evidence.py",
+    "llm-distill/scripts/render_production_corpus_private_evidence.py",
+    "llm-distill/scripts/validate_prediction_fairness_evidence.py",
+    "llm-distill/scripts/render_prediction_fairness_private_evidence.py",
+    "llm-distill/scripts/validate_backup_disaster_recovery_evidence.py",
+    "llm-distill/scripts/render_backup_disaster_recovery_private_evidence.py",
+    "llm-distill/scripts/validate_dependency_security_evidence.py",
+    "llm-distill/scripts/render_dependency_security_private_evidence.py",
+    "llm-distill/scripts/validate_clearinghouse_submission_evidence.py",
+    "llm-distill/scripts/render_clearinghouse_submission_private_evidence.py",
+    "approval references outside source control",
+    "private summary paths outside source control",
+    "raw report paths outside source control",
+    "boolean-only evidence",
+    "no PHI",
+    "no secrets",
+    "no production document content",
+}
 MONITORING_READINESS_RUNTIME_SENTINELS = {
     "raw_report_path": "/private/tmp/synthetic-readiness-report-not-for-endpoint.json",
     "raw_approval_reference": "synthetic-approval-reference-not-for-endpoint",
@@ -280,6 +323,7 @@ SOURCE_CONTROL_READY_REQUIREMENT_IDS = {
     "monitoring_readiness_endpoint_ready",
     "security_control_surface_ready",
     "external_phi_service_guard",
+    "private_evidence_handoff_ready",
 }
 COMPOSE_ENV_INTERPOLATION_RE = re.compile(
     r"^\$\{(?P<name>[A-Z0-9_]+)(?::-(?P<default>.*))?\}$"
@@ -713,6 +757,56 @@ def monitoring_readiness_endpoint_requirement(
             "raw_secret_included": False,
             "raw_evidence_included": False,
             "raw_report_paths_included": False,
+        },
+    )
+
+
+def private_evidence_handoff_requirement(handoff_path: Path) -> dict[str, Any]:
+    blockers: list[str] = []
+    marker_count = 0
+    missing_markers: list[str] = []
+    path_inside_repo = False
+
+    try:
+        handoff_path.expanduser().resolve().relative_to(REPO_ROOT.resolve())
+        path_inside_repo = True
+    except ValueError:
+        blockers.append("private_evidence_handoff_document_outside_repo")
+
+    if not handoff_path.exists():
+        blockers.append("private_evidence_handoff_document_missing")
+        missing_markers = sorted(REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS)
+    else:
+        source = handoff_path.read_text(encoding="utf-8")
+        present_markers = {
+            marker
+            for marker in REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS
+            if marker in source
+        }
+        marker_count = len(present_markers)
+        missing_markers = sorted(
+            REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS - present_markers
+        )
+        if missing_markers:
+            blockers.append("private_evidence_handoff_markers_missing")
+
+    return requirement(
+        requirement_id="private_evidence_handoff_ready",
+        name="Private PHIplan evidence handoff maps remaining blockers to validators and renderers",
+        status="blocked" if blockers else "ready",
+        blockers=blockers,
+        evidence={
+            "handoff_path": safe_report_path(handoff_path),
+            "path_inside_repo": path_inside_repo,
+            "required_marker_count": len(REQUIRED_PRIVATE_EVIDENCE_HANDOFF_MARKERS),
+            "marker_count": marker_count,
+            "missing_markers": missing_markers,
+            "approval_references_included": False,
+            "private_summary_paths_included": False,
+            "raw_report_paths_included": False,
+            "raw_phi_included": False,
+            "raw_document_text_included": False,
+            "raw_secret_included": False,
         },
     )
 
@@ -1694,6 +1788,7 @@ def build_report(
     core_auth_module_path: Path = DEFAULT_CORE_AUTH_MODULE,
     core_security_module_path: Path = DEFAULT_CORE_SECURITY_MODULE,
     audit_utils_module_path: Path = DEFAULT_AUDIT_UTILS_MODULE,
+    private_evidence_handoff_path: Path = DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
 ) -> dict[str, Any]:
     requirements = [
         current_runtime_default_requirement(settings_like),
@@ -1707,6 +1802,7 @@ def build_report(
         file_ingestion_surface_requirement(file_ingestion_surface_report_path),
         monitoring_gate_metrics_requirement(monitoring_module_path),
         monitoring_readiness_endpoint_requirement(monitoring_module_path),
+        private_evidence_handoff_requirement(private_evidence_handoff_path),
         manual_gate_packet_requirement(manual_gate_packet_report_path),
         student_cutover_requirement(
             settings_like,
@@ -1861,6 +1957,11 @@ def main() -> int:
         default=DEFAULT_CORE_SECURITY_MODULE,
     )
     parser.add_argument("--audit-utils-module", type=Path, default=DEFAULT_AUDIT_UTILS_MODULE)
+    parser.add_argument(
+        "--private-evidence-handoff",
+        type=Path,
+        default=DEFAULT_PRIVATE_EVIDENCE_HANDOFF,
+    )
     parser.add_argument("--fail-on-blocked", action="store_true")
     args = parser.parse_args()
 
@@ -1885,6 +1986,7 @@ def main() -> int:
         core_auth_module_path=args.core_auth_module,
         core_security_module_path=args.core_security_module,
         audit_utils_module_path=args.audit_utils_module,
+        private_evidence_handoff_path=args.private_evidence_handoff,
     )
     write_source_controlled_report_json(args.report, report, REPO_ROOT)
     print(

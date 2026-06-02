@@ -201,12 +201,12 @@ the public repository.
 |---|---:|
 | PHIplan completion proven | false |
 | Completion status | not_complete_private_or_external_evidence_required |
-| Total requirement count | 17 |
-| Ready requirement count | 7 |
+| Total requirement count | 18 |
+| Ready requirement count | 8 |
 | Blocked requirement count | 9 |
 | Warning requirement count | 1 |
 | Private/external blocker count | 9 |
-| Source-control ready requirement count | 7 |
+| Source-control ready requirement count | 8 |
 | Raw approval values included | false |
 | Raw evidence values included | false |
 | Raw report paths included | false |
@@ -219,7 +219,9 @@ Source-control-ready requirement IDs:
 - `file_ingestion_surface_audit_ready`
 - `monitoring_gate_metrics_ready`
 - `monitoring_readiness_endpoint_ready`
+- `private_evidence_handoff_ready`
 - `production_compose_startup_guard_env`
+- `security_control_surface_ready`
 
 Private/external blocker IDs:
 
@@ -238,6 +240,13 @@ paths for source-controlled evidence and redacts outside paths from load-error
 evidence. This keeps public readiness metadata useful without publishing local
 workstation paths, approval values, PHI, secrets, raw source text, vectors, or
 production outcome rows.
+
+The report now also verifies
+`llm-distill/docs/phi-plan-private-evidence-handoff.md` as the source-controlled
+private evidence handoff. That handoff maps every remaining private/external
+blocker to its validator, private renderer, and no-raw-value boundary without
+including approval references, private summary paths, raw report paths, PHI,
+secrets, or production document content.
 
 The direct PHIplan evidence reports for MLX runtime supervision, model
 improvement, retrieval-vector backend readiness, production-corpus evidence,

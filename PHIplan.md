@@ -1047,7 +1047,12 @@ plan plus the active ClaimGuard `AGENTS.md`.
   action now names all nine dependent domains plus file-ingestion surface
   evidence and explicitly keeps approval references, private summary paths,
   raw report paths, PHI, secrets, and production document content outside
-  source control. The
+  source control. The audit now also verifies the source-controlled private
+  evidence handoff at
+  `llm-distill/docs/phi-plan-private-evidence-handoff.md`, which maps every
+  remaining private/external blocker to its validator, private renderer, and
+  no-raw-value boundary without storing approval references, private summary
+  paths, raw report paths, PHI, secrets, or production document content. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual

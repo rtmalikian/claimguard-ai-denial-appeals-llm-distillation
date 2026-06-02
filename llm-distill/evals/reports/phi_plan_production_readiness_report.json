@@ -279,13 +279,14 @@
     "raw_evidence_values_included": false,
     "raw_phi_or_secret_values_included": false,
     "raw_report_paths_included": false,
-    "ready_requirement_count": 7,
+    "ready_requirement_count": 8,
     "ready_requirement_ids": [
       "current_runtime_default_safe",
       "external_phi_service_guard",
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
+      "private_evidence_handoff_ready",
       "production_compose_startup_guard_env",
       "security_control_surface_ready"
     ],
@@ -297,26 +298,28 @@
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
+      "private_evidence_handoff_ready",
       "production_compose_startup_guard_env",
       "security_control_surface_ready"
     ],
-    "source_control_ready_requirement_count": 7,
+    "source_control_ready_requirement_count": 8,
     "source_control_ready_requirement_ids": [
       "current_runtime_default_safe",
       "external_phi_service_guard",
       "file_ingestion_surface_audit_ready",
       "monitoring_gate_metrics_ready",
       "monitoring_readiness_endpoint_ready",
+      "private_evidence_handoff_ready",
       "production_compose_startup_guard_env",
       "security_control_surface_ready"
     ],
-    "total_requirement_count": 17,
+    "total_requirement_count": 18,
     "warning_requirement_count": 1,
     "warning_requirement_ids": [
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T07:53:26.171046+00:00",
+  "generated_at": "2026-06-02T08:02:40.012433+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, prediction fairness monitoring, backup/disaster-recovery, dependency-security, clearinghouse submission, and file-ingestion surface gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, PHI, secrets, raw report paths, and production document content outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -460,6 +463,26 @@
       },
       "name": "Admin PHIplan readiness endpoint exposes sanitized metadata only",
       "requirement_id": "monitoring_readiness_endpoint_ready",
+      "status": "ready",
+      "warnings": []
+    },
+    {
+      "blockers": [],
+      "evidence": {
+        "approval_references_included": false,
+        "handoff_path": "llm-distill/docs/phi-plan-private-evidence-handoff.md",
+        "marker_count": 38,
+        "missing_markers": [],
+        "path_inside_repo": true,
+        "private_summary_paths_included": false,
+        "raw_document_text_included": false,
+        "raw_phi_included": false,
+        "raw_report_paths_included": false,
+        "raw_secret_included": false,
+        "required_marker_count": 38
+      },
+      "name": "Private PHIplan evidence handoff maps remaining blockers to validators and renderers",
+      "requirement_id": "private_evidence_handoff_ready",
       "status": "ready",
       "warnings": []
     },
