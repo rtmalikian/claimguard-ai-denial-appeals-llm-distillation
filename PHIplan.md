@@ -1301,6 +1301,16 @@ plan plus the active ClaimGuard `AGENTS.md`.
   patient identifiers, provider identifiers, PHI, secrets, and production claim
   content. The check is local and format-only; it does not assert drug identity,
   payer-specific coverage, reimbursement, or medical necessity.
+- Validate supplied direct-claim revenue-code metadata before model calls or
+  persistence. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
+  now checks optional `revenue_code`, `revenue_codes`,
+  `ub04_revenue_code`, and `ub04_revenue_codes` aliases at the top level and
+  inside service lines. Invalid supplied values are blocked with
+  metadata-only structured errors that omit raw revenue-code values, raw claim
+  payloads, patient identifiers, provider identifiers, PHI, secrets, and
+  production claim content. The check is local and format-only; it does not
+  assert payer-specific coverage, charge-master pricing, reimbursement, or
+  medical necessity.
 - Require direct-claim authorization-number metadata when prior authorization is
   explicitly marked required. `health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`
   now checks `prior_authorization_required`, `authorization_required`,
@@ -2199,3 +2209,12 @@ and
 from
 `health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-192853-service-line-service-date-validation/`
 if rolling back the service-line service-date validation slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/claims.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_required_claim_fields.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+and
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`
+from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260601-221554-direct-claim-revenue-code-validation/`
+if rolling back the direct-claim revenue-code metadata validation slice.

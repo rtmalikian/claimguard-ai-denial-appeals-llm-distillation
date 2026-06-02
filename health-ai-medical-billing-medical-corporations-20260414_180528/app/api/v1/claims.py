@@ -84,6 +84,7 @@ from app.utils.healthcare_codes import (
     is_valid_ndc_code,
     is_valid_npi,
     is_valid_place_of_service_code,
+    is_valid_revenue_code,
     validate_claim_billing_codes,
 )
 from datetime import datetime, date
@@ -353,6 +354,12 @@ NDC_METADATA_KEYS = (
     "drug_ndc",
 )
 NDC_NESTED_CODE_KEYS = ("code", "ndc", "ndc_code", "value")
+REVENUE_CODE_METADATA_KEYS = (
+    "revenue_code",
+    "revenue_codes",
+    "ub04_revenue_code",
+    "ub04_revenue_codes",
+)
 CLAIM_AMOUNT_METADATA_KEYS = (
     "amount",
     "claim_amount",
@@ -851,12 +858,82 @@ def _ndc_value_issues_for_mapping(
     return issues
 
 
+def _revenue_code_value_issues_for_value(
+    *,
+    field: str,
+    value: object,
+    field_path: str,
+) -> list[ClaimDataValueIssue]:
+    if not _metadata_value_present(value):
+        return []
+
+    issues: list[ClaimDataValueIssue] = []
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            issues.extend(
+                _revenue_code_value_issues_for_value(
+                    field=field,
+                    value=item,
+                    field_path=f"{field_path}[{index}]",
+                )
+            )
+        return issues
+
+    if not is_valid_revenue_code(value):
+        issues.append(
+            ClaimDataValueIssue(
+                field=field,
+                field_path=field_path,
+                error_code="invalid_revenue_code_metadata",
+            )
+        )
+    return issues
+
+
+def _revenue_code_value_issues_for_mapping(
+    data: dict,
+    *,
+    prefix: str | None = None,
+) -> list[ClaimDataValueIssue]:
+    issues: list[ClaimDataValueIssue] = []
+    for key in REVENUE_CODE_METADATA_KEYS:
+        if key not in data or not _metadata_value_present(data.get(key)):
+            continue
+        field_path = f"{prefix}.{key}" if prefix else key
+        issues.extend(
+            _revenue_code_value_issues_for_value(
+                field=key,
+                value=data.get(key),
+                field_path=field_path,
+            )
+        )
+
+    for collection_key in CLAIM_SERVICE_LINE_COLLECTION_KEYS:
+        collection = data.get(collection_key)
+        if not isinstance(collection, list):
+            continue
+        for index, item in enumerate(collection):
+            if isinstance(item, dict):
+                issues.extend(
+                    _revenue_code_value_issues_for_mapping(
+                        item,
+                        prefix=(
+                            f"{prefix}.{collection_key}[{index}]"
+                            if prefix
+                            else f"{collection_key}[{index}]"
+                        ),
+                    )
+                )
+    return issues
+
+
 def validate_claim_data_values(claim_data: object) -> list[ClaimDataValueIssue]:
     data = claim_data if isinstance(claim_data, dict) else {}
     return (
         _claim_amount_value_issues_for_mapping(data)
         + _referring_provider_npi_value_issues_for_mapping(data)
         + _ndc_value_issues_for_mapping(data)
+        + _revenue_code_value_issues_for_mapping(data)
     )
 
 

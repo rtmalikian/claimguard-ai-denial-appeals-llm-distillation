@@ -292,6 +292,34 @@ def test_claim_data_value_validator_rejects_invalid_ndc_codes_safely():
     assert "bad-ndc" not in str(details)
 
 
+def test_claim_data_value_validator_rejects_invalid_revenue_codes_safely():
+    from app.api.v1.claims import validate_claim_data_values
+
+    issues = validate_claim_data_values(
+        {
+            "revenue_code": "45A",
+            "service_lines": [
+                {"revenue_codes": ["0450", "bad-revenue"]},
+                {"ub04_revenue_code": "12345"},
+            ],
+        }
+    )
+    details = [issue.safe_detail() for issue in issues]
+
+    assert [issue.error_code for issue in issues] == [
+        "invalid_revenue_code_metadata",
+        "invalid_revenue_code_metadata",
+        "invalid_revenue_code_metadata",
+    ]
+    assert details[0]["field_path"] == "revenue_code"
+    assert details[1]["field_path"] == "service_lines[0].revenue_codes[1]"
+    assert details[2]["field_path"] == "service_lines[1].ub04_revenue_code"
+    assert details[0]["safe_context"]["raw_field_value_included"] is False
+    assert "45A" not in str(details)
+    assert "bad-revenue" not in str(details)
+    assert "12345" not in str(details)
+
+
 def test_diagnosis_procedure_linkage_requires_diagnosis_support_safely():
     from app.api.v1.claims import validate_diagnosis_procedure_linkage
 
@@ -634,6 +662,42 @@ async def test_predict_denial_blocks_invalid_ndc_before_prediction(mock_predict)
     assert detail["issues"][0]["error_code"] == "invalid_ndc_code_metadata"
     assert detail["safe_context"]["raw_field_values_included"] is False
     assert "N4ABC" not in str(detail)
+    mock_predict.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("app.services.prediction.PredictionService.predict_denial", new_callable=AsyncMock)
+async def test_predict_denial_blocks_invalid_revenue_code_before_prediction(mock_predict):
+    from app.api.v1.claims import predict_denial
+    from app.schemas.claim import ClaimPredictionRequest
+
+    db = MagicMock()
+    request = ClaimPredictionRequest(
+        patient_id=1,
+        provider_id=1,
+        claim_data={
+            "payer_name": "Synthetic Health Plan",
+            "subscriber_id": "SYN-SUB-001",
+            "service_date": "2026-01-15",
+            "service_lines": [{"revenue_code": "45A"}],
+        },
+        diagnosis_codes=["Z00.00"],
+        procedure_codes=["G0299"],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await predict_denial(
+            request=request,
+            current_user={"id": 42, "role": "billing_staff"},
+            db=db,
+        )
+
+    assert exc_info.value.status_code == 400
+    detail = exc_info.value.detail
+    assert detail["error_code"] == "invalid_claim_data_values"
+    assert detail["issues"][0]["error_code"] == "invalid_revenue_code_metadata"
+    assert detail["safe_context"]["raw_field_values_included"] is False
+    assert "45A" not in str(detail)
     mock_predict.assert_not_called()
 
 

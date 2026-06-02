@@ -1902,6 +1902,7 @@ STATE_TRANSITIONS = {
 | Place of Service Code | Required and validated for direct claim submission |
 | Authorization Number | Required when direct claim metadata explicitly marks prior authorization as required |
 | NDC Codes (drugs) | Validated when supplied in direct claim metadata |
+| Revenue Codes (institutional) | Validated when supplied in direct claim metadata |
 | Referring Provider NPI | Validated when supplied in direct claim metadata |
 
 ### 2.3 No NPI Validation
@@ -1923,6 +1924,12 @@ STATE_TRANSITIONS = {
   is format-only rather than payer-specific coverage or medical-necessity
   validation. Safe errors omit raw NDC values, raw claim data, PHI, and
   production claim content.
+- [x] Direct claim metadata now rejects invalid supplied revenue-code aliases
+  before prediction, persistence, or audit-log creation. The field remains
+  optional because not every claim is institutional or UB-04-style, and the
+  check is format-only rather than payer-specific coverage, charge-master,
+  reimbursement, or medical-necessity validation. Safe errors omit raw revenue
+  code values, raw claim data, PHI, and production claim content.
 - [x] Direct claim submission now requires an authorization number when the
   claim or service-line metadata explicitly marks prior authorization as
   required. The rule does not infer authorization requirements from payer,
@@ -2022,9 +2029,9 @@ STATE_TRANSITIONS = {
 |----------|--------|
 | CMS-1500 fields | Incomplete |
 | UB-04 fields | Not implemented |
-| CARC/RARC codes | Only 5 hardcoded |
-| NDC codes | Not supported |
-| Revenue codes | Not supported |
+| CARC/RARC codes | Local lifecycle seed and metadata-only parser validation; not a comprehensive licensed feed |
+| NDC codes | Local format validation when supplied; not a comprehensive licensed drug-code feed |
+| Revenue codes | Local format validation for EDI 837 and direct claim metadata; not a comprehensive licensed UB-04 catalogue |
 
 ---
 
@@ -2105,7 +2112,10 @@ VALID_POS_CODES = {
 ```
 
 ### Revenue Codes (UB-04)
-Required for institutional claims:
+Local format validation is implemented for EDI 837 SV2 service lines and
+optional direct claim metadata. A comprehensive licensed UB-04 revenue-code
+catalogue, charge-master integration, and payer-specific revenue-code edits are
+not implemented.
 ```python
 VALID_REVENUE_CODES = {
     "0110": "Room & Board - Private", "0250": "Pharmacy",
