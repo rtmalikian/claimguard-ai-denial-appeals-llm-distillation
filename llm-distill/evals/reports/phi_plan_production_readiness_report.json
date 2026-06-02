@@ -316,9 +316,9 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T07:43:04.583250+00:00",
+  "generated_at": "2026-06-02T07:53:26.171046+00:00",
   "next_required_actions": [
-    "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
+    "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, prediction fairness monitoring, backup/disaster-recovery, dependency-security, clearinghouse submission, and file-ingestion surface gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, PHI, secrets, raw report paths, and production document content outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
     "Keep user-data model improvement disabled until legal approval, BAA confirmation, consent notice version, approval reference, per-request attestations, and boolean-only evidence from validate_model_improvement_evidence.py are complete.",
     "Configure a production semantic embedding backend and vector store, then reindex retrieval/corpus chunks and validate boolean-only evidence with validate_retrieval_vector_backend.py before treating retrieval as production semantic search.",

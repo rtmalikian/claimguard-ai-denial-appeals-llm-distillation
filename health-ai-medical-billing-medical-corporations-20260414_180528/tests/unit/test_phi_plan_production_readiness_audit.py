@@ -604,6 +604,25 @@ def test_production_audit_keeps_safe_state_but_blocks_current_unapproved_default
         "manual_student_default_cutover_evidence",
         "manual_user_data_model_improvement_evidence",
     ]
+    manual_action = next(
+        action
+        for action in report["next_required_actions"]
+        if "manual_gate_packet.template.json" in action
+    )
+    for expected_phrase in [
+        "student cutover",
+        "user-data model improvement",
+        "production corpus",
+        "retrieval-vector backend",
+        "prediction fairness monitoring",
+        "backup/disaster-recovery",
+        "dependency-security",
+        "clearinghouse submission",
+        "file-ingestion surface",
+        "private summary paths",
+        "production document content",
+    ]:
+        assert expected_phrase in manual_action
     assert "synthetic_900_adapter_training_status" in warning_ids
     file_ingestion_requirement = next(
         item

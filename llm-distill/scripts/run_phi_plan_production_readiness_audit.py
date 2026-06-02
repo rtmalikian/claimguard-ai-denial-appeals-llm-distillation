@@ -1501,8 +1501,11 @@ def build_next_required_actions(requirements: list[dict[str, Any]]) -> list[str]
         actions.append(
             "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json "
             "with boolean-only evidence for student cutover, user-data model improvement, "
-            "production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with "
-            "validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control."
+            "production corpus, retrieval-vector backend, prediction fairness monitoring, "
+            "backup/disaster-recovery, dependency-security, clearinghouse submission, "
+            "and file-ingestion surface gates; validate it with "
+            "validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, "
+            "PHI, secrets, raw report paths, and production document content outside source control."
         )
     if "student_default_cutover_external_approval" in blocked_ids:
         actions.append(

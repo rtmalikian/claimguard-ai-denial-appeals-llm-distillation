@@ -1043,7 +1043,11 @@ plan plus the active ClaimGuard `AGENTS.md`.
   includes a `completion_audit` matrix that records total, ready, warning, and
   blocked requirement IDs, identifies the private/external blocker set, and
   states `completion_proven=false` without exposing approval values, raw
-  evidence, report paths, PHI, or secrets. The
+  evidence, report paths, PHI, or secrets. Its manual-gate next required
+  action now names all nine dependent domains plus file-ingestion surface
+  evidence and explicitly keeps approval references, private summary paths,
+  raw report paths, PHI, secrets, and production document content outside
+  source control. The
   direct PHIplan evidence validators for MLX runtime supervision,
   model-improvement approval, retrieval-vector backend readiness,
   production-corpus evidence, prediction-fairness monitoring, and the manual
