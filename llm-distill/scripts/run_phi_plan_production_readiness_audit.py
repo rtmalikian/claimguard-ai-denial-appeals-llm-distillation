@@ -160,7 +160,13 @@ REQUIRED_MONITORING_GATE_METRICS = {
     "claimguard_model_improvement_baa_confirmed",
     "claimguard_model_improvement_consent_notice_configured",
     "claimguard_model_improvement_approval_reference_configured",
+    "claimguard_model_improvement_evidence_report_configured",
     "claimguard_prediction_fairness_evidence_report_configured",
+    "claimguard_manual_gate_packet_report_configured",
+    "claimguard_production_corpus_evidence_report_configured",
+    "claimguard_backup_disaster_recovery_evidence_report_configured",
+    "claimguard_dependency_security_evidence_report_configured",
+    "claimguard_clearinghouse_submission_evidence_report_configured",
     "claimguard_retrieval_semantic_backend_configured",
     "claimguard_retrieval_embedding_model_approved",
     "claimguard_retrieval_hash_fallback_disabled_for_production",
@@ -178,8 +184,26 @@ MONITORING_RUNTIME_SENTINELS = {
     "USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE": (
         "synthetic-model-reference-not-for-metrics"
     ),
+    "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT": (
+        "/private/tmp/synthetic-model-improvement-report-not-for-metrics.json"
+    ),
     "PREDICTION_FAIRNESS_EVIDENCE_REPORT": (
         "/private/tmp/synthetic-fairness-report-not-for-metrics.json"
+    ),
+    "PHI_PLAN_MANUAL_GATE_PACKET_REPORT": (
+        "/private/tmp/synthetic-manual-gate-report-not-for-metrics.json"
+    ),
+    "PRODUCTION_CORPUS_EVIDENCE_REPORT": (
+        "/private/tmp/synthetic-production-corpus-report-not-for-metrics.json"
+    ),
+    "BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT": (
+        "/private/tmp/synthetic-backup-dr-report-not-for-metrics.json"
+    ),
+    "DEPENDENCY_SECURITY_EVIDENCE_REPORT": (
+        "/private/tmp/synthetic-dependency-security-report-not-for-metrics.json"
+    ),
+    "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT": (
+        "/private/tmp/synthetic-clearinghouse-report-not-for-metrics.json"
     ),
 }
 REQUIRED_MONITORING_READINESS_ENDPOINT_MARKERS = {

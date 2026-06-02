@@ -302,9 +302,39 @@ def build_prometheus_metrics(db: Session) -> str:
             _configured_metric(settings.USER_DATA_MODEL_IMPROVEMENT_APPROVAL_REFERENCE),
         ),
         (
+            "claimguard_model_improvement_evidence_report_configured",
+            "Whether user-data model improvement evidence report configuration is present.",
+            _configured_metric(settings.USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT),
+        ),
+        (
             "claimguard_prediction_fairness_evidence_report_configured",
             "Whether prediction fairness evidence report configuration is present.",
             _configured_metric(settings.PREDICTION_FAIRNESS_EVIDENCE_REPORT),
+        ),
+        (
+            "claimguard_manual_gate_packet_report_configured",
+            "Whether manual production gate packet report configuration is present.",
+            _configured_metric(settings.PHI_PLAN_MANUAL_GATE_PACKET_REPORT),
+        ),
+        (
+            "claimguard_production_corpus_evidence_report_configured",
+            "Whether production corpus evidence report configuration is present.",
+            _configured_metric(settings.PRODUCTION_CORPUS_EVIDENCE_REPORT),
+        ),
+        (
+            "claimguard_backup_disaster_recovery_evidence_report_configured",
+            "Whether backup and disaster-recovery evidence report configuration is present.",
+            _configured_metric(settings.BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT),
+        ),
+        (
+            "claimguard_dependency_security_evidence_report_configured",
+            "Whether dependency security evidence report configuration is present.",
+            _configured_metric(settings.DEPENDENCY_SECURITY_EVIDENCE_REPORT),
+        ),
+        (
+            "claimguard_clearinghouse_submission_evidence_report_configured",
+            "Whether clearinghouse submission evidence report configuration is present.",
+            _configured_metric(settings.CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT),
         ),
         (
             "claimguard_retrieval_semantic_backend_configured",

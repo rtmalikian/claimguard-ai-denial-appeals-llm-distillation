@@ -2,6 +2,66 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 00:18:38 PDT - Monitoring evidence-report metrics
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: expand the admin-only Prometheus PHIplan gate metrics so operators can
+  verify that every private/manual evidence report path category is configured
+  without exposing the actual paths or report payloads. Keep approval-reference
+  values, private report paths, private summary paths, raw evidence, PHI,
+  secrets, and production documents outside source control while preserving the
+  current `production_ready=false` and `safe_current_state=true` posture.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-001948-monitoring-evidence-report-metrics/root/PHIplan.md.bak` | Documented the expanded metadata-only Prometheus evidence-report metrics and rollback notes. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-001948-monitoring-evidence-report-metrics/root/CHANGELOG.md.bak` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-001948-monitoring-evidence-report-metrics/health-ai-medical-billing-medical-corporations-20260414_180528/root/implementation.md.bak` | Updated implementation tracking for metadata-only evidence-report metrics. | Restore backup over `implementation.md`. |
+| `CHANGELOG.md` | `backups/20260602-001948-monitoring-evidence-report-metrics/health-ai-medical-billing-medical-corporations-20260414_180528/root/CHANGELOG.md.bak` | Added this application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `app/api/v1/monitoring.py` | `backups/20260602-001948-monitoring-evidence-report-metrics/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py.bak` | Added configured/not-configured Prometheus gauges for model-improvement, manual-gate, production-corpus, backup/disaster-recovery, dependency-security, and clearinghouse-submission evidence reports. | Restore backup over `app/api/v1/monitoring.py`. |
+| `tests/unit/test_monitoring_metrics.py` | `backups/20260602-001948-monitoring-evidence-report-metrics/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_monitoring_metrics.py.bak` | Added assertions for the new gauges and verified raw sentinel report paths are not emitted. | Restore backup over `tests/unit/test_monitoring_metrics.py`. |
+| `tests/unit/test_phi_plan_production_readiness_audit.py` | `backups/20260602-001948-monitoring-evidence-report-metrics/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py.bak` | Covered the expanded audit-required metric set through existing generated metric fixtures. | Restore backup over `tests/unit/test_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-001948-monitoring-evidence-report-metrics/llm-distill/scripts/run_phi_plan_production_readiness_audit.py.bak` | Added the new evidence-report gauges to required monitoring metrics and sentinel raw-value checks. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-001948-monitoring-evidence-report-metrics/llm-distill/evals/reports/phi_plan_production_readiness_report.json.bak` | Refreshed checked-in PHIplan evidence; monitoring required metric count is now 24 with runtime/source coverage present. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Files Added
+- None.
+
+### Validation
+- `find backups/20260602-001948-monitoring-evidence-report-metrics -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_monitoring_metrics.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed from the application directory, 20 tests with existing SQLAlchemy, FastAPI, SlowAPI, and datetime deprecation warnings.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_monitoring_metrics.py health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed from the repository root.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py --report /private/tmp/claimguard-monitoring-evidence-metrics-phi-readiness.json`: passed with `production_ready=false`, `safe_current_state=true`, `blocked_item_count=9`, and `warning_item_count=1`.
+- `python3 ../llm-distill/scripts/run_distillation_readiness_audit.py --output /private/tmp/claimguard-monitoring-evidence-metrics-distillation-readiness.json --fail-on-blocked`: passed with no blocked requirements.
+- `python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=30` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided emitting or logging evidence report paths, approval-reference values,
+  private summary paths, raw report payloads, raw scanner output, raw EDI,
+  source text, PHI, secrets, or production document content.
+- Avoided treating configured evidence-report paths as proof of readiness; the
+  metrics only show configured/not-configured status, while the PHIplan report
+  remains blocked until private evidence validators pass.
+- Avoided marking PHIplan production readiness complete; private/manual gates
+  remain blocked and `production_ready=false`.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-001948-monitoring-evidence-report-metrics/`.
+- This slice improves operator visibility only; it does not complete manual
+  production approval, student default routing, user-data model improvement,
+  production vector retrieval, non-synthetic corpus approval, backup setup,
+  dependency remediation, clearinghouse submission, payer gateway calls,
+  production EHR/RCM integration, or production fairness monitoring.
+
 ## 2026-06-02 00:11:17 PDT - Manual production-gate startup guard
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

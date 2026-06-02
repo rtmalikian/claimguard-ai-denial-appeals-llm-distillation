@@ -88,7 +88,25 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
         "synthetic-model-improvement-reference-should-not-emit"
     )
     raw_consent_notice = "synthetic-consent-notice-version-should-not-emit"
+    raw_model_improvement_report_path = (
+        "/private/tmp/synthetic-model-improvement-report-should-not-emit.json"
+    )
     raw_fairness_report_path = "/private/tmp/synthetic-fairness-report-should-not-emit.json"
+    raw_manual_gate_report_path = (
+        "/private/tmp/synthetic-manual-gate-report-should-not-emit.json"
+    )
+    raw_production_corpus_report_path = (
+        "/private/tmp/synthetic-production-corpus-report-should-not-emit.json"
+    )
+    raw_backup_dr_report_path = (
+        "/private/tmp/synthetic-backup-dr-report-should-not-emit.json"
+    )
+    raw_dependency_security_report_path = (
+        "/private/tmp/synthetic-dependency-security-report-should-not-emit.json"
+    )
+    raw_clearinghouse_report_path = (
+        "/private/tmp/synthetic-clearinghouse-report-should-not-emit.json"
+    )
 
     monkeypatch.setattr(monitoring.settings, "CLAIMGUARD_STUDENT_USE_BY_DEFAULT", True)
     monkeypatch.setattr(monitoring.settings, "CLAIMGUARD_STUDENT_ENABLE_AUTO_LAUNCH", True)
@@ -127,8 +145,38 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     )
     monkeypatch.setattr(
         monitoring.settings,
+        "USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT",
+        raw_model_improvement_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
         "PREDICTION_FAIRNESS_EVIDENCE_REPORT",
         raw_fairness_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
+        "PHI_PLAN_MANUAL_GATE_PACKET_REPORT",
+        raw_manual_gate_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
+        "PRODUCTION_CORPUS_EVIDENCE_REPORT",
+        raw_production_corpus_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
+        "BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT",
+        raw_backup_dr_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
+        "DEPENDENCY_SECURITY_EVIDENCE_REPORT",
+        raw_dependency_security_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
+        "CLAIMGUARD_CLEARINGHOUSE_SUBMISSION_EVIDENCE_REPORT",
+        raw_clearinghouse_report_path,
     )
     monkeypatch.setattr(
         monitoring.settings,
@@ -163,7 +211,13 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     assert "claimguard_model_improvement_baa_confirmed 1" in body
     assert "claimguard_model_improvement_consent_notice_configured 1" in body
     assert "claimguard_model_improvement_approval_reference_configured 1" in body
+    assert "claimguard_model_improvement_evidence_report_configured 1" in body
     assert "claimguard_prediction_fairness_evidence_report_configured 1" in body
+    assert "claimguard_manual_gate_packet_report_configured 1" in body
+    assert "claimguard_production_corpus_evidence_report_configured 1" in body
+    assert "claimguard_backup_disaster_recovery_evidence_report_configured 1" in body
+    assert "claimguard_dependency_security_evidence_report_configured 1" in body
+    assert "claimguard_clearinghouse_submission_evidence_report_configured 1" in body
     assert "claimguard_retrieval_semantic_backend_configured 1" in body
     assert "claimguard_retrieval_embedding_model_approved 1" in body
     assert "claimguard_retrieval_hash_fallback_disabled_for_production 1" in body
@@ -172,7 +226,13 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     assert raw_student_reference not in body
     assert raw_model_improvement_reference not in body
     assert raw_consent_notice not in body
+    assert raw_model_improvement_report_path not in body
     assert raw_fairness_report_path not in body
+    assert raw_manual_gate_report_path not in body
+    assert raw_production_corpus_report_path not in body
+    assert raw_backup_dr_report_path not in body
+    assert raw_dependency_security_report_path not in body
+    assert raw_clearinghouse_report_path not in body
 
 
 def test_phi_plan_readiness_returns_sanitized_report(monkeypatch, tmp_path):

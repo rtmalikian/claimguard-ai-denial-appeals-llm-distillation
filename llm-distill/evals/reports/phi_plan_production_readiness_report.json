@@ -310,7 +310,7 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T07:10:32.363323+00:00",
+  "generated_at": "2026-06-02T07:17:36.857540+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, and prediction fairness monitoring gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -393,11 +393,11 @@
         "raw_metric_output_included": false,
         "raw_phi_included": false,
         "raw_secret_included": false,
-        "required_metric_count": 18,
+        "required_metric_count": 24,
         "runtime_check_performed": true,
         "runtime_error_type": null,
-        "runtime_metric_count": 25,
-        "source_metric_count": 18
+        "runtime_metric_count": 31,
+        "source_metric_count": 24
       },
       "name": "Admin Prometheus metrics expose PHIplan gate state without raw values",
       "requirement_id": "monitoring_gate_metrics_ready",

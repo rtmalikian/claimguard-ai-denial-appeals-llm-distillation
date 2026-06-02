@@ -596,13 +596,17 @@ plan plus the active ClaimGuard `AGENTS.md`.
   or approval references. It now includes PHIplan production-gate gauges for
   student default/auto-launch/cutover approval state, non-secret approval
   reference presence, supervised runtime, rollback-to-NVIDIA, user-data model
-  improvement legal/BAA/consent/reference state, prediction-fairness evidence
-  report configuration, retrieval semantic/vector safety flags, hash-fallback
-  state, and conservative runtime defaults; all gate values are emitted only as
-  `0` or `1`. The PHIplan production-readiness audit now also verifies this
-  monitoring surface as `monitoring_gate_metrics_ready` by checking required
-  source metric names, runtime Prometheus output coverage, and sentinel
-  approval/reference/report values are not emitted.
+  improvement legal/BAA/consent/reference state, model-improvement evidence
+  report configuration, prediction-fairness evidence report configuration,
+  manual production-gate packet report configuration, production-corpus evidence
+  report configuration, backup/disaster-recovery evidence report configuration,
+  dependency-security evidence report configuration, clearinghouse-submission
+  evidence report configuration, retrieval semantic/vector safety flags,
+  hash-fallback state, and conservative runtime defaults; all gate values are
+  emitted only as `0` or `1`. The PHIplan production-readiness audit now also
+  verifies this monitoring surface as `monitoring_gate_metrics_ready` by
+  checking required source metric names, runtime Prometheus output coverage, and
+  sentinel approval/reference/report values are not emitted.
 - Add an admin-only PHIplan readiness endpoint at
   `/api/v1/monitoring/phi-plan-readiness`. The endpoint reads the checked-in
   production-readiness report and returns sanitized readiness counts,
@@ -2102,6 +2106,16 @@ remove
 and
 `health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_manual_production_gate_startup_config.py`
 if rolling back the manual production-gate startup guard slice.
+Restore `PHIplan.md`, `CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_monitoring_metrics.py`,
+`health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_phi_plan_production_readiness_audit.py`,
+`llm-distill/scripts/run_phi_plan_production_readiness_audit.py`, and
+`llm-distill/evals/reports/phi_plan_production_readiness_report.json` from
+`health-ai-medical-billing-medical-corporations-20260414_180528/backups/20260602-001948-monitoring-evidence-report-metrics/`
+if rolling back the monitoring evidence-report metrics slice.
 Restore `PHIplan.md`, `CHANGELOG.md`,
 `llm-distill/data/production_corpus_evidence/corpus_evidence.template.json`,
 `llm-distill/scripts/validate_production_corpus_evidence.py`,

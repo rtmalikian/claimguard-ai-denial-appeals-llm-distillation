@@ -448,11 +448,13 @@ guard variables are missing, mapped to the wrong env var, defaulted
 non-conservatively, or if an unconsumed guard alias returns.
 Monitoring now includes an admin-only Prometheus metrics endpoint that emits
 aggregate counts and boolean PHIplan production-gate flags for student
-default/auto-launch/cutover, user-data model improvement, prediction-fairness
-evidence configuration, retrieval semantic/vector readiness, hash fallback, and
-conservative runtime defaults without patient identifiers, provider identifiers,
-claim IDs, filenames, payer names, source text, prompts, vectors, credentials,
-approval references, report paths, PHI, or raw document content.
+default/auto-launch/cutover, user-data model improvement,
+model-improvement/prediction-fairness/manual-gate/production-corpus/
+backup-disaster-recovery/dependency-security/clearinghouse-submission evidence
+report configuration, retrieval semantic/vector readiness, hash fallback, and
+conservative runtime defaults without patient identifiers, provider
+identifiers, claim IDs, filenames, payer names, source text, prompts, vectors,
+credentials, approval references, report paths, PHI, or raw document content.
 The PHIplan production-readiness audit now also verifies this metrics surface
 as a current-state gate by checking required metric names, runtime Prometheus
 output coverage, and absence of sentinel approval/reference/report values.
@@ -1181,6 +1183,10 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
 - [x] Admin-only Prometheus metrics endpoint with aggregate counts, PHIplan
   production-gate safety flags, and no raw PHI/document labels or approval
   reference values
+- [x] Prometheus PHIplan gate metrics now include metadata-only configured
+  flags for model-improvement, prediction-fairness, manual production-gate
+  packet, production-corpus, backup/disaster-recovery, dependency-security,
+  and clearinghouse-submission evidence reports without emitting report paths
 - [x] PHIplan production-readiness audit covers required Prometheus PHIplan
   gate metrics and blocks `safe_current_state` if the metrics surface drifts or
   emits raw approval/reference/report values
