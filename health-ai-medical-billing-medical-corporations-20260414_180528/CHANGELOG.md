@@ -2,6 +2,56 @@
 
 All notable changes to ClaimGuard AI will be documented in this file.
 
+## 2026-06-02 10:14:43 PDT - Private handoff monitoring metric
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: expose the PHIplan private evidence handoff status report as a
+  metadata-only Prometheus configuration gauge, require that gauge in the
+  PHIplan production-readiness audit, and keep production readiness blocked
+  until the nine private/external evidence domains are completed outside
+  source control.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `../PHIplan.md` | `backups/20260602-101150-private-handoff-monitoring-metric/PHIplan.md` | Documented the private evidence handoff report configuration gauge in the admin Prometheus metrics coverage. | Restore backup over `../PHIplan.md`. |
+| `../CHANGELOG.md` | `backups/20260602-101150-private-handoff-monitoring-metric/CHANGELOG.md` | Added matching root changelog tracking. | Restore backup over `../CHANGELOG.md`. |
+| `CHANGELOG.md` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/CHANGELOG.md` | Added this rollback-ready application changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `implementation.md` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/implementation.md` | Updated implementation tracking for the private handoff report Prometheus gauge. | Restore backup over `implementation.md`. |
+| `docker-compose.production.yml` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml` | Added a conservative default for `PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT` alongside the other evidence report settings. | Restore backup over `docker-compose.production.yml`. |
+| `app/core/config.py` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/app/core/config.py` | Added `PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT` as a settings field with a source-controlled default path. | Restore backup over `app/core/config.py`. |
+| `app/api/v1/monitoring.py` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/app/api/v1/monitoring.py` | Emitted `claimguard_private_evidence_handoff_report_configured` and added a safe label for `private_evidence_handoff_ready`. | Restore backup over `app/api/v1/monitoring.py`. |
+| `tests/unit/test_monitoring_metrics.py` | `backups/20260602-101150-private-handoff-monitoring-metric/health-ai-medical-billing-medical-corporations-20260414_180528/tests/unit/test_monitoring_metrics.py` | Verified the new metric emits only `1` or `0` and does not emit the configured report path. | Restore backup over `tests/unit/test_monitoring_metrics.py`. |
+| `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | `backups/20260602-101150-private-handoff-monitoring-metric/llm-distill/scripts/run_phi_plan_production_readiness_audit.py` | Required the new Prometheus metric, compose setting, and runtime sentinel in the PHIplan production-readiness audit. | Restore backup over `../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`. |
+| `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | `backups/20260602-101150-private-handoff-monitoring-metric/llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json` | Refreshed the checked-in private handoff report timestamp while preserving `handoff_ready=true` and `private_evidence_complete=false`. | Restore backup over `../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json`. |
+| `../llm-distill/evals/reports/phi_plan_production_readiness_report.json` | `backups/20260602-101150-private-handoff-monitoring-metric/llm-distill/evals/reports/phi_plan_production_readiness_report.json` | Regenerated the checked-in report with 27 guarded compose vars and 25 required monitoring metrics; production readiness remains blocked. | Restore backup over `../llm-distill/evals/reports/phi_plan_production_readiness_report.json`. |
+
+### Validation
+- `find backups/20260602-101150-private-handoff-monitoring-metric -type f | sort`: passed; backups exist for every modified existing file.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py app/api/v1/monitoring.py app/core/config.py tests/unit/test_monitoring_metrics.py`: passed from the application directory using the same files.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m pytest tests/unit/test_monitoring_metrics.py tests/unit/test_phi_plan_production_readiness_audit.py -q`: passed, 25 tests with existing deprecation warnings.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_phi_plan_private_evidence_handoff.py --fail-on-source-control-blocked`: passed with `handoff_ready=True`, `private_evidence_complete=False`, and `private_blockers=9`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/run_phi_plan_production_readiness_audit.py`: passed and refreshed the checked-in report with `production_ready=false`, `safe_current_state=true`, `blocked=9`, `warnings=1`, `required_metric_count=25`, and `required_guard_env_var_count=27`; local development emitted the expected ephemeral-key warning because no valid `ENCRYPTION_KEYS` were configured.
+- `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json >/dev/null` and `python3 -m json.tool ../llm-distill/evals/reports/phi_plan_production_readiness_report.json >/dev/null`: passed.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`: passed with `ready=True` and `blocked=0`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 ../llm-distill/scripts/sanitize_public_eval_reports.py --check`: passed with `checked_count=31` and `changed_count=0`.
+- `git diff --check`: passed from the repository root.
+- Added-line secret scan with `rg`: passed with no matches.
+
+### Failed Or Avoided Approaches
+- Avoided emitting `PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT` values, report
+  paths, approval references, PHI, secrets, raw evidence, or production
+  document content in Prometheus output or source-controlled evidence.
+- Avoided marking any private/external production blocker ready; the metric
+  only proves report configuration is present.
+
+### Notes
+- Rollback: restore every modified existing file from
+  `backups/20260602-101150-private-handoff-monitoring-metric/`.
+
 ## 2026-06-02 01:13:54 PDT - Private handoff status report
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

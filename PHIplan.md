@@ -598,7 +598,8 @@ plan plus the active ClaimGuard `AGENTS.md`.
   reference presence, supervised runtime, rollback-to-NVIDIA, user-data model
   improvement legal/BAA/consent/reference state, model-improvement evidence
   report configuration, prediction-fairness evidence report configuration,
-  manual production-gate packet report configuration, production-corpus evidence
+  manual production-gate packet report configuration, private evidence handoff
+  report configuration, production-corpus evidence
   report configuration, backup/disaster-recovery evidence report configuration,
   dependency-security evidence report configuration, clearinghouse-submission
   evidence report configuration, retrieval semantic/vector safety flags,

@@ -481,10 +481,11 @@ non-conservatively, or if an unconsumed guard alias returns.
 Monitoring now includes an admin-only Prometheus metrics endpoint that emits
 aggregate counts and boolean PHIplan production-gate flags for student
 default/auto-launch/cutover, user-data model improvement,
-model-improvement/prediction-fairness/manual-gate/production-corpus/
-backup-disaster-recovery/dependency-security/clearinghouse-submission evidence
-report configuration, retrieval semantic/vector readiness, hash fallback, and
-conservative runtime defaults without patient identifiers, provider
+model-improvement evidence, prediction-fairness evidence, manual-gate packets,
+production-corpus evidence, private evidence handoff status,
+backup/disaster-recovery evidence, dependency-security evidence,
+clearinghouse-submission evidence, retrieval semantic/vector readiness, hash
+fallback, and conservative runtime defaults without patient identifiers, provider
 identifiers, claim IDs, filenames, payer names, source text, prompts, vectors,
 credentials, approval references, report paths, PHI, or raw document content.
 The PHIplan production-readiness audit now also verifies this metrics surface
@@ -1220,8 +1221,9 @@ This document tracks the implementation of ClaimGuard AI, a medical billing deni
   reference values
 - [x] Prometheus PHIplan gate metrics now include metadata-only configured
   flags for model-improvement, prediction-fairness, manual production-gate
-  packet, production-corpus, backup/disaster-recovery, dependency-security,
-  and clearinghouse-submission evidence reports without emitting report paths
+  packet, private evidence handoff, production-corpus,
+  backup/disaster-recovery, dependency-security, and clearinghouse-submission
+  evidence reports without emitting report paths
 - [x] PHIplan production-readiness audit covers required Prometheus PHIplan
   gate metrics and blocks `safe_current_state` if the metrics surface drifts or
   emits raw approval/reference/report values

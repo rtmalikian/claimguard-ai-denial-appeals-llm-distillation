@@ -80,6 +80,9 @@ DEFAULT_SETTINGS = SimpleNamespace(
     PHI_PLAN_MANUAL_GATE_PACKET_REPORT=(
         "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json"
     ),
+    PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT=(
+        "llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json"
+    ),
     PRODUCTION_CORPUS_EVIDENCE_REPORT=(
         "llm-distill/evals/reports/production_corpus_evidence_report.json"
     ),
@@ -134,6 +137,9 @@ REQUIRED_PRODUCTION_COMPOSE_GUARD_DEFAULTS = {
     "PHI_PLAN_MANUAL_GATE_PACKET_REPORT": (
         "llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json"
     ),
+    "PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT": (
+        "llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json"
+    ),
     "PRODUCTION_CORPUS_EVIDENCE_REPORT": (
         "llm-distill/evals/reports/production_corpus_evidence_report.json"
     ),
@@ -173,6 +179,7 @@ REQUIRED_MONITORING_GATE_METRICS = {
     "claimguard_model_improvement_evidence_report_configured",
     "claimguard_prediction_fairness_evidence_report_configured",
     "claimguard_manual_gate_packet_report_configured",
+    "claimguard_private_evidence_handoff_report_configured",
     "claimguard_production_corpus_evidence_report_configured",
     "claimguard_backup_disaster_recovery_evidence_report_configured",
     "claimguard_dependency_security_evidence_report_configured",
@@ -202,6 +209,9 @@ MONITORING_RUNTIME_SENTINELS = {
     ),
     "PHI_PLAN_MANUAL_GATE_PACKET_REPORT": (
         "/private/tmp/synthetic-manual-gate-report-not-for-metrics.json"
+    ),
+    "PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT": (
+        "/private/tmp/synthetic-private-handoff-report-not-for-metrics.json"
     ),
     "PRODUCTION_CORPUS_EVIDENCE_REPORT": (
         "/private/tmp/synthetic-production-corpus-report-not-for-metrics.json"

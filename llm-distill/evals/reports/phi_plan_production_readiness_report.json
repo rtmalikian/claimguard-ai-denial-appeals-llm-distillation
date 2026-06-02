@@ -319,7 +319,7 @@
       "synthetic_900_adapter_training_status"
     ]
   },
-  "generated_at": "2026-06-02T08:13:34.923485+00:00",
+  "generated_at": "2026-06-02T17:14:15.563493+00:00",
   "next_required_actions": [
     "Complete llm-distill/data/production_gate_evidence/manual_gate_packet.template.json with boolean-only evidence for student cutover, user-data model improvement, production corpus, retrieval-vector backend, prediction fairness monitoring, backup/disaster-recovery, dependency-security, clearinghouse submission, and file-ingestion surface gates; validate it with validate_phi_plan_manual_gate_packet.py, and keep approval references, private summary paths, PHI, secrets, raw report paths, and production document content outside source control.",
     "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves cutover, a non-secret approval reference is configured, supervised MLX runtime evidence is present via validate_mlx_runtime_supervisor.py, rollback-to-NVIDIA is not enabled, and distillation evidence remains ready.",
@@ -388,14 +388,14 @@
         "api_environment_found": true,
         "approval_reference_values_included": false,
         "compose_path": "health-ai-medical-billing-medical-corporations-20260414_180528/docker-compose.production.yml",
-        "configured_guard_env_var_count": 26,
+        "configured_guard_env_var_count": 27,
         "forbidden_guard_env_vars": [],
         "missing_guard_env_vars": [],
         "non_conservative_default_guard_env_vars": [],
         "non_self_referenced_guard_env_vars": [],
         "raw_env_values_included": false,
         "raw_secrets_included": false,
-        "required_guard_env_var_count": 26
+        "required_guard_env_var_count": 27
       },
       "name": "Production compose forwards startup guard settings with conservative defaults",
       "requirement_id": "production_compose_startup_guard_env",
@@ -432,11 +432,11 @@
         "raw_metric_output_included": false,
         "raw_phi_included": false,
         "raw_secret_included": false,
-        "required_metric_count": 24,
+        "required_metric_count": 25,
         "runtime_check_performed": true,
         "runtime_error_type": null,
-        "runtime_metric_count": 31,
-        "source_metric_count": 24
+        "runtime_metric_count": 32,
+        "source_metric_count": 25
       },
       "name": "Admin Prometheus metrics expose PHIplan gate state without raw values",
       "requirement_id": "monitoring_gate_metrics_ready",

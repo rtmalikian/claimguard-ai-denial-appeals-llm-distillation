@@ -27,6 +27,7 @@ SAFE_REQUIREMENT_NAMES = {
     "file_ingestion_surface_audit_ready": "File-ingestion surface audit",
     "monitoring_gate_metrics_ready": "Prometheus PHIplan gate metrics",
     "monitoring_readiness_endpoint_ready": "PHIplan readiness endpoint",
+    "private_evidence_handoff_ready": "Private evidence handoff",
     "manual_production_gate_packet_evidence": "Manual production gate packet",
     "student_default_cutover_external_approval": "Student default cutover approval",
     "user_data_model_improvement_external_approval": "User-data model improvement approval",
@@ -315,6 +316,11 @@ def build_prometheus_metrics(db: Session) -> str:
             "claimguard_manual_gate_packet_report_configured",
             "Whether manual production gate packet report configuration is present.",
             _configured_metric(settings.PHI_PLAN_MANUAL_GATE_PACKET_REPORT),
+        ),
+        (
+            "claimguard_private_evidence_handoff_report_configured",
+            "Whether private evidence handoff report configuration is present.",
+            _configured_metric(settings.PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT),
         ),
         (
             "claimguard_production_corpus_evidence_report_configured",

@@ -95,6 +95,9 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     raw_manual_gate_report_path = (
         "/private/tmp/synthetic-manual-gate-report-should-not-emit.json"
     )
+    raw_private_handoff_report_path = (
+        "/private/tmp/synthetic-private-handoff-report-should-not-emit.json"
+    )
     raw_production_corpus_report_path = (
         "/private/tmp/synthetic-production-corpus-report-should-not-emit.json"
     )
@@ -160,6 +163,11 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     )
     monkeypatch.setattr(
         monitoring.settings,
+        "PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT",
+        raw_private_handoff_report_path,
+    )
+    monkeypatch.setattr(
+        monitoring.settings,
         "PRODUCTION_CORPUS_EVIDENCE_REPORT",
         raw_production_corpus_report_path,
     )
@@ -214,6 +222,7 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     assert "claimguard_model_improvement_evidence_report_configured 1" in body
     assert "claimguard_prediction_fairness_evidence_report_configured 1" in body
     assert "claimguard_manual_gate_packet_report_configured 1" in body
+    assert "claimguard_private_evidence_handoff_report_configured 1" in body
     assert "claimguard_production_corpus_evidence_report_configured 1" in body
     assert "claimguard_backup_disaster_recovery_evidence_report_configured 1" in body
     assert "claimguard_dependency_security_evidence_report_configured 1" in body
@@ -229,6 +238,7 @@ def test_prometheus_metrics_exposes_boolean_gate_flags_without_raw_values(
     assert raw_model_improvement_report_path not in body
     assert raw_fairness_report_path not in body
     assert raw_manual_gate_report_path not in body
+    assert raw_private_handoff_report_path not in body
     assert raw_production_corpus_report_path not in body
     assert raw_backup_dr_report_path not in body
     assert raw_dependency_security_report_path not in body

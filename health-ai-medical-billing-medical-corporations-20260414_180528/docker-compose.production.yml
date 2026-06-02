@@ -60,6 +60,7 @@ services:
       USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT: ${USER_DATA_MODEL_IMPROVEMENT_EVIDENCE_REPORT:-llm-distill/evals/reports/model_improvement_evidence_report.json}
       PREDICTION_FAIRNESS_EVIDENCE_REPORT: ${PREDICTION_FAIRNESS_EVIDENCE_REPORT:-llm-distill/evals/reports/prediction_fairness_evidence_report.json}
       PHI_PLAN_MANUAL_GATE_PACKET_REPORT: ${PHI_PLAN_MANUAL_GATE_PACKET_REPORT:-llm-distill/evals/reports/phi_plan_manual_gate_packet_report.json}
+      PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT: ${PHI_PLAN_PRIVATE_EVIDENCE_HANDOFF_REPORT:-llm-distill/evals/reports/phi_plan_private_evidence_handoff_report.json}
       PRODUCTION_CORPUS_EVIDENCE_REPORT: ${PRODUCTION_CORPUS_EVIDENCE_REPORT:-llm-distill/evals/reports/production_corpus_evidence_report.json}
       BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT: ${BACKUP_DISASTER_RECOVERY_EVIDENCE_REPORT:-llm-distill/evals/reports/backup_disaster_recovery_evidence_report.json}
       DEPENDENCY_SECURITY_EVIDENCE_REPORT: ${DEPENDENCY_SECURITY_EVIDENCE_REPORT:-llm-distill/evals/reports/dependency_security_evidence_report.json}
