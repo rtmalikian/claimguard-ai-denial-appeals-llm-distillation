@@ -46,14 +46,10 @@
   },
   "created_at": "2026-05-30T23:34:34.259907+00:00",
   "data_safety": {
-    "data_tier": "approved_deidentified_corpus",
+    "data_tier": "synthetic",
     "external_model_calls_made": false,
     "local_model_weights_written": false,
     "phi_status": "no_phi",
-    "requires_checksum_match": true,
-    "requires_privacy_review": true,
-    "requires_training_eligible_manifest_records": true,
-    "requires_zero_phi_scan_findings": true,
     "user_phi_allowed": false
   },
   "eligible_manifest_record_count": 1800,

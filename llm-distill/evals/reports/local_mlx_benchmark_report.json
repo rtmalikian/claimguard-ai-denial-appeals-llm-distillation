@@ -1,6 +1,6 @@
 {
   "base_url": "http://localhost:8080/v1",
-  "generated_at": "2026-05-30T04:58:34.849942+00:00",
+  "generated_at": "2026-06-03T22:37:13.881148+00:00",
   "host": {
     "machine": "arm64",
     "processor": "arm",
@@ -23,11 +23,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 34.8146,
+        "duration_seconds": 73.665,
         "endpoint_error": null,
-        "output_token_estimate": 372,
+        "output_token_estimate": 1154,
         "parse_error": null,
-        "tokens_per_second": 10.6852
+        "tokens_per_second": 15.6655
       },
       "score": {
         "denial_type_match": true,
@@ -54,11 +54,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 34.6999,
+        "duration_seconds": 48.6012,
         "endpoint_error": null,
-        "output_token_estimate": 442,
+        "output_token_estimate": 763,
         "parse_error": null,
-        "tokens_per_second": 12.7378
+        "tokens_per_second": 15.6992
       },
       "score": {
         "denial_type_match": true,
@@ -85,11 +85,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 35.8451,
+        "duration_seconds": 61.1794,
         "endpoint_error": null,
-        "output_token_estimate": 453,
+        "output_token_estimate": 981,
         "parse_error": null,
-        "tokens_per_second": 12.6377
+        "tokens_per_second": 16.0348
       },
       "score": {
         "denial_type_match": true,
@@ -116,11 +116,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 37.178,
+        "duration_seconds": 116.8313,
         "endpoint_error": null,
-        "output_token_estimate": 457,
+        "output_token_estimate": 1794,
         "parse_error": null,
-        "tokens_per_second": 12.2922
+        "tokens_per_second": 15.3555
       },
       "score": {
         "denial_type_match": false,
@@ -147,11 +147,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 33.8209,
+        "duration_seconds": 68.1068,
         "endpoint_error": null,
-        "output_token_estimate": 462,
+        "output_token_estimate": 1037,
         "parse_error": null,
-        "tokens_per_second": 13.6602
+        "tokens_per_second": 15.2261
       },
       "score": {
         "denial_type_match": false,
@@ -178,11 +178,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 28.8221,
+        "duration_seconds": 56.858,
         "endpoint_error": null,
-        "output_token_estimate": 388,
+        "output_token_estimate": 1013,
         "parse_error": null,
-        "tokens_per_second": 13.4619
+        "tokens_per_second": 17.8163
       },
       "score": {
         "denial_type_match": true,
@@ -209,11 +209,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 28.1988,
+        "duration_seconds": 59.8848,
         "endpoint_error": null,
-        "output_token_estimate": 378,
+        "output_token_estimate": 1080,
         "parse_error": null,
-        "tokens_per_second": 13.4048
+        "tokens_per_second": 18.0346
       },
       "score": {
         "denial_type_match": true,
@@ -240,11 +240,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 28.1238,
+        "duration_seconds": 40.8836,
         "endpoint_error": null,
-        "output_token_estimate": 352,
+        "output_token_estimate": 681,
         "parse_error": null,
-        "tokens_per_second": 12.5161
+        "tokens_per_second": 16.6571
       },
       "score": {
         "denial_type_match": true,
@@ -271,11 +271,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 36.6558,
+        "duration_seconds": 63.1008,
         "endpoint_error": null,
-        "output_token_estimate": 475,
+        "output_token_estimate": 1101,
         "parse_error": null,
-        "tokens_per_second": 12.9584
+        "tokens_per_second": 17.4483
       },
       "score": {
         "denial_type_match": true,
@@ -302,11 +302,11 @@
       },
       "runtime": {
         "dry_run": false,
-        "duration_seconds": 39.6636,
+        "duration_seconds": 63.8463,
         "endpoint_error": null,
-        "output_token_estimate": 513,
+        "output_token_estimate": 1093,
         "parse_error": null,
-        "tokens_per_second": 12.9338
+        "tokens_per_second": 17.1192
       },
       "score": {
         "denial_type_match": true,
@@ -345,11 +345,11 @@
     "dry_run": false,
     "endpoint_available": true,
     "endpoint_error_count": 0,
-    "latency_seconds_avg": 33.7823,
+    "latency_seconds_avg": 65.2957,
     "max_score": 60,
     "record_count": 10,
     "score_ratio": 0.9667,
-    "tokens_per_second_avg": 12.7288,
+    "tokens_per_second_avg": 16.5057,
     "total_score": 58
   }
 }

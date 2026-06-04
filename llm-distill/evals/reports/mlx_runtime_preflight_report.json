@@ -1,6 +1,8 @@
 {
   "base_url": "http://localhost:8080/v1",
-  "blocked_reasons": [],
+  "blocked_reasons": [
+    "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
+  ],
   "checks": {
     "commands": {
       "mlx_lm.generate": {
@@ -38,27 +40,17 @@
       "version": "0.31.3"
     },
     "server": {
-      "available": true,
+      "available": false,
       "base_url": "http://localhost:8080/v1",
-      "body_summary": {
-        "json_valid": true,
-        "keys": [
-          "data",
-          "object"
-        ],
-        "model_count": 1,
-        "model_ids": [
-          "Qwen/Qwen3-4B-MLX-4bit"
-        ]
-      },
-      "duration_seconds": 0.0244,
-      "error": null,
+      "body_summary": null,
+      "duration_seconds": 0.0187,
+      "error": "<urlopen error [Errno 61] Connection refused>",
       "models_url": "http://localhost:8080/v1/models",
-      "status_code": 200
+      "status_code": null
     }
   },
   "fallback_model": "Qwen/Qwen3-1.7B",
-  "generated_at": "2026-05-30T04:59:50.083000+00:00",
+  "generated_at": "2026-06-03T17:50:05.678076+00:00",
   "host": {
     "machine": "arm64",
     "processor": "arm",
@@ -76,6 +68,6 @@
     "This preflight does not install packages, download models, start servers, call teacher endpoints, train, quantize, or write adapter weights.",
     "A reachable /v1/models endpoint is runtime availability evidence, not model-quality or training evidence."
   ],
-  "ready": true,
+  "ready": false,
   "warnings": []
 }

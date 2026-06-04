@@ -1,25 +1,53 @@
 {
   "audit_report": "llm-distill/evals/reports/distillation_readiness_audit_report.json",
   "audit_summary": {
-    "blocked_count": 7,
+    "blocked_count": 3,
     "blocked_requirement_ids": [
-      "phase6_reviewed_teacher_labels",
-      "phase6_reviewed_sft_export",
       "phase5_7_mlx_runtime_preflight",
       "phase7_student_fine_tune_run",
-      "phase7_student_live_benchmark",
-      "phase7_student_acceptance",
       "phase8_quantization_promotion"
     ],
     "distillation_ready": false,
-    "ready_count": 8,
+    "ready_count": 20,
     "release_ready": false,
-    "requirement_count": 17,
+    "requirement_count": 25,
     "warning_count": 2
   },
-  "blocked_reasons": [],
-  "bootstrap_ready": true,
+  "blocked_reasons": [
+    "command returned non-zero: external_path_redacted venv --python /opt/homebrew/opt/python@3.14/bin/python3.14 .venv-mlx",
+    "one or more MLX-LM install commands returned non-zero"
+  ],
+  "bootstrap_ready": false,
   "command_results": [
+    {
+      "command": [
+        "external_path_redacted",
+        "venv",
+        "--python",
+        "/opt/homebrew/opt/python@3.14/bin/python3.14",
+        ".venv-mlx"
+      ],
+      "returncode": 2,
+      "stderr_tail": "Using CPython 3.14.5 interpreter at: /opt/homebrew/opt/python@3.14/bin/python3.14\nCreating virtual environment at: .venv-mlx\nerror: Failed to create virtual environment\n  Caused by: A virtual environment already exists at `.venv-mlx`. Use `--clear` to replace it\n",
+      "stdout_tail": "",
+      "timed_out": false,
+      "timeout_seconds": null
+    },
+    {
+      "command": [
+        "external_path_redacted",
+        "pip",
+        "install",
+        "--python",
+        ".venv-mlx/bin/python",
+        "mlx-lm"
+      ],
+      "returncode": 0,
+      "stderr_tail": "Using Python 3.14.5 environment at: .venv-mlx\nChecked 1 package in 33ms\n",
+      "stdout_tail": "",
+      "timed_out": false,
+      "timeout_seconds": null
+    },
     {
       "command": [
         ".venv-mlx/bin/python",
@@ -38,7 +66,9 @@
         ".venv-mlx/bin/python",
         "llm-distill/scripts/run_mlx_finetune.py",
         "--output",
-        "llm-distill/evals/reports/mlx_finetune_preflight_report.json"
+        "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
+        "--mlx-lora-executable",
+        ".venv-mlx/bin/mlx_lm.lora"
       ],
       "returncode": 0,
       "stderr_tail": "",
@@ -72,7 +102,7 @@
     "mode": "preflight",
     "ready": false
   },
-  "generated_at": "2026-05-30T03:18:31.696826+00:00",
+  "generated_at": "2026-06-03T17:50:10.016804+00:00",
   "next_actions": [
     "Start mlx_lm.server from the local virtual environment before live benchmarks.",
     "Complete large-teacher or human review approvals before reviewed SFT export and LoRA training.",

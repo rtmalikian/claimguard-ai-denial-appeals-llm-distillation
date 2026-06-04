@@ -1,13 +1,16 @@
 {
-  "blocked_reasons": [],
+  "blocked_reasons": [
+    "manifest training_allowed is not true",
+    "One or more records are pending large-teacher or human review."
+  ],
   "checks": {
     "adapter_output": {
-      "exists_after_run": true,
+      "exists_after_run": null,
       "exists_before_run": false,
-      "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+      "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed"
     },
     "data": {
-      "data_dir": "llm-distill/data/distillation/mlx_sft_reviewed",
+      "data_dir": "llm-distill/data/distillation/mlx_sft_seed",
       "errors": [],
       "ready": true,
       "split_reports": {
@@ -15,7 +18,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "llm-distill/data/distillation/mlx_sft_reviewed/test.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_seed/test.jsonl",
           "phi_findings": [],
           "record_count": 1
         },
@@ -23,7 +26,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 8,
-          "path": "llm-distill/data/distillation/mlx_sft_reviewed/train.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_seed/train.jsonl",
           "phi_findings": [],
           "record_count": 8
         },
@@ -31,7 +34,7 @@
           "errors": [],
           "exists": true,
           "expected_count": 1,
-          "path": "llm-distill/data/distillation/mlx_sft_reviewed/valid.jsonl",
+          "path": "llm-distill/data/distillation/mlx_sft_seed/valid.jsonl",
           "phi_findings": [],
           "record_count": 1
         }
@@ -54,16 +57,44 @@
         "user_phi_allowed": false
       },
       "errors": [],
-      "manifest_blocked_reasons": [],
+      "manifest_blocked_reasons": [
+        "manifest training_allowed is not true",
+        "One or more records are pending large-teacher or human review."
+      ],
       "model": "Qwen/Qwen3-4B-MLX-4bit",
-      "ready": true,
-      "training_allowed": true,
+      "ready": false,
+      "training_allowed": false,
       "warnings": []
     },
     "mlx_lm_lora": {
       "available": true,
+      "configured_executable": true,
       "error": null,
-      "path": ".venv-mlx/bin/mlx_lm.lora"
+      "help_returncode": 0,
+      "path": ".venv-mlx/bin/mlx_lm.lora",
+      "path_source": "argument",
+      "runtime_ready": true,
+      "stderr_tail": "",
+      "stdout_tail": "usage: mlx_lm.lora [-h] [--model MODEL] [--train] [--data DATA]\n                   [--fine-tune-type {lora,dora,full}]\n                   [--optimizer {adam,adamw,muon,sgd,adafactor}]\n                   [--mask-prompt] [--num-layers NUM_LAYERS]\n                   [--batch-size BATCH_SIZE] [--iters ITERS]\n                   [--val-batches VAL_BATCHES] [--learning-rate LEARNING_RATE]\n                   [--steps-per-report STEPS_PER_REPORT]\n                   [--steps-per-eval STEPS_PER_EVAL]\n                   [--grad-accumulation-steps GRAD_ACCUMULATION_STEPS]\n                   [--resume-adapter-file RESUME_ADAPTER_FILE]\n                   [--adapter-path ADAPTER_PATH] [--save-every SAVE_EVERY]\n                   [--test] [--test-batches TEST_BATCHES]\n                   [--max-seq-length MAX_SEQ_LENGTH] [-c CONFIG]\n                   [--grad-checkpoint]\n                   [--clear-cache-threshold CLEAR_CACHE_THRESHOLD]\n                   [--report-to REPORT_TO] [--project-name PROJECT_NAME]\n                   [--seed SEED]\n\nLoRA or QLoRA finetuning.\n\noptions:\n  -h, --help            show this help message and exit\n  --model MODEL         The path to the local model directory or Hugging Face\n                        repo.\n  --train               Do training\n  --data DATA           Directory with {train, valid, test}.jsonl files or the\n                        name of a Hugging Face dataset (e.g., 'mlx-\n                        community/wikisql')\n  --fine-tune-type {lora,dora,full}\n                        Type of fine-tuning to perform: lora, dora, or full.\n  --optimizer {adam,adamw,muon,sgd,adafactor}\n                        Optimizer to use for training: adam, adamw, sgd, or\n                        adafactor.\n  --mask-prompt         Mask the prompt in the loss when training\n  --num-layers NUM_LAYERS\n                        Number of layers to fine-tune. Default is 16, use -1\n                        for all.\n  --batch-size BATCH_SIZE\n                        Minibatch size.\n  --iters ITERS         Iterations to train for.\n  --val-batches VAL_BATCHES\n                        Number of validation batches, -1 uses the entire\n                        validation set.\n  --learning-rate LEARNING_RATE\n                        Adam learning rate.\n  --steps-per-report STEPS_PER_REPORT\n                        Number of training steps between loss reporting.\n  --steps-per-eval STEPS_PER_EVAL\n                        Number of training steps between validations.\n  --grad-accumulation-steps GRAD_ACCUMULATION_STEPS\n                        Number of steps to accumulate before each optimizer\n                        update.\n  --resume-adapter-file RESUME_ADAPTER_FILE\n                        Load path to resume training from the given fine-tuned\n                        weights.\n  --adapter-path ADAPTER_PATH\n                        Save/load path for the fine-tuned weights.\n  --save-every SAVE_EVERY\n                        Save the model every N iterations.\n  --test                Evaluate on the test set after training\n  --test-batches TEST_BATCHES\n                        Number of test set batches, -1 uses the entire test\n                        set.\n  --max-seq-length MAX_SEQ_LENGTH\n                        Maximum sequence length.\n  -c, --config CONFIG   A YAML configuration file with the training options\n  --grad-checkpoint     Use gradient checkpointing to reduce memory use.\n  --clear-cache-threshold CLEAR_CACHE_THRESHOLD\n                        Clear the allocator cache between steps if it grows\n                        too large.\n  --report-to REPORT_TO\n                        Services to report logs to ('wandb', 'swanlab', or\n                        'wandb,swanlab').\n  --project-name PROJECT_NAME\n                        Project name for logging. Defaults to the name of the\n                        root directory.\n  --seed SEED           The PRNG seed\n"
+    },
+    "production_corpus_evidence": {
+      "blocked_requirement_ids": [],
+      "blockers": [],
+      "data_tier": "synthetic",
+      "enforced": false,
+      "report_loaded": false,
+      "report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+      "report_ready": null,
+      "report_safe_to_review": null,
+      "required_for_run": false,
+      "safe_context": {
+        "approval_reference_value_included": false,
+        "raw_checksums_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_secret_included": false,
+        "raw_source_paths_included": false
+      }
     }
   },
   "command": [
@@ -72,9 +103,9 @@
     "Qwen/Qwen3-4B-MLX-4bit",
     "--train",
     "--data",
-    "llm-distill/data/distillation/mlx_sft_reviewed",
+    "llm-distill/data/distillation/mlx_sft_seed",
     "--iters",
-    "60",
+    "600",
     "--batch-size",
     "1",
     "--num-layers",
@@ -82,28 +113,21 @@
     "--fine-tune-type",
     "lora",
     "--mask-prompt",
-    "--steps-per-report",
-    "10",
-    "--steps-per-eval",
-    "30",
     "--adapter-path",
-    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed"
+    "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed"
   ],
-  "generated_at": "2026-05-30T03:47:00.358742+00:00",
-  "manifest": "llm-distill/data/distillation/mlx_sft_reviewed/manifest.json",
-  "mode": "run",
+  "generated_at": "2026-06-03T17:50:07.139750+00:00",
+  "manifest": "llm-distill/data/distillation/mlx_sft_seed/manifest.json",
+  "mode": "preflight",
   "notes": [
     "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
+    "Preflight mode does execute mlx_lm.lora --help to verify that the MLX runtime can import and access Metal in the current session.",
     "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+    "Run mode for corpus-derived data tiers also requires a ready and safe production corpus evidence report.",
     "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
   ],
   "preflight_errors": [],
-  "process": {
-    "returncode": 0,
-    "stderr_tail": "\nFetching 7 files:   0%|          | 0/7 [00:00<?, ?it/s]\nFetching 7 files: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 7/7 [00:00<00:00, 111212.61it/s]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.92s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:15<00:00, 15.91s/it]\n\nCalculating loss...:   0%|          | 0/1 [00:00<?, ?it/s]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.09s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:16<00:00, 16.10s/it]\n",
-    "stdout_tail": "e sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 40: Train loss 0.284, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.804, Trained Tokens 31285, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 50: Train loss 0.117, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 34.095, Trained Tokens 39139, Peak mem 10.042 GB\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5683 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6824 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 7418 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6739 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5813 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6767 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 5885 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6164 will be truncated to 2048. Consider pre-splitting your data to save memory.\n[WARNING] Some sequences are longer than 2048 tokens. The longest sentence 6683 will be truncated to 2048. Consider pre-splitting your data to save memory.\nIter 60: Val loss 0.290, Val took 16.167s\nIter 60: Train loss 0.055, Learning Rate 1.000e-05, It/sec 0.043, Tokens/sec 33.629, Trained Tokens 46987, Peak mem 10.042 GB\nSaved final weights to llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed/adapters.safetensors.\n"
-  },
-  "ready": true,
-  "training_attempted": true,
-  "training_succeeded": true
+  "ready": false,
+  "training_attempted": false,
+  "training_succeeded": null
 }

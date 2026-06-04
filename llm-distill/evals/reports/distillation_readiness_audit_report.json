@@ -1,12 +1,43 @@
 {
-  "blocked_item_count": 0,
-  "blocked_items": [],
-  "distillation_ready": true,
-  "generated_at": "2026-06-01T23:41:23.447925+00:00",
+  "blocked_item_count": 3,
+  "blocked_items": [
+    {
+      "blockers": [
+        "MLX runtime preflight is not ready",
+        "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
+      ],
+      "name": "Local MLX-LM package, CLI tools, and server endpoint are available",
+      "phase": "benchmarking",
+      "requirement_id": "phase5_7_mlx_runtime_preflight"
+    },
+    {
+      "blockers": [
+        "fine-tune report must come from --run mode",
+        "fine-tune report must show training_attempted=true",
+        "fine-tune report must show training_succeeded=true",
+        "manifest training_allowed is not true",
+        "One or more records are pending large-teacher or human review."
+      ],
+      "name": "Reviewed-label LoRA fine-tune has produced a student adapter",
+      "phase": "fine_tuning",
+      "requirement_id": "phase7_student_fine_tune_run"
+    },
+    {
+      "blockers": [
+        "successful trained adapter evidence is required before quantization",
+        "trained adapter output path does not exist in current evidence"
+      ],
+      "name": "Accepted adapter is ready for quantization, promotion, or default-model changes",
+      "phase": "promotion",
+      "requirement_id": "phase8_quantization_promotion"
+    }
+  ],
+  "distillation_ready": false,
+  "generated_at": "2026-06-03T17:50:10.001038+00:00",
   "next_required_actions": [
-    "Keep CLAIMGUARD_STUDENT_USE_BY_DEFAULT=false until Raphael approves production runtime/default cutover, CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED=true, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE is configured, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED=true, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA=false.",
-    "Complete remaining PHIplan production controls before using real-world corpus examples: admin review/import UI, role-scoped document access, retention/deletion workflows, audit dashboards, and legal/BAA/consent review.",
-    "If building a corpus-derived adapter, run run_mlx_finetune.py against llm-distill/data/distillation/mlx_sft_corpus/manifest.json and repeat live benchmark plus acceptance gates before promotion."
+    "Install MLX-LM training/runtime tools on the target Apple Silicon environment.",
+    "Complete a guarded LoRA run and keep adapter output in ignored model paths.",
+    "Perform quantization or promotion only after acceptance and fine-tune evidence remain release-ready."
   ],
   "notes": [
     "This audit does not call teacher endpoints, train models, benchmark endpoints, download weights, quantize, or write adapter files.",
@@ -17,7 +48,7 @@
     "Default student use is also controlled by CLAIMGUARD_STUDENT_DEFAULT_CUTOVER_APPROVED, CLAIMGUARD_STUDENT_DEFAULT_APPROVAL_REFERENCE, CLAIMGUARD_STUDENT_RUNTIME_SUPERVISED, and CLAIMGUARD_STUDENT_ROLLBACK_TO_NVIDIA."
   ],
   "objective": "Distill a larger LLM into a smaller lightweight ClaimGuard student model for denial-claim processing and appeal-letter generation.",
-  "release_ready": true,
+  "release_ready": false,
   "requirements": [
     {
       "blockers": [],
@@ -1403,12 +1434,17 @@
       "warnings": []
     },
     {
-      "blockers": [],
+      "blockers": [
+        "MLX runtime preflight is not ready",
+        "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
+      ],
       "evidence": {
         "path": "llm-distill/evals/reports/mlx_runtime_preflight_report.json",
         "summary": {
           "base_url": "http://localhost:8080/v1",
-          "blocked_reasons": [],
+          "blocked_reasons": [
+            "mlx_lm.server is not reachable at http://localhost:8080/v1: <urlopen error [Errno 61] Connection refused>"
+          ],
           "commands_available": {
             "mlx_lm.generate": true,
             "mlx_lm.lora": true,
@@ -1416,15 +1452,15 @@
           },
           "model": "Qwen/Qwen3-4B-MLX-4bit",
           "package_installed": true,
-          "ready": true,
-          "server_available": true,
+          "ready": false,
+          "server_available": false,
           "warnings": []
         }
       },
       "name": "Local MLX-LM package, CLI tools, and server endpoint are available",
       "phase": "benchmarking",
       "requirement_id": "phase5_7_mlx_runtime_preflight",
-      "status": "ready",
+      "status": "blocked",
       "warnings": []
     },
     {
@@ -1432,17 +1468,20 @@
       "evidence": {
         "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "summary": {
-          "adapter_exists_after_run": true,
+          "adapter_exists_after_run": null,
           "adapter_exists_before_run": false,
-          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
-          "blocked_reasons": [],
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
+          "blocked_reasons": [
+            "manifest training_allowed is not true",
+            "One or more records are pending large-teacher or human review."
+          ],
           "data_ready": true,
-          "manifest_training_allowed": true,
+          "manifest_training_allowed": false,
           "mlx_lm_lora_available": true,
-          "mode": "run",
-          "ready": true,
-          "training_attempted": true,
-          "training_succeeded": true
+          "mode": "preflight",
+          "ready": false,
+          "training_attempted": false,
+          "training_succeeded": null
         }
       },
       "name": "Local MLX-LM training environment is available",
@@ -1452,27 +1491,36 @@
       "warnings": []
     },
     {
-      "blockers": [],
+      "blockers": [
+        "fine-tune report must come from --run mode",
+        "fine-tune report must show training_attempted=true",
+        "fine-tune report must show training_succeeded=true",
+        "manifest training_allowed is not true",
+        "One or more records are pending large-teacher or human review."
+      ],
       "evidence": {
         "path": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "summary": {
-          "adapter_exists_after_run": true,
+          "adapter_exists_after_run": null,
           "adapter_exists_before_run": false,
-          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
-          "blocked_reasons": [],
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
+          "blocked_reasons": [
+            "manifest training_allowed is not true",
+            "One or more records are pending large-teacher or human review."
+          ],
           "data_ready": true,
-          "manifest_training_allowed": true,
+          "manifest_training_allowed": false,
           "mlx_lm_lora_available": true,
-          "mode": "run",
-          "ready": true,
-          "training_attempted": true,
-          "training_succeeded": true
+          "mode": "preflight",
+          "ready": false,
+          "training_attempted": false,
+          "training_succeeded": null
         }
       },
       "name": "Reviewed-label LoRA fine-tune has produced a student adapter",
       "phase": "fine_tuning",
       "requirement_id": "phase7_student_fine_tune_run",
-      "status": "ready",
+      "status": "blocked",
       "warnings": []
     },
     {
@@ -1541,29 +1589,35 @@
       "warnings": []
     },
     {
-      "blockers": [],
+      "blockers": [
+        "successful trained adapter evidence is required before quantization",
+        "trained adapter output path does not exist in current evidence"
+      ],
       "evidence": {
         "acceptance_release_ready": true,
         "acceptance_report": "llm-distill/evals/reports/student_acceptance_report.json",
         "fine_tune_report": "llm-distill/evals/reports/mlx_finetune_preflight_report.json",
         "fine_tune_summary": {
-          "adapter_exists_after_run": true,
+          "adapter_exists_after_run": null,
           "adapter_exists_before_run": false,
-          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-reviewed",
-          "blocked_reasons": [],
+          "adapter_path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-seed",
+          "blocked_reasons": [
+            "manifest training_allowed is not true",
+            "One or more records are pending large-teacher or human review."
+          ],
           "data_ready": true,
-          "manifest_training_allowed": true,
+          "manifest_training_allowed": false,
           "mlx_lm_lora_available": true,
-          "mode": "run",
-          "ready": true,
-          "training_attempted": true,
-          "training_succeeded": true
+          "mode": "preflight",
+          "ready": false,
+          "training_attempted": false,
+          "training_succeeded": null
         }
       },
       "name": "Accepted adapter is ready for quantization, promotion, or default-model changes",
       "phase": "promotion",
       "requirement_id": "phase8_quantization_promotion",
-      "status": "ready",
+      "status": "blocked",
       "warnings": []
     },
     {
@@ -1718,9 +1772,13 @@
     }
   ],
   "summary": {
-    "blocked_count": 0,
-    "blocked_requirement_ids": [],
-    "ready_count": 23,
+    "blocked_count": 3,
+    "blocked_requirement_ids": [
+      "phase5_7_mlx_runtime_preflight",
+      "phase7_student_fine_tune_run",
+      "phase8_quantization_promotion"
+    ],
+    "ready_count": 20,
     "requirement_count": 25,
     "warning_count": 2,
     "warning_requirement_ids": [

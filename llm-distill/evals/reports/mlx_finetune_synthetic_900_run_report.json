@@ -1,11 +1,9 @@
 {
-  "blocked_reasons": [
-    "mlx_lm.lora cannot access a Metal device in this session"
-  ],
+  "blocked_reasons": [],
   "checks": {
     "adapter_output": {
-      "exists_after_run": null,
-      "exists_before_run": false,
+      "exists_after_run": true,
+      "exists_before_run": true,
       "path": "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
     },
     "data": {
@@ -49,14 +47,10 @@
     "manifest": {
       "artifact": "claimguard_mlx_sft_corpus",
       "data_safety": {
-        "data_tier": "approved_deidentified_corpus",
+        "data_tier": "synthetic",
         "external_model_calls_made": false,
         "local_model_weights_written": false,
         "phi_status": "no_phi",
-        "requires_checksum_match": true,
-        "requires_privacy_review": true,
-        "requires_training_eligible_manifest_records": true,
-        "requires_zero_phi_scan_findings": true,
         "user_phi_allowed": false
       },
       "errors": [],
@@ -68,12 +62,33 @@
     },
     "mlx_lm_lora": {
       "available": true,
-      "error": "mlx_lm.lora cannot access a Metal device in this session",
-      "help_returncode": 1,
+      "configured_executable": true,
+      "error": null,
+      "help_returncode": 0,
       "path": ".venv-mlx/bin/mlx_lm.lora",
-      "runtime_ready": false,
-      "stderr_tail": "Traceback (most recent call last):\n  File \".venv-mlx/bin/mlx_lm.lora\", line 4, in <module>\n    from mlx_lm.lora import main\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/__init__.py\", line 9, in <module>\n    from .convert import convert\n  File \".venv-mlx/lib/python3.14/site-packages/mlx_lm/convert.py\", line 8, in <module>\n    import mlx.nn as nn\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/__init__.py\", line 4, in <module>\n    from mlx.nn.layers import *\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/__init__.py\", line 3, in <module>\n    from mlx.nn.layers.activations import (\n    ...<52 lines>...\n    )\n  File \".venv-mlx/lib/python3.14/site-packages/mlx/nn/layers/activations.py\", line 19, in <module>\n    @partial(mx.compile, shapeless=True)\n     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\nException ignored in atexit callback <nanobind.nb_func object at 0x10939a460>:\nRuntimeError: [metal::load_device] No Metal device available. This typically occurs in headless, sandboxed, or virtualized macOS sessions where the GPU is not accessible.\n",
-      "stdout_tail": ""
+      "path_source": "argument",
+      "runtime_ready": true,
+      "stderr_tail": "",
+      "stdout_tail": "usage: mlx_lm.lora [-h] [--model MODEL] [--train] [--data DATA]\n                   [--fine-tune-type {lora,dora,full}]\n                   [--optimizer {adam,adamw,muon,sgd,adafactor}]\n                   [--mask-prompt] [--num-layers NUM_LAYERS]\n                   [--batch-size BATCH_SIZE] [--iters ITERS]\n                   [--val-batches VAL_BATCHES] [--learning-rate LEARNING_RATE]\n                   [--steps-per-report STEPS_PER_REPORT]\n                   [--steps-per-eval STEPS_PER_EVAL]\n                   [--grad-accumulation-steps GRAD_ACCUMULATION_STEPS]\n                   [--resume-adapter-file RESUME_ADAPTER_FILE]\n                   [--adapter-path ADAPTER_PATH] [--save-every SAVE_EVERY]\n                   [--test] [--test-batches TEST_BATCHES]\n                   [--max-seq-length MAX_SEQ_LENGTH] [-c CONFIG]\n                   [--grad-checkpoint]\n                   [--clear-cache-threshold CLEAR_CACHE_THRESHOLD]\n                   [--report-to REPORT_TO] [--project-name PROJECT_NAME]\n                   [--seed SEED]\n\nLoRA or QLoRA finetuning.\n\noptions:\n  -h, --help            show this help message and exit\n  --model MODEL         The path to the local model directory or Hugging Face\n                        repo.\n  --train               Do training\n  --data DATA           Directory with {train, valid, test}.jsonl files or the\n                        name of a Hugging Face dataset (e.g., 'mlx-\n                        community/wikisql')\n  --fine-tune-type {lora,dora,full}\n                        Type of fine-tuning to perform: lora, dora, or full.\n  --optimizer {adam,adamw,muon,sgd,adafactor}\n                        Optimizer to use for training: adam, adamw, sgd, or\n                        adafactor.\n  --mask-prompt         Mask the prompt in the loss when training\n  --num-layers NUM_LAYERS\n                        Number of layers to fine-tune. Default is 16, use -1\n                        for all.\n  --batch-size BATCH_SIZE\n                        Minibatch size.\n  --iters ITERS         Iterations to train for.\n  --val-batches VAL_BATCHES\n                        Number of validation batches, -1 uses the entire\n                        validation set.\n  --learning-rate LEARNING_RATE\n                        Adam learning rate.\n  --steps-per-report STEPS_PER_REPORT\n                        Number of training steps between loss reporting.\n  --steps-per-eval STEPS_PER_EVAL\n                        Number of training steps between validations.\n  --grad-accumulation-steps GRAD_ACCUMULATION_STEPS\n                        Number of steps to accumulate before each optimizer\n                        update.\n  --resume-adapter-file RESUME_ADAPTER_FILE\n                        Load path to resume training from the given fine-tuned\n                        weights.\n  --adapter-path ADAPTER_PATH\n                        Save/load path for the fine-tuned weights.\n  --save-every SAVE_EVERY\n                        Save the model every N iterations.\n  --test                Evaluate on the test set after training\n  --test-batches TEST_BATCHES\n                        Number of test set batches, -1 uses the entire test\n                        set.\n  --max-seq-length MAX_SEQ_LENGTH\n                        Maximum sequence length.\n  -c, --config CONFIG   A YAML configuration file with the training options\n  --grad-checkpoint     Use gradient checkpointing to reduce memory use.\n  --clear-cache-threshold CLEAR_CACHE_THRESHOLD\n                        Clear the allocator cache between steps if it grows\n                        too large.\n  --report-to REPORT_TO\n                        Services to report logs to ('wandb', 'swanlab', or\n                        'wandb,swanlab').\n  --project-name PROJECT_NAME\n                        Project name for logging. Defaults to the name of the\n                        root directory.\n  --seed SEED           The PRNG seed\n"
+    },
+    "production_corpus_evidence": {
+      "blocked_requirement_ids": [],
+      "blockers": [],
+      "data_tier": "synthetic",
+      "enforced": false,
+      "report_loaded": false,
+      "report_path": "llm-distill/evals/reports/production_corpus_evidence_report.json",
+      "report_ready": null,
+      "report_safe_to_review": null,
+      "required_for_run": false,
+      "safe_context": {
+        "approval_reference_value_included": false,
+        "raw_checksums_included": false,
+        "raw_document_content_included": false,
+        "raw_phi_included": false,
+        "raw_secret_included": false,
+        "raw_source_paths_included": false
+      }
     }
   },
   "command": [
@@ -99,17 +114,23 @@
     "--adapter-path",
     "llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900"
   ],
-  "generated_at": "2026-05-30T23:46:53.691111+00:00",
+  "generated_at": "2026-06-03T21:16:51.623587+00:00",
   "manifest": "llm-distill/data/distillation/mlx_sft_synthetic_900/manifest.json",
   "mode": "run",
   "notes": [
     "Preflight mode does not download models, install dependencies, run training, or write adapter weights.",
     "Preflight mode does execute mlx_lm.lora --help to verify that the MLX runtime can import and access Metal in the current session.",
     "Run mode executes the manifest LoRA command with subprocess.run(..., shell=False) only after all checks pass.",
+    "Run mode for corpus-derived data tiers also requires a ready and safe production corpus evidence report.",
     "The checked-in seed manifest is expected to remain blocked until labels are reviewed by a large teacher or human reviewer."
   ],
   "preflight_errors": [],
-  "ready": false,
-  "training_attempted": false,
-  "training_succeeded": null
+  "process": {
+    "returncode": 0,
+    "stderr_tail": " 22/25 [04:21<00:36, 12.23s/it]\nCalculating loss...:  92%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f| 23/25 [04:33<00:24, 12.24s/it]\nCalculating loss...:  96%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c| 24/25 [04:44<00:11, 11.71s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [04:55<00:00, 11.65s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [04:55<00:00, 11.83s/it]\n\nCalculating loss...:   0%|          | 0/25 [00:00<?, ?it/s]\nCalculating loss...:   4%|\u258d         | 1/25 [00:11<04:36, 11.52s/it]\nCalculating loss...:   8%|\u258a         | 2/25 [00:22<04:21, 11.36s/it]\nCalculating loss...:  12%|\u2588\u258f        | 3/25 [00:34<04:08, 11.31s/it]\nCalculating loss...:  16%|\u2588\u258c        | 4/25 [00:47<04:11, 11.99s/it]\nCalculating loss...:  20%|\u2588\u2588        | 5/25 [00:57<03:48, 11.45s/it]\nCalculating loss...:  24%|\u2588\u2588\u258d       | 6/25 [01:08<03:36, 11.37s/it]\nCalculating loss...:  28%|\u2588\u2588\u258a       | 7/25 [01:19<03:19, 11.09s/it]\nCalculating loss...:  32%|\u2588\u2588\u2588\u258f      | 8/25 [01:29<03:05, 10.90s/it]\nCalculating loss...:  36%|\u2588\u2588\u2588\u258c      | 9/25 [01:41<02:59, 11.24s/it]\nCalculating loss...:  40%|\u2588\u2588\u2588\u2588      | 10/25 [01:53<02:48, 11.24s/it]\nCalculating loss...:  44%|\u2588\u2588\u2588\u2588\u258d     | 11/25 [02:03<02:35, 11.09s/it]\nCalculating loss...:  48%|\u2588\u2588\u2588\u2588\u258a     | 12/25 [02:16<02:28, 11.45s/it]\nCalculating loss...:  52%|\u2588\u2588\u2588\u2588\u2588\u258f    | 13/25 [02:29<02:24, 12.01s/it]\nCalculating loss...:  56%|\u2588\u2588\u2588\u2588\u2588\u258c    | 14/25 [02:41<02:13, 12.16s/it]\nCalculating loss...:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 15/25 [02:53<02:01, 12.11s/it]\nCalculating loss...:  64%|\u2588\u2588\u2588\u2588\u2588\u2588\u258d   | 16/25 [03:06<01:49, 12.15s/it]\nCalculating loss...:  68%|\u2588\u2588\u2588\u2588\u2588\u2588\u258a   | 17/25 [03:19<01:39, 12.50s/it]\nCalculating loss...:  72%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f  | 18/25 [03:29<01:23, 11.89s/it]\nCalculating loss...:  76%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c  | 19/25 [03:41<01:10, 11.77s/it]\nCalculating loss...:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 20/25 [03:51<00:56, 11.39s/it]\nCalculating loss...:  84%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258d | 21/25 [04:04<00:46, 11.65s/it]\nCalculating loss...:  88%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a | 22/25 [04:16<00:35, 11.83s/it]\nCalculating loss...:  92%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f| 23/25 [04:26<00:22, 11.43s/it]\nCalculating loss...:  96%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c| 24/25 [04:37<00:11, 11.15s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [04:47<00:00, 10.95s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [04:47<00:00, 11.51s/it]\n\nCalculating loss...:   0%|          | 0/25 [00:00<?, ?it/s]\nCalculating loss...:   4%|\u258d         | 1/25 [00:13<05:14, 13.10s/it]\nCalculating loss...:   8%|\u258a         | 2/25 [00:24<04:43, 12.32s/it]\nCalculating loss...:  12%|\u2588\u258f        | 3/25 [00:37<04:32, 12.38s/it]\nCalculating loss...:  16%|\u2588\u258c        | 4/25 [00:53<04:48, 13.75s/it]\nCalculating loss...:  20%|\u2588\u2588        | 5/25 [01:08<04:48, 14.41s/it]\nCalculating loss...:  24%|\u2588\u2588\u258d       | 6/25 [01:24<04:39, 14.69s/it]\nCalculating loss...:  28%|\u2588\u2588\u258a       | 7/25 [01:36<04:09, 13.84s/it]\nCalculating loss...:  32%|\u2588\u2588\u2588\u258f      | 8/25 [01:49<03:54, 13.81s/it]\nCalculating loss...:  36%|\u2588\u2588\u2588\u258c      | 9/25 [02:03<03:39, 13.75s/it]\nCalculating loss...:  40%|\u2588\u2588\u2588\u2588      | 10/25 [02:15<03:19, 13.31s/it]\nCalculating loss...:  44%|\u2588\u2588\u2588\u2588\u258d     | 11/25 [02:26<02:53, 12.41s/it]\nCalculating loss...:  48%|\u2588\u2588\u2588\u2588\u258a     | 12/25 [02:38<02:42, 12.53s/it]\nCalculating loss...:  52%|\u2588\u2588\u2588\u2588\u2588\u258f    | 13/25 [02:50<02:27, 12.32s/it]\nCalculating loss...:  56%|\u2588\u2588\u2588\u2588\u2588\u258c    | 14/25 [03:01<02:10, 11.91s/it]\nCalculating loss...:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 15/25 [03:12<01:56, 11.63s/it]\nCalculating loss...:  64%|\u2588\u2588\u2588\u2588\u2588\u2588\u258d   | 16/25 [03:23<01:42, 11.44s/it]\nCalculating loss...:  68%|\u2588\u2588\u2588\u2588\u2588\u2588\u258a   | 17/25 [03:37<01:37, 12.25s/it]\nCalculating loss...:  72%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f  | 18/25 [03:49<01:23, 11.95s/it]\nCalculating loss...:  76%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c  | 19/25 [04:02<01:13, 12.33s/it]\nCalculating loss...:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 20/25 [04:14<01:00, 12.17s/it]\nCalculating loss...:  84%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258d | 21/25 [04:27<00:50, 12.64s/it]\nCalculating loss...:  88%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a | 22/25 [04:39<00:37, 12.42s/it]\nCalculating loss...:  92%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258f| 23/25 [04:54<00:26, 13.00s/it]\nCalculating loss...:  96%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c| 24/25 [05:08<00:13, 13.46s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [05:21<00:00, 13.14s/it]\nCalculating loss...: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 25/25 [05:21<00:00, 12.84s/it]\n",
+    "stdout_tail": "Loading pretrained model\nLoading datasets\nTraining\nTrainable parameters: 0.091% (3.670M/4022.468M)\nStarting training..., iters: 120\nIter 1: Val loss 2.920, Val took 368.857s\nIter 20: Train loss 1.806, Learning Rate 1.000e-05, It/sec 0.048, Tokens/sec 36.397, Trained Tokens 15198, Peak mem 8.563 GB\nIter 40: Val loss 0.217, Val took 295.717s\nIter 40: Train loss 0.588, Learning Rate 1.000e-05, It/sec 0.048, Tokens/sec 36.019, Trained Tokens 30215, Peak mem 8.563 GB\nIter 60: Train loss 0.122, Learning Rate 1.000e-05, It/sec 0.059, Tokens/sec 44.580, Trained Tokens 45342, Peak mem 8.715 GB\nIter 80: Val loss 0.019, Val took 287.837s\nIter 80: Train loss 0.026, Learning Rate 1.000e-05, It/sec 0.060, Tokens/sec 44.530, Trained Tokens 60234, Peak mem 8.715 GB\nIter 100: Train loss 0.009, Learning Rate 1.000e-05, It/sec 0.057, Tokens/sec 42.254, Trained Tokens 75010, Peak mem 8.715 GB\nIter 100: Saved adapter weights to llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900/adapters.safetensors and llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900/0000100_adapters.safetensors.\nIter 120: Val loss 0.006, Val took 321.070s\nIter 120: Train loss 0.005, Learning Rate 1.000e-05, It/sec 0.049, Tokens/sec 37.716, Trained Tokens 90295, Peak mem 8.729 GB\nSaved final weights to llm-distill/models/adapters/claimguard-qwen3-4b-lora-synthetic-900/adapters.safetensors.\n"
+  },
+  "ready": true,
+  "training_attempted": true,
+  "training_succeeded": true
 }
