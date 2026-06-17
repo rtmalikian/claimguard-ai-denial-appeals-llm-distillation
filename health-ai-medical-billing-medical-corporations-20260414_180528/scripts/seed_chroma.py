@@ -12,6 +12,7 @@ Usage:
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -41,9 +42,15 @@ def main():
     )
     from app.services.retrieval import HashEmbeddingProvider, DEFAULT_EMBEDDING_DIMENSIONS
 
-    # Use the hash embedding provider for now (works without external API)
-    # Switch to PrivateSemanticEmbeddingProvider when an embedding endpoint is configured
-    provider = HashEmbeddingProvider(dimensions=DEFAULT_EMBEDDING_DIMENSIONS)
+    # Select embedding provider based on CLAIMGUARD_EMBEDDING_BACKEND env var.
+    # "sentence_transformer" uses local all-MiniLM-L6-v2 (384d, MPS-accelerated).
+    # Default: hash (128d, no model download needed).
+    embedding_backend = os.environ.get("CLAIMGUARD_EMBEDDING_BACKEND", "hash").lower()
+    if embedding_backend in ("sentence_transformer", "local_semantic", "st"):
+        from app.services.retrieval import SentenceTransformerEmbeddingProvider
+        provider = SentenceTransformerEmbeddingProvider()
+    else:
+        provider = HashEmbeddingProvider(dimensions=DEFAULT_EMBEDDING_DIMENSIONS)
     logger.info(
         "using_embedding_provider",
         extra={"model": provider.model_name, "dimensions": provider.dimensions},

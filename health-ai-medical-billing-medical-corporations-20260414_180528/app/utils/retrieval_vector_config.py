@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 PRODUCTION_ENVS = {"prod", "production"}
 HASH_EMBEDDING_BACKENDS = {"hash", "local_hash", "deterministic_hash"}
+SENTENCE_TRANSFORMER_BACKENDS = {"sentence_transformer", "local_semantic", "st"}
 LOCAL_VECTOR_BACKENDS = {
     "encrypted_local_metadata",
     "local_encrypted_metadata",
@@ -74,6 +75,13 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         blockers.append("semantic_embedding_backend_not_configured")
     if embedding_backend in HASH_EMBEDDING_BACKENDS:
         blockers.append("hash_embedding_backend_is_fallback_only")
+    if embedding_backend in SENTENCE_TRANSFORMER_BACKENDS:
+        # Sentence-transformer is a valid local semantic backend.
+        # Remove hash and semantic blockers if they were added.
+        blockers = [b for b in blockers if b not in {
+            "hash_embedding_backend_is_fallback_only",
+            "semantic_embedding_backend_not_configured",
+        }]
     if not embedding_model or embedding_model == HASH_EMBEDDING_MODEL:
         blockers.append("embedding_model_not_production_semantic_model")
     if not embedding_model_approved:
@@ -104,6 +112,7 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         "app_env_is_production": app_env_is_production,
         "semantic_backend_configured": semantic_backend_configured,
         "embedding_backend_is_hash_fallback": embedding_backend in HASH_EMBEDDING_BACKENDS,
+        "embedding_backend_is_sentence_transformer": embedding_backend in SENTENCE_TRANSFORMER_BACKENDS,
         "embedding_model_is_hash_fallback": embedding_model == HASH_EMBEDDING_MODEL,
         "embedding_model_configured": bool(embedding_model),
         "embedding_model_approved": embedding_model_approved,

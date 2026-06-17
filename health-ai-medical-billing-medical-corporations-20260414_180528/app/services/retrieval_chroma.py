@@ -42,6 +42,29 @@ DEFAULT_CHROMA_DIR = os.environ.get(
     str(Path(__file__).resolve().parents[2] / "data" / "chroma_db"),
 )
 
+# Module-level shared ChromaDB client singleton to avoid
+# "An instance of Chroma already exists with different settings" warnings.
+_shared_clients: dict[str, Any] = {}
+
+
+def _get_shared_client(persist_directory: str | None = None) -> Any:
+    """Return a module-level shared PersistentClient for the given path."""
+    import chromadb
+    from chromadb.config import Settings as ChromaSettings
+
+    path = persist_directory or DEFAULT_CHROMA_DIR
+    if path not in _shared_clients:
+        os.makedirs(path, exist_ok=True)
+        _shared_clients[path] = chromadb.PersistentClient(
+            path=path,
+            settings=ChromaSettings(
+                anonymized_telemetry=False,
+                allow_reset=False,
+            ),
+        )
+        logger.info("chroma_shared_client_initialized", extra={"persist_directory": path})
+    return _shared_clients[path]
+
 # Collection names
 COLLECTION_RULES = "claimguard_rules"
 COLLECTION_CORPUS = "claimguard_corpus"
@@ -101,21 +124,11 @@ class ChromaRetrievalIndex:
         self._client = None
         self._collection = None
 
-    def _get_client(self):
-        """Lazy-init ChromaDB client."""
+    def _init_client(self):
+        """Lazy-init ChromaDB client via shared singleton."""
         if self._client is None:
             try:
-                import chromadb
-                from chromadb.config import Settings as ChromaSettings
-
-                os.makedirs(self.persist_directory, exist_ok=True)
-                self._client = chromadb.PersistentClient(
-                    path=self.persist_directory,
-                    settings=ChromaSettings(
-                        anonymized_telemetry=False,
-                        allow_reset=False,
-                    ),
-                )
+                self._client = _get_shared_client(self.persist_directory)
                 logger.info(
                     "chroma_client_initialized",
                     extra={
@@ -133,7 +146,7 @@ class ChromaRetrievalIndex:
     def _get_collection(self):
         """Lazy-init or get existing collection."""
         if self._collection is None:
-            client = self._get_client()
+            client = self._init_client()
             self._collection = client.get_or_create_collection(
                 name=self.collection_name,
                 metadata={
@@ -315,7 +328,7 @@ class ChromaRetrievalIndex:
 
     def reset(self) -> None:
         """Delete and recreate the collection. USE WITH CAUTION."""
-        client = self._get_client()
+        client = self._init_client()
         try:
             client.delete_collection(self.collection_name)
         except Exception:
@@ -455,11 +468,7 @@ def chroma_collection_stats(
     """
     stats: dict[str, Any] = {"collections": {}, "total_chunks": 0}
     try:
-        import chromadb
-
-        client = chromadb.PersistentClient(
-            path=persist_directory or DEFAULT_CHROMA_DIR,
-        )
+        client = _get_shared_client(persist_directory)
         for collection_info in client.list_collections():
             name = collection_info.name if hasattr(collection_info, "name") else str(collection_info)
             try:

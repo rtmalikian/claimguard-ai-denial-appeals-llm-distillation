@@ -2,6 +2,71 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-17 - Semantic Embedding Provider + ChromaDB Singleton Fix
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Hermes
+
+### Objective
+Replace hash-based embedding fallback with local semantic embeddings using
+sentence-transformers (all-MiniLM-L6-v2, 384d, MPS-accelerated). Fix ChromaDB
+client singleton warning. Dramatically improve retrieval quality.
+
+### Modified Files
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval.py`
+  - Added `SentenceTransformerEmbeddingProvider`: local semantic embeddings via
+    all-MiniLM-L6-v2, 384 dimensions, MPS-accelerated on Apple Silicon
+  - Added `SENTENCE_TRANSFORMER_MODEL` and `SENTENCE_TRANSFORMER_DIMENSIONS` constants
+  - Lazy-loads model on first embed call
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_chroma.py`
+  - Added `_get_shared_client()` module-level singleton to avoid ChromaDB
+    "different settings" warnings
+  - `ChromaRetrievalIndex._init_client()` and `chroma_collection_stats()` now
+    share a single PersistentClient per path
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py`
+  - Added `SENTENCE_TRANSFORMER_BACKENDS` constant
+  - Sentence-transformer recognized as valid semantic backend (removes hash and
+    semantic_not_configured blockers)
+  - Added `embedding_backend_is_sentence_transformer` to readiness report
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/seed_chroma.py`
+  - Added `CLAIMGUARD_EMBEDDING_BACKEND` env var support
+  - `sentence_transformer` / `local_semantic` / `st` selects SentenceTransformerEmbeddingProvider
+  - Default remains hash for environments without torch
+
+### Backup Paths
+- `backups/20260617-chromadb-singleton-fix/retrieval.py.bak`
+- `backups/20260617-chromadb-singleton-fix/retrieval_chroma.py.bak`
+- `backups/20260617-chromadb-singleton-fix/retrieval_vector_config.py.bak`
+- `backups/20260617-chromadb-singleton-fix/seed_chroma.py.bak`
+
+### Validation
+- Lint: all modified .py files pass syntax checks
+- Smoke test: `CLAIMGUARD_EMBEDDING_BACKEND=sentence_transformer python scripts/seed_chroma.py`
+  - 6 rule chunks seeded with 384d semantic embeddings
+  - "Medicare appeal deadline" → DOL/EBSA (0.56), CMS MA (0.53), CMS FFS (0.51)
+  - "Medicaid prior authorization" → 42 CFR Part 438 (0.58) — correct match
+  - No singleton warning
+- Singleton fix: `chroma_collection_stats()` returns clean data without warnings
+
+### Retrieval Quality Comparison (hash vs semantic)
+| Query | Hash Top Result (Score) | Semantic Top Result (Score) |
+|-------|------------------------|----------------------------|
+| Medicare appeal deadline | HHS HIPAA (0.17) | DOL/EBSA (0.56) |
+| CMS redetermination process | HealthCare.gov (0.20) | CMS FFS Redetermination (0.44) |
+| Medicaid prior authorization | HHS HIPAA (0.10) | 42 CFR Part 438 (0.58) |
+| DOL health benefits claim | CMS FFS (0.17) | DOL/EBSA (0.37) |
+
+### Rollback
+1. Restore backed-up files from `backups/20260617-chromadb-singleton-fix/`
+2. Delete `data/chroma_db/` (embeddings are 384d, incompatible with hash 128d)
+3. Re-seed with hash: `python scripts/seed_chroma.py`
+
+### Design Notes
+- all-MiniLM-L6-v2: 80MB, 384 dimensions, runs on MPS (Apple Silicon GPU)
+- First embed call lazy-loads the model (~0.5s); subsequent calls ~25ms each
+- ChromaDB collection metadata records embedding model name and dimensions
+- Hash embeddings remain default for environments without PyTorch installed
+
 ## 2026-06-16 - ChromaDB Vector Retrieval Integration
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

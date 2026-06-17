@@ -46,6 +46,59 @@ class HashEmbeddingProvider:
         )
 
 
+# Default sentence-transformers model for local semantic embeddings.
+# all-MiniLM-L6-v2: 384 dimensions, ~80MB, fast on Apple Silicon.
+SENTENCE_TRANSFORMER_MODEL = "all-MiniLM-L6-v2"
+SENTENCE_TRANSFORMER_DIMENSIONS = 384
+
+
+class SentenceTransformerEmbeddingProvider:
+    """
+    Local semantic embedding provider using sentence-transformers.
+
+    Runs entirely on-device (no API calls). Uses PyTorch with MPS
+    (Metal Performance Shaders) acceleration on Apple Silicon.
+
+    Much better semantic similarity than HashEmbeddingProvider.
+    """
+
+    backend_name = "sentence_transformer"
+
+    def __init__(
+        self,
+        *,
+        model_name: str = SENTENCE_TRANSFORMER_MODEL,
+        dimensions: int | None = None,
+    ):
+        self.model_name = model_name
+        self._model = None
+        # Set dimensions immediately if provided; otherwise resolved on first embed.
+        self.dimensions: int = dimensions or SENTENCE_TRANSFORMER_DIMENSIONS
+
+    def _load_model(self):
+        """Lazy-load the sentence-transformers model."""
+        if self._model is None:
+            from sentence_transformers import SentenceTransformer
+            import torch
+
+            device = "mps" if torch.backends.mps.is_available() else "cpu"
+            self._model = SentenceTransformer(self.model_name, device=device)
+            # Get actual dimensions from the model if not already set
+            if self.dimensions == SENTENCE_TRANSFORMER_DIMENSIONS:
+                test_vec = self._model.encode(["test"], convert_to_numpy=True)
+                self.dimensions = test_vec.shape[1]
+        return self._model
+
+    def embed(self, text: str) -> EmbeddingResult:
+        model = self._load_model()
+        vec = model.encode([text], convert_to_numpy=True)[0]
+        return EmbeddingResult(
+            vector=vec.tolist(),
+            model=self.model_name,
+            backend=self.backend_name,
+        )
+
+
 @dataclass
 class SourceChunk:
     chunk_id: str

@@ -150,7 +150,8 @@ python scripts/seed_chroma.py
 |---------|---------|-------------|
 | `RETRIEVAL_VECTOR_BACKEND` | `encrypted_local_metadata` | Set to `chroma` to enable ChromaDB |
 | `CLAIMGUARD_CHROMA_DIR` | `data/chroma_db/` | ChromaDB persist directory |
-| `RETRIEVAL_EMBEDDING_BACKEND` | `hash` | `hash` (fallback) or `private_semantic` |
+| `RETRIEVAL_EMBEDDING_BACKEND` | `hash` | `hash` (fallback), `sentence_transformer` (local semantic), or `private_semantic` |
+| `CLAIMGUARD_EMBEDDING_BACKEND` | `hash` | Used by seed script: `sentence_transformer` for local semantic embeddings |
 | `RETRIEVAL_EMBEDDING_MODEL` | `claimguard-hash-embedding-v1` | Embedding model name |
 | `RETRIEVAL_PRIVATE_EMBEDDING_URL` | — | OpenAI-compatible embedding endpoint |
 | `RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS` | — | Vector dimensions for the embedding model |
