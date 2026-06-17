@@ -140,8 +140,13 @@ denial/appeal rules, payer policies, and training corpus documents.
 
 ```bash
 cd health-ai-medical-billing-medical-corporations-20260414_180528
-pip install chromadb
-python scripts/seed_chroma.py
+pip install chromadb sentence-transformers torch
+
+# Seed rule chunks (6 CMS/DOL/Medicare/Medicaid/HIPAA rules)
+CLAIMGUARD_EMBEDDING_BACKEND=sentence_transformer python scripts/seed_chroma.py
+
+# Seed corpus (10K denial letters + 10K appeal drafts)
+CLAIMGUARD_EMBEDDING_BACKEND=sentence_transformer python scripts/seed_corpus_chroma.py
 ```
 
 ### Configuration
@@ -160,9 +165,9 @@ python scripts/seed_chroma.py
 
 | Collection | Contents |
 |------------|----------|
-| `claimguard_rules` | CMS, DOL, Medicare, Medicaid, HIPAA appeal rule chunks |
-| `claimguard_corpus` | Synthetic denial/appeal training corpus (to be seeded) |
-| `claimguard_appeals` | Curated successful appeal examples (to be seeded) |
+| `claimguard_rules` | CMS, DOL, Medicare, Medicaid, HIPAA appeal rule chunks (6) |
+| `claimguard_corpus` | 10K synthetic denial letters from teacher distillation corpus |
+| `claimguard_appeals` | 10K synthetic appeal drafts from teacher distillation corpus |
 
 ### Search Modes
 

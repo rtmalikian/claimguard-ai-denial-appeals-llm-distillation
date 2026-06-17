@@ -2,7 +2,7 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
-## 2026-06-17 - Semantic Embedding Provider + ChromaDB Singleton Fix
+## 2026-06-17 - Semantic Embedding Provider + ChromaDB Singleton Fix + 10K Corpus Seeding
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
 Agent: Hermes
@@ -32,6 +32,15 @@ client singleton warning. Dramatically improve retrieval quality.
   - Added `CLAIMGUARD_EMBEDDING_BACKEND` env var support
   - `sentence_transformer` / `local_semantic` / `st` selects SentenceTransformerEmbeddingProvider
   - Default remains hash for environments without torch
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/seed_corpus_chroma.py` (NEW)
+  - Seeds 10K denial letters into `claimguard_corpus` and 10K appeal drafts
+    into `claimguard_appeals` from `document_pairs.jsonl`
+  - Rich metadata: payer_type, denial_type, CPT/ICD codes, CARC/RARC codes,
+    difficulty, appeal_route, state
+  - Supports `CLAIMGUARD_EMBEDDING_BACKEND` and `CLAIMGUARD_CORPUS_LIMIT` env vars
+  - Smoke tests validate retrieval quality after seeding
+- `health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt`
+  - Added `sentence-transformers>=3.0.0` and `torch>=2.0.0`
 
 ### Backup Paths
 - `backups/20260617-chromadb-singleton-fix/retrieval.py.bak`
@@ -47,6 +56,13 @@ client singleton warning. Dramatically improve retrieval quality.
   - "Medicaid prior authorization" → 42 CFR Part 438 (0.58) — correct match
   - No singleton warning
 - Singleton fix: `chroma_collection_stats()` returns clean data without warnings
+- Corpus seeding: `CLAIMGUARD_EMBEDDING_BACKEND=sentence_transformer python scripts/seed_corpus_chroma.py`
+  - 10,000 denial chunks → `claimguard_corpus`
+  - 10,000 appeal chunks → `claimguard_appeals`
+  - Total: 20,006 chunks across 3 collections
+  - "eligibility denial medicaid managed care" → eligibility denial (0.57)
+  - "appeal medical necessity prior authorization" → medical_necessity appeal (0.62)
+  - "CPT 99204 office visit" → coding_modifier_mismatch denial (0.36)
 
 ### Retrieval Quality Comparison (hash vs semantic)
 | Query | Hash Top Result (Score) | Semantic Top Result (Score) |
