@@ -2,6 +2,1226 @@
 
 All notable root-level ClaimGuard AI distillation artifacts will be documented in this file.
 
+## 2026-06-16 - ChromaDB Vector Retrieval Integration
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Hermes
+
+### Objective
+Add persistent vector storage via ChromaDB to enable production-grade semantic
+search for denial appeal retrieval. Replaces in-memory-only retrieval with
+HNSW-backed approximate nearest-neighbor search.
+
+### Modified Files
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_chroma.py` (NEW)
+  - `ChromaRetrievalIndex`: persistent vector index with HNSW, metadata filtering, cosine similarity
+  - `ChromaHybridRetrievalIndex`: hybrid keyword + ChromaDB semantic search
+  - `seed_default_rules_to_chroma()`: bootstrap CMS/DOL/Medicare/Medicaid/HIPAA rule chunks
+  - `chroma_collection_stats()`: monitoring utility for collection sizes
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/utils/retrieval_vector_config.py`
+  - Added `CHROMA_VECTOR_BACKENDS` constant
+  - ChromaDB recognized as valid production vector backend
+  - Added `vector_backend_is_chroma` to readiness report
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_store.py`
+  - Added `import logging` and module-level logger
+  - Added `_search_chroma()` method to `RetrievalStoreService`
+  - ChromaDB search mode with graceful fallback to hybrid if chromadb not installed
+  - ChromaDB recognized in `vector_readiness()` production blocker logic
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/seed_chroma.py` (NEW)
+  - CLI script to bootstrap ChromaDB with default rule chunks
+  - Includes smoke test after seeding
+- `health-ai-medical-billing-medical-corporations-20260414_180528/requirements.txt`
+  - Added `chromadb>=0.4.22`
+
+### Backup Paths
+- `backups/20260616-chromadb-integration/retrieval_vector_config.py.bak`
+- `backups/20260616-chromadb-integration/retrieval_store.py.bak`
+- `backups/20260616-chromadb-integration/requirements.txt.bak`
+
+### Validation
+- Lint: all modified .py files pass syntax checks
+- LSP: no new errors except expected `chromadb` import (not yet installed)
+- Smoke test: `scripts/seed_chroma.py` ready to run after `pip install chromadb`
+
+### Rollback
+1. Restore backed-up files from `backups/20260616-chromadb-integration/`
+2. Remove `app/services/retrieval_chroma.py`
+3. Remove `scripts/seed_chroma.py`
+4. Remove `chromadb>=0.4.22` from requirements.txt
+5. Delete `data/chroma_db/` directory if created
+
+### Design Notes
+- ChromaDB stores only embeddings + safe metadata (no PHI text)
+- Full text remains in encrypted SQL store (existing architecture)
+- Hash embedding provider works out of the box; switch to semantic provider via env vars
+- Collection uses cosine distance with HNSW (M=16, construction_ef=200, search_ef=100)
+- Metadata filtering supports source_type, payer_type, phi_status
+- Graceful degradation: if chromadb not installed, search falls back to in-memory hybrid
+
+## 2026-06-04 18:05:42 PDT - Timeout retry shard extended to 385 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, recovering one timeout through a separate retry file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-180455-teacher-concurrent-385-labels/PHIplan.md` | Updated current teacher-label evidence from 361 valid labels to 385 valid labels, including retry recovery for `CG-DENIAL-2026-000384`. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-180455-teacher-concurrent-385-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000365_000388.jsonl` - ignored local response shard with 23 successful HTTP responses and 1 timeout row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000384.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000365_000388_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000365_000388_report.json` - redacted checkpointed run report with 23 successful responses, 1 response error, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000384_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000365_000388_report.json` - conversion report for the new shard, with 23 valid labels and 1 rejected timeout row.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000384_report.json` - conversion report for the retry file, with 1 valid label and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000388_recovery_report.json` - final combined conversion report showing 385 valid deduped labels, 25 rejected rows, train=310, valid=35, test=40, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 364 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000365_000388_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 364 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000384` timed out; report was written with `response_success_count=23`, `response_error_count=1`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 383 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000384` into `teacher_responses_nvidia_10k_strict_retry_000384.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000365_000388.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-365-388-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-365-388-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000365_000388_report.json --min-records 10000 --allow-partial`: passed; converted 23 valid labels and rejected 1 timeout row.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000384.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-retry-384-mlx --benchmark /private/tmp/claimguard-nvidia-10k-retry-384-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000384_report.json --min-records 10000 --allow-partial`: passed; converted 1 valid retry label.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-385-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-385-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000388_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 385 valid deduped labels, rejected 25 malformed/timeout/empty/schema-incomplete rows, wrote train=310, valid=35, test=40, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...`: passed on the new response shard, retry file, and new reports with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, retry file, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 365-388 response shard to recover the timeout; the retry was written to a separate ignored file.
+- Avoided converting the timeout first attempt into a training row.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 385 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-180455-teacher-concurrent-385-labels/`; remove the added response shard, retry file, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 17:51:38 PDT - Clean concurrent shard extended to 361 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards while preserving PHI scan zero-findings, redacted reports, complete smoke splits, schema rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-175106-teacher-concurrent-361-labels/PHIplan.md` | Updated current teacher-label evidence from 337 valid labels to 361 valid labels after a clean 24-label shard. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-175106-teacher-concurrent-361-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000341_000364.jsonl` - ignored local response shard with 24 successful HTTP responses and 0 transport errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000341_000364_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000341_000364_report.json` - redacted checkpointed run report with 24 successful responses, 0 response errors, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000341_000364_report.json` - conversion report for the new shard, with 24 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000364_recovery_report.json` - final combined conversion report showing 361 valid deduped labels, 24 rejected rows, train=294, valid=31, test=36, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 340 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000341_000364_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 340 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000341_000364_report.json` with `response_success_count=24`, `response_error_count=0`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000341_000364.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-341-364-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-341-364-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000341_000364_report.json --min-records 10000 --allow-partial`: passed; converted 24 valid labels and rejected 0 rows.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-361-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-361-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000364_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 361 valid deduped labels, rejected 24 malformed/timeout/empty/schema-incomplete rows, wrote train=294, valid=31, test=36, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...`: passed on the new response shard and new reports with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+
+### Failed Or Avoided Approaches
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 361 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-175106-teacher-concurrent-361-labels/`; remove the added response shard and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 17:39:12 PDT - Clean concurrent shard extended to 337 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards while preserving PHI scan zero-findings, redacted reports, complete smoke splits, schema rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-173843-teacher-concurrent-337-labels/PHIplan.md` | Updated current teacher-label evidence from 313 valid labels to 337 valid labels after a clean 24-label shard. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-173843-teacher-concurrent-337-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000317_000340.jsonl` - ignored local response shard with 24 successful HTTP responses and 0 transport errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000317_000340_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000317_000340_report.json` - redacted checkpointed run report with 24 successful responses, 0 response errors, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000317_000340_report.json` - conversion report for the new shard, with 24 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000340_recovery_report.json` - final combined conversion report showing 337 valid deduped labels, 24 rejected rows, train=274, valid=29, test=34, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 316 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000317_000340_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 316 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000317_000340_report.json` with `response_success_count=24`, `response_error_count=0`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000317_000340.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-317-340-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-317-340-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000317_000340_report.json --min-records 10000 --allow-partial`: passed; converted 24 valid labels and rejected 0 rows.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-337-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-337-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000340_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 337 valid deduped labels, rejected 24 malformed/timeout/empty/schema-incomplete rows, wrote train=274, valid=29, test=34, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...`: passed on the new response shard and new reports with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+
+### Failed Or Avoided Approaches
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 337 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-173843-teacher-concurrent-337-labels/`; remove the added response shard and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 17:25:54 PDT - Schema retry shard extended to 313 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, preserving a schema-incomplete first attempt, retrying it in a separate file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, schema rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-172434-teacher-concurrent-313-labels/PHIplan.md` | Updated current teacher-label evidence from 289 valid labels to 313 valid labels, including schema retry recovery for `CG-DENIAL-2026-000310`. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-172434-teacher-concurrent-313-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000293_000316.jsonl` - ignored local response shard with 24 successful HTTP responses and 0 transport errors.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000310.jsonl` - ignored local retry response for a schema-incomplete row from the first attempt.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000293_000316_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000293_000316_report.json` - redacted checkpointed run report with 24 successful responses, 0 response errors, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000310_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000293_000316_report.json` - conversion report for the original shard, with 23 valid labels and 1 rejected schema-incomplete row.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000310_report.json` - conversion report for the retry file, with 1 valid label and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000316_recovery_report.json` - final combined conversion report showing 313 valid deduped labels, 24 rejected rows, train=255, valid=26, test=32, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 292 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000293_000316_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 292 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000293_000316_report.json` with `response_success_count=24`, `response_error_count=0`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000293_000316.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-293-316-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-293-316-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000293_000316_report.json --min-records 10000 --allow-partial`: passed; converted 23 valid labels and rejected `CG-DENIAL-2026-000310` for missing required `denial_type` and `plan_type`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 309 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000310` into `teacher_responses_nvidia_10k_strict_retry_000310.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000310.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-retry-310-mlx --benchmark /private/tmp/claimguard-nvidia-10k-retry-310-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000310_report.json --min-records 10000 --allow-partial`: passed; converted 1 valid retry label.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-313-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-313-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000316_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 313 valid deduped labels, rejected 24 malformed/timeout/empty/schema-incomplete rows, wrote train=255, valid=26, test=32, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...`: passed on the new response shard, retry file, and new reports with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, retry file, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 293-316 response shard to repair `CG-DENIAL-2026-000310`; the corrected response was written to a separate ignored retry file.
+- Avoided converting the schema-incomplete first attempt into a training row.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 313 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-172434-teacher-concurrent-313-labels/`; remove the added response shard, retry file, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 17:09:39 PDT - Concurrent shard recovery extended to 289 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, recovering timeout and early-stopped rows through separate files, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry/recovery files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-170810-teacher-concurrent-289-labels/PHIplan.md` | Updated current teacher-label evidence from 265 valid labels to 289 valid labels, including timeout and early-stop recovery for the 269-292 slice. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-170810-teacher-concurrent-289-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000269_000292.jsonl` - ignored local response shard with 9 successful responses and 2 timeout rows before early stop.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000275.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000278.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000280_000292.jsonl` - ignored local recovery shard with 10 successful responses and 2 timeout rows before early stop.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000288.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000290.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000292_000292.jsonl` - ignored local recovery response for the final skipped row.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000269_000292_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000269_000292_report.json` - redacted checkpointed run report with 9 successful responses, 2 timeouts, `stopped_early=true`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000275_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000278_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000280_000292_report.json` - redacted recovery report with 10 successful responses, 2 timeouts, and `stopped_early=true`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000288_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000290_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000292_000292_report.json` - redacted final skipped-row recovery report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000269_000292_report.json` - conversion report for the interrupted shard, with 9 valid labels and 2 rejected timeout rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000275_000292_report.json` - conversion report for retry/recovery files, with 15 valid labels and 2 rejected timeout rows from the preserved recovery shard.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000292_recovery_report.json` - final combined conversion report showing 289 valid deduped labels, 23 rejected rows, train=233, valid=25, test=31, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 268 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000269_000292_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 268 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000275` and `CG-DENIAL-2026-000278` timed out; report was written with `response_success_count=9`, `response_error_count=2`, `stopped_early=true`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 274 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000275` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 277 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000278` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 279 --limit 13 --concurrency 3 --run`: completed with exit code 1 after `CG-DENIAL-2026-000288` and `CG-DENIAL-2026-000290` timed out; report was written with `response_success_count=10`, `response_error_count=2`, and `stopped_early=true`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 287 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000288` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 289 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000290` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 291 --limit 1 --concurrency 1 --run`: passed; recovered `CG-DENIAL-2026-000292` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000269_000292.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-269-292-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-269-292-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000269_000292_report.json --min-records 10000 --allow-partial`: passed; converted 9 valid labels and rejected 2 timeout rows.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-recovery-275-292-mlx --benchmark /private/tmp/claimguard-nvidia-10k-recovery-275-292-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000275_000292_report.json --min-records 10000 --allow-partial`: passed; converted 15 valid recovery labels and rejected 2 preserved timeout rows.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-289-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-289-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000292_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 289 valid deduped labels, rejected 23 malformed/timeout/empty/schema-incomplete rows, wrote train=233, valid=25, test=31, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json ...`: passed on the new response shard, retry files, recovery files, and new reports with `findings=[]`.
+- Docs-inclusive PHI scan was run after documentation edits and returned existing scanner findings for required architect attribution email lines plus older historical placeholder labels in `CHANGELOG.md` and `PHIplan.md`; this was documented as a docs-scan limitation and not used as the artifact PHI gate.
+- Redaction-pattern check over updated docs, new response shard, retry files, recovery files, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 269-292 response shard or the 280-292 recovery shard to recover timeout and early-stopped records; recoveries were written to separate ignored files.
+- Avoided converting timeout first attempts into training rows.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 289 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-170810-teacher-concurrent-289-labels/`; remove the added response shard, retry files, recovery files, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 16:44:34 PDT - Concurrent shard retry recovery extended to 265 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, retrying the timeout without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-164428-teacher-concurrent-265-labels/PHIplan.md` | Updated current teacher-label evidence from 241 valid labels to 265 valid labels, including retry recovery for one timeout row. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-164428-teacher-concurrent-265-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000245_000268.jsonl` - ignored local response shard for the next 24 bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000251.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000245_000268_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000245_000268_report.json` - redacted checkpointed run report with 23 successful responses, 1 timeout, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000251_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000245_000268_report.json` - conversion report for the new shard, with 23 valid labels and 1 rejected timeout row.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000251_report.json` - conversion report for the retry file, with 1 valid label and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000268_recovery_report.json` - final combined conversion report showing 265 valid deduped labels, 18 rejected rows, train=211, valid=25, test=29, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 244 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000245_000268_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 244 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000251` timed out; report was written with `response_success_count=23`, `response_error_count=1`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000245_000268.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-245-268-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-245-268-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000245_000268_report.json --min-records 10000 --allow-partial`: passed; converted 23 valid labels and rejected `CG-DENIAL-2026-000251` for timeout.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 250 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000251` into `teacher_responses_nvidia_10k_strict_retry_000251.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000251.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-retry-251-mlx --benchmark /private/tmp/claimguard-nvidia-10k-retry-251-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000251_report.json --min-records 10000 --allow-partial`: passed; converted 1 valid retry label.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-265-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-265-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000268_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 265 valid deduped labels, rejected 18 malformed/timeout/empty/schema-incomplete rows, wrote train=211, valid=25, test=29, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000245_000268.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000251.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000245_000268_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000245_000268_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000251_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000245_000268_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000251_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000268_recovery_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, retry file, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 245-268 response shard to recover the timeout; the retry was written to a separate ignored file.
+- Avoided converting the timeout first attempt into a training row.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 265 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-164428-teacher-concurrent-265-labels/`; remove the added response shard, retry file, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 16:28:37 PDT - Early-stop shard recovery extended to 241 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, recovering timeout and early-stopped records without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate recovery files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-162832-teacher-concurrent-241-labels/PHIplan.md` | Updated current teacher-label evidence from 217 valid labels to 241 valid labels, including recovery for two timeouts and two early-stopped records. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-162832-teacher-concurrent-241-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000221_000244.jsonl` - ignored local response shard for the next bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000239.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000241.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000243_000244.jsonl` - ignored local recovery shard for records skipped after early stop.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000221_000244_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000221_000244_report.json` - redacted checkpointed run report with 20 successful responses, 2 timeouts, `stopped_early=true`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000239_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000241_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000243_000244_report.json` - redacted recovery report with 2 successful responses and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000221_000244_report.json` - conversion report for the early-stopped shard, with 20 valid labels and 2 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000239_000244_report.json` - conversion report for recovery files, with 4 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000244_recovery_report.json` - final combined conversion report showing 241 valid deduped labels, 17 rejected rows, train=192, valid=24, test=25, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 220 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000221_000244_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 220 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000239` and `CG-DENIAL-2026-000241` timed out; report was written with `response_success_count=20`, `response_error_count=2`, `stopped_early=true`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000221_000244.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-221-244-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-221-244-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000221_000244_report.json --min-records 10000 --allow-partial`: passed; converted 20 valid labels and rejected the two timeout rows.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 238 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000239` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 240 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000241` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 242 --limit 2 --concurrency 2 --run`: passed; recovered `CG-DENIAL-2026-000243` and `CG-DENIAL-2026-000244` with 2 successful responses and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000239.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000241.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000243_000244.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-recovery-239-244-mlx --benchmark /private/tmp/claimguard-nvidia-10k-recovery-239-244-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000239_000244_report.json --min-records 10000 --allow-partial`: passed; converted 4 valid recovery labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-241-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-241-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000244_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 241 valid deduped labels, rejected 17 malformed/timeout/empty/schema-incomplete rows, wrote train=192, valid=24, test=25, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000221_000244.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000239.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000241.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000243_000244.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000221_000244_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000221_000244_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000239_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000241_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000243_000244_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000221_000244_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000239_000244_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000244_recovery_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, retry files, recovery file, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 221-244 response shard to recover timeout and early-stopped records; recoveries were written to separate ignored files.
+- Avoided converting timeout first attempts into training rows.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 241 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-162832-teacher-concurrent-241-labels/`; remove the added response shard, retry files, recovery shard, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 16:10:18 PDT - Early-stop shard recovery extended to 217 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, recovering timeout and early-stopped records without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate recovery files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-161014-teacher-concurrent-217-labels/PHIplan.md` | Updated current teacher-label evidence from 193 valid labels to 217 valid labels, including recovery for two timeouts and fourteen early-stopped records. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-161014-teacher-concurrent-217-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000197_000220.jsonl` - ignored local response shard for the next bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000198.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000203.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000207_000212.jsonl` - ignored local recovery shard for records skipped after early stop.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000213_000220.jsonl` - ignored local recovery shard for records skipped after early stop.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000197_000220_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000197_000220_report.json` - redacted checkpointed run report with 8 successful responses, 2 timeouts, `stopped_early=true`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000198_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000203_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000207_000212_report.json` - redacted recovery report with 6 successful responses and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000213_000220_report.json` - redacted recovery report with 8 successful responses and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000197_000220_report.json` - conversion report for the early-stopped shard, with 8 valid labels and 2 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000198_000220_report.json` - conversion report for recovery files, with 16 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000220_recovery_report.json` - final combined conversion report showing 217 valid deduped labels, 15 rejected rows, train=172, valid=22, test=23, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 196 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000197_000220_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 196 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000198` and `CG-DENIAL-2026-000203` timed out; report was written with `response_success_count=8`, `response_error_count=2`, `stopped_early=true`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000197_000220.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-197-220-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-197-220-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000197_000220_report.json --min-records 10000 --allow-partial`: passed; converted 8 valid labels and rejected the two timeout rows.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 197 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000198` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 202 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000203` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 206 --limit 6 --concurrency 3 --run`: passed; recovered `CG-DENIAL-2026-000207` through `CG-DENIAL-2026-000212` with 6 successful responses and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 212 --limit 8 --concurrency 3 --run`: passed; recovered `CG-DENIAL-2026-000213` through `CG-DENIAL-2026-000220` with 8 successful responses and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000198.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000203.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000207_000212.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000213_000220.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-recovery-198-220-mlx --benchmark /private/tmp/claimguard-nvidia-10k-recovery-198-220-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000198_000220_report.json --min-records 10000 --allow-partial`: passed; converted 16 valid recovery labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-217-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-217-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000220_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 217 valid deduped labels, rejected 15 malformed/timeout/empty/schema-incomplete rows, wrote train=172, valid=22, test=23, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000197_000220.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000198.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000203.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000207_000212.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000213_000220.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000197_000220_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000197_000220_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000198_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000203_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000207_000212_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000213_000220_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000197_000220_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000198_000220_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000220_recovery_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shards, retry files, recovery files, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 197-220 response shard to recover timeout and early-stopped records; recoveries were written to separate ignored files.
+- Avoided converting timeout first attempts into training rows.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 217 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-161014-teacher-concurrent-217-labels/`; remove the added response shard, retry files, recovery shards, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 15:48:43 PDT - Early-stop shard recovery extended to 193 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, recovering timeouts/schema gaps and early-stopped records without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate recovery files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-154838-teacher-concurrent-193-labels/PHIplan.md` | Updated current teacher-label evidence from 169 valid labels to 193 valid labels, including recovery for two timeouts, one schema-incomplete row, and three early-stopped records. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-154838-teacher-concurrent-193-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000173_000196.jsonl` - ignored local response shard for the next bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000175.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000177.jsonl` - ignored local retry response for a schema-incomplete row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000192.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000194_000196.jsonl` - ignored local recovery shard for records skipped after early stop.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000173_000196_preflight_report.json` - redacted dry-run report for 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000173_000196_report.json` - redacted checkpointed run report with 19 successful responses, 2 timeouts, `stopped_early=true`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000175_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000177_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000192_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000194_000196_report.json` - redacted recovery report with 3 successful responses and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000173_000196_report.json` - conversion report for the early-stopped shard, with 18 valid labels and 3 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000175_000196_report.json` - conversion report for recovery files, with 6 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000196_recovery_report.json` - final combined conversion report showing 193 valid deduped labels, 13 rejected rows, train=151, valid=21, test=21, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 172 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000173_000196_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 172 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 after `CG-DENIAL-2026-000175` and `CG-DENIAL-2026-000192` timed out; report was written with `response_success_count=19`, `response_error_count=2`, `stopped_early=true`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000173_000196.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-173-196-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-173-196-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000173_000196_report.json --min-records 10000 --allow-partial`: passed; converted 18 valid labels and rejected two timeout rows plus `CG-DENIAL-2026-000177` for missing `plan_type`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 174 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000175` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 176 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000177` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 191 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000192` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 193 --limit 3 --concurrency 3 --run`: passed; recovered `CG-DENIAL-2026-000194` through `CG-DENIAL-2026-000196` with 3 successful responses and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000175.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000177.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000192.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000194_000196.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-recovery-175-196-mlx --benchmark /private/tmp/claimguard-nvidia-10k-recovery-175-196-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000175_000196_report.json --min-records 10000 --allow-partial`: passed; converted 6 valid recovery labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --output-dir /private/tmp/claimguard-nvidia-10k-strict-193-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-193-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000196_recovery_report.json --min-records 10000 --allow-partial`: passed; converted 193 valid deduped labels, rejected 13 malformed/timeout/empty/schema-incomplete rows, wrote train=151, valid=21, test=21, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000173_000196.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000175.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000177.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000192.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000194_000196.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000173_000196_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000173_000196_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000175_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000177_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000192_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000194_000196_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000173_000196_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_recovery_000175_000196_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000196_recovery_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shards, retry files, recovery files, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 173-196 response shard to recover timeout/schema-incomplete rows; recoveries were written to separate ignored files.
+- Avoided converting timeout first attempts or schema-incomplete first attempts into training rows.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 193 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-154838-teacher-concurrent-193-labels/`; remove the added response shard, retry files, recovery shard, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 15:27:24 PDT - Concurrent shard retry recovery extended to 169 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, retrying the timeout without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-152717-teacher-concurrent-169-labels/PHIplan.md` | Updated current teacher-label evidence from 145 valid labels to 169 valid labels, including retry recovery for one timeout row. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-152717-teacher-concurrent-169-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000149_000172.jsonl` - ignored local response shard for the next 24 bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000171.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000149_000172_preflight_report.json` - redacted dry-run report for the next 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000149_000172_report.json` - redacted checkpointed run report with 23 successful responses, 1 timeout, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000171_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000149_000172_report.json` - conversion report for the new shard, with 23 valid labels and 1 rejected timeout row.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000171_report.json` - conversion report for the retry file, with 1 valid label and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000172_retry_report.json` - final combined conversion report showing 169 valid deduped labels, 10 rejected rows, train=134, valid=17, test=18, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 148 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000149_000172_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 148 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 because `CG-DENIAL-2026-000171` timed out; report was written with `response_success_count=23`, `response_error_count=1`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000149_000172.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-149-172-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-149-172-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000149_000172_report.json --min-records 10000 --allow-partial`: passed; converted 23 valid labels and rejected `CG-DENIAL-2026-000171` for timeout.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 170 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000171` into `teacher_responses_nvidia_10k_strict_retry_000171.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000171.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-retry-171-mlx --benchmark /private/tmp/claimguard-nvidia-10k-retry-171-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000171_report.json --min-records 10000 --allow-partial`: passed; converted 1 valid retry label.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000125_000148.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000128.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000139.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000149_000172.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000171.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-169-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-169-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000172_retry_report.json --min-records 10000 --allow-partial`: passed; converted 169 valid deduped labels, rejected 10 malformed/timeout/empty/schema-incomplete rows, wrote train=134, valid=17, test=18, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000149_000172.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000171.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000149_000172_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000149_000172_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000171_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000149_000172_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000171_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000172_retry_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, retry file, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 149-172 response shard to recover the timeout; the retry was written to a separate ignored retry file.
+- Avoided converting the timeout first attempt into a training row.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 169 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-152717-teacher-concurrent-169-labels/`; remove the added response shard, retry file, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 15:11:26 PDT - Concurrent shard retry recovery extended to 145 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, retrying rejected rows without modifying the original shard file, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in checkpointed shards and separate retry files while preserving PHI scan zero-findings, redacted reports, complete smoke splits, timeout rejection, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-151121-teacher-concurrent-145-labels/PHIplan.md` | Updated current teacher-label evidence from 121 valid labels to 145 valid labels, including retry recovery for two rejected rows. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-151121-teacher-concurrent-145-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000125_000148.jsonl` - ignored local response shard for the next 24 bounded-concurrency attempts.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000128.jsonl` - ignored local retry response for a schema-incomplete row.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000139.jsonl` - ignored local retry response for a timed-out row.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000125_000148_preflight_report.json` - redacted dry-run report for the next 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000125_000148_report.json` - redacted checkpointed run report with 23 successful responses, 1 timeout, `stopped_early=false`, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000128_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000139_report.json` - redacted retry report with 1 successful response and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000125_000148_report.json` - conversion report for the new shard, with 22 valid labels and 2 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000128_000139_report.json` - conversion report for the retry files, with 2 valid labels and 0 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_report.json` - intermediate combined conversion report before retry recovery, with 143 valid labels.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_retry_report.json` - final combined conversion report showing 145 valid deduped labels, 9 rejected rows, train=115, valid=15, test=15, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 124 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000125_000148_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 124 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 because `CG-DENIAL-2026-000139` timed out; report was written with `response_success_count=23`, `response_error_count=1`, `stopped_early=false`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000125_000148.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-125-148-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-125-148-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000125_000148_report.json --min-records 10000 --allow-partial`: passed; converted 22 valid labels and rejected `CG-DENIAL-2026-000128` for missing required keys and `CG-DENIAL-2026-000139` for timeout.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input ... --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_report.json --min-records 10000 --allow-partial`: passed before retry recovery; converted 143 valid deduped labels and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 127 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000128` into `teacher_responses_nvidia_10k_strict_retry_000128.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 138 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000139` into `teacher_responses_nvidia_10k_strict_retry_000139.jsonl` with 1 successful response and 0 response errors.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000128.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000139.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-retry-128-139-mlx --benchmark /private/tmp/claimguard-nvidia-10k-retry-128-139-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000128_000139_report.json --min-records 10000 --allow-partial`: passed; converted 2 valid retry labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000125_000148.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000128.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000139.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-145-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-145-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_retry_report.json --min-records 10000 --allow-partial`: passed; converted 145 valid deduped labels, rejected 9 malformed/timeout/empty/schema-incomplete rows, wrote train=115, valid=15, test=15, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000125_000148.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000128.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000139.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000125_000148_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000125_000148_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000128_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000139_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000125_000148_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_retry_000128_000139_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000148_retry_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shards, retry files, and reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided modifying the original 125-148 response shard to recover rejected rows; retries were written to separate ignored retry files.
+- Avoided converting the timeout or schema-incomplete first attempts into training rows.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided lowering the 10,000-label training gate; 145 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-151121-teacher-concurrent-145-labels/`; remove the added response shard, retry files, and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 14:53:16 PDT - Concurrent teacher shard extended to 121 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding another bounded-concurrency NVIDIA shard, converting the shard, and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in clean checkpointed shards while preserving PHI scan zero-findings, redacted reports, complete smoke splits, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-145311-teacher-concurrent-121-labels/PHIplan.md` | Updated current teacher-label evidence from 97 valid labels to 121 valid labels. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-145311-teacher-concurrent-121-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl` - ignored local response shard for 24 additional bounded-concurrency labels.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000101_000124_preflight_report.json` - redacted dry-run report for the next 24 planned requests with no API calls.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000101_000124_report.json` - redacted checkpointed run report with 24 successful responses, zero response errors, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000101_000124_report.json` - conversion report for the new 24-label shard.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000124_report.json` - combined conversion report showing 121 valid deduped labels, 7 rejected rows, train=96, valid=11, test=14, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 100 --limit 24 --concurrency 3 --resume --resume-successes-only`: passed dry preflight; wrote `teacher_label_batch_nvidia_concurrent_000101_000124_preflight_report.json` with `run_attempted=false`, `planned_request_count=24`, `response_success_count=0`, and `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 100 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000101_000124_report.json` with `response_success_count=24`, `response_error_count=0`, and `planned_request_count=24`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-101-124-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-101-124-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000101_000124_report.json --min-records 10000 --allow-partial`: passed; converted 24 valid labels, wrote train=19, valid=2, test=3, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-121-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-121-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000124_report.json --min-records 10000 --allow-partial`: passed; converted 121 valid deduped labels, rejected 7 malformed/timeout/empty/schema-incomplete rows, wrote train=96, valid=11, test=14, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000101_000124.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000101_000124_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000101_000124_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000101_000124_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000124_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided treating the new 24-label shard as release training data; it is only part of the combined smoke conversion.
+- Avoided lowering the 10,000-label training gate; 121 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-145311-teacher-concurrent-121-labels/`; remove the added response shard and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 14:39:02 PDT - Empty-content converter hardening and 97-label teacher checkpoint
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding the next bounded-concurrency NVIDIA shard, hardening teacher-response conversion for successful API rows with empty content, and reconverting all current response shards into a 97-label MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in clean checkpointed shards while preserving PHI scan zero-findings, redacted reports, structured converter errors, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/convert_teacher_responses_to_mlx.py` | `backups/20260604-143612-teacher-converter-missing-content/llm-distill/scripts/convert_teacher_responses_to_mlx.py` | Added null/empty teacher-response content rejection for both generic and MiMo response paths so an HTTP 200 row with no assistant content becomes a structured conversion error instead of a crash. | Restore backup over the script. |
+| `PHIplan.md` | `backups/20260604-143841-teacher-concurrent-97-labels/PHIplan.md` | Updated current teacher-label evidence from 76 valid labels to 97 valid labels and documented empty-content rejection. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-143841-teacher-concurrent-97-labels/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl` - ignored local response shard for 24 additional bounded-concurrency labels.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000077_000100_report.json` - redacted checkpointed run report with 24 successful responses, zero response errors, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000077_000100_report.json` - conversion report for the new shard, with 21 valid labels and 3 rejected rows.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000100_report.json` - combined conversion report showing 97 valid deduped labels, 7 rejected rows, train=77, valid=9, test=11, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 76 --limit 24 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000077_000100_report.json` with `response_success_count=24`, `response_error_count=0`, and `planned_request_count=24`.
+- Initial `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py ... teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl ...`: failed because `CG-DENIAL-2026-000080` returned HTTP 200 with null assistant content and the converter attempted to parse it as JSON.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-77-100-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-77-100-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000077_000100_report.json --min-records 10000 --allow-partial`: passed after hardening; converted 21 valid labels and rejected `CG-DENIAL-2026-000077` for malformed JSON, `CG-DENIAL-2026-000080` for empty response content, and `CG-DENIAL-2026-000095` for missing required keys.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-97-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-97-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000100_report.json --min-records 10000 --allow-partial`: passed; converted 97 valid deduped labels, rejected 7 malformed/timeout/empty/schema-incomplete rows, wrote train=77, valid=9, test=11, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000077_000100.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000077_000100_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000077_000100_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000100_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating HTTP 200 alone as valid teacher output; `CG-DENIAL-2026-000080` now remains excluded because the assistant content was empty.
+- Avoided lowering the 10,000-label training gate; 97 valid labels are still smoke evidence only.
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `llm-distill/scripts/convert_teacher_responses_to_mlx.py` from `backups/20260604-143612-teacher-converter-missing-content/`; restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-143841-teacher-concurrent-97-labels/`; remove the added response shard and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 14:22:50 PDT - Concurrent teacher shard extended to 76 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by adding another bounded-concurrency NVIDIA shard and reconverting all current response shards into a larger MLX smoke dataset.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in clean checkpointed shards while preserving PHI scan zero-findings, redacted reports, and the 10,000-label training gate.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-142245-teacher-concurrent-76-labels/root/PHIplan.md` | Updated current teacher-label evidence from 61 valid labels to 76 valid labels. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-142245-teacher-concurrent-76-labels/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000061_report.json` | `backups/20260604-142245-teacher-concurrent-76-labels/llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000061_report.json` | Preserved the prior 61-label combined conversion report before writing the new 76-label report. | Restore backup if rolling back to the prior combined conversion evidence. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl` - ignored local response shard for 15 additional bounded-concurrency labels.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000062_000076_report.json` - redacted checkpointed run report with 15 successful responses, zero response errors, and `concurrency=3`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000062_000076_report.json` - conversion report for the new 15-label shard.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000076_report.json` - combined conversion report showing 76 valid deduped labels, 4 rejected malformed/timeout rows, train=61, valid=7, test=8, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 61 --limit 15 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000062_000076_report.json` with `response_success_count=15`, `response_error_count=0`, and `planned_request_count=15`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-62-76-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-62-76-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000062_000076_report.json --min-records 10000 --allow-partial`: passed; converted 15 valid labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-76-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-76-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000076_report.json --min-records 10000 --allow-partial`: passed; converted 76 valid deduped labels, rejected 4 malformed/timeout rows, wrote train=61, valid=7, test=8, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000062_000076.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000062_000076_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000062_000076_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000076_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shard, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided increasing concurrency above the previously validated value of 3.
+- Avoided treating a shard with no test split as release training data; it is only part of the combined smoke conversion.
+- Avoided lowering the 10,000-label training gate; 76 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md`, `CHANGELOG.md`, and the prior 61-label combined report from `backups/20260604-142245-teacher-concurrent-76-labels/`; remove the added response shard and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 14:09:32 PDT - Teacher response label sanitizer and 61-label conversion
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: clear the PHI scanner finding from the latest raw teacher-response shard, harden future teacher prompts/responses against scanner-sensitive synthetic identifier labels, retry the timed-out label, and continue bounded NVIDIA teacher labeling toward the 10,000-label fine-tuning gate.
+
+### Current Objective Scratchpad
+- Goal: Keep accumulating schema-valid teacher labels while preserving PHI scan zero-findings, redacted reports, strict conversion gates, and `training_allowed=false` until the 10,000 valid-label minimum is met.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/scripts/run_teacher_label_batch.py`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/scripts/run_teacher_label_batch.py` | Added recursive source-control label normalization for raw teacher responses before JSONL append. | Restore backup over the script. |
+| `llm-distill/scripts/generate_teacher_distillation_corpus.py` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/scripts/generate_teacher_distillation_corpus.py`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/scripts/generate_teacher_distillation_corpus.py` | Added positive-only safe-label prompt guidance without literal scanner-triggering label examples. | Restore backup over the script. |
+| `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl` | Sanitized scanner-sensitive generic label wording in the ignored local response shard while preserving synthetic teacher content semantics. | Restore backup over the ignored local response shard if needed. |
+| `llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | Regenerated 10,000 teacher requests with safe-label prompt guidance. | Restore backup over the JSONL file. |
+| `llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/data/corpus/generated_teacher_distillation/manifest.json`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | Regenerated corpus manifest after safe-label prompt update; kept `training_allowed=false`. | Restore backup over the manifest. |
+| `llm-distill/evals/reports/teacher_distillation_corpus_report.json` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/evals/reports/teacher_distillation_corpus_report.json`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/evals/reports/teacher_distillation_corpus_report.json` | Refreshed generation report after corpus regeneration. | Restore backup over the report. |
+| `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` | `backups/20260604-140347-teacher-response-label-sanitizer/llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json`; `backups/20260604-140843-teacher-label-sanitized-61/llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` | Refreshed realism/PHI audit report; final audit is ready with zero blockers. | Restore backup over the report. |
+| `PHIplan.md` | `backups/20260604-140347-teacher-response-label-sanitizer/root/PHIplan.md`; `backups/20260604-140843-teacher-label-sanitized-61/root/PHIplan.md` | Updated current evidence to 61 valid labels and documented label sanitizer/rollback. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-140347-teacher-response-label-sanitizer/root/CHANGELOG.md`; `backups/20260604-140843-teacher-label-sanitized-61/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl` - ignored local retry response for the previously timed-out `CG-DENIAL-2026-000043`.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl` - ignored local response shard for 15 additional bounded-concurrency labels.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000043_report.json` - redacted retry report with one successful response and zero errors.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000047_000061_report.json` - redacted concurrent run report with 15 successful responses and zero errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000043_000061_report.json` - conversion report for the retry plus new 15-label shard.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000061_report.json` - combined conversion report with 61 valid deduped labels, 4 rejected malformed/timeout rows, train=47, valid=6, test=8, and `training_allowed=false`.
+
+### Validation
+- Initial `python3 llm-distill/scripts/run_phi_scan.py --json ... teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl ...`: failed with two `member_id_label` findings caused by generic scanner-sensitive label wording in the raw teacher response record.
+- Structured inspection confirmed the parsed assistant payload itself had no PHI scanner findings, but the raw response JSONL still needed source-control-safe label normalization.
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --count 10000 --seed 42 --output-dir llm-distill/data/corpus/generated_teacher_distillation`: passed after prompt wording was changed to positive-only safe labels.
+- First post-change `python3 llm-distill/scripts/audit_teacher_distillation_corpus.py --fail-on-blocked`: failed because the prompt contained literal forbidden-label examples. The prompt was corrected to avoid those literals.
+- Final `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --count 10000 --seed 42 --output-dir llm-distill/data/corpus/generated_teacher_distillation`: passed.
+- Final `python3 llm-distill/scripts/audit_teacher_distillation_corpus.py --fail-on-blocked`: passed; report has `ready=true`, `blocker_count=0`, and `blockers=[]`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 42 --limit 1 --concurrency 1 --run`: passed; retried `CG-DENIAL-2026-000043` with `response_success_count=1`, `response_error_count=0`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 46 --limit 15 --concurrency 3 --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000047_000061_report.json` with `response_success_count=15`, `response_error_count=0`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-new-16-mlx --benchmark /private/tmp/claimguard-nvidia-10k-new-16-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000043_000061_report.json --min-records 10000 --allow-partial`: passed; converted 16 valid labels.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-61-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-61-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000061_report.json --min-records 10000 --allow-partial`: passed; converted 61 valid deduped labels, kept `training_allowed=false`, and preserved complete train/valid/test smoke splits.
+- Final `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_retry_000043.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000047_000076.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_retry_000043_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000047_000061_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000043_000061_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000061_report.json llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new response shards, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided leaving the raw response shard with known PHI scanner findings, even though the finding was a generic synthetic label and not real PHI.
+- Avoided using literal forbidden-label examples in future teacher prompts because the corpus audit correctly treats those strings as scanner findings.
+- Avoided converting failed or malformed attempts into training data; the combined report still rejects 4 malformed/timeout rows.
+- Avoided lowering the 10,000-label training gate; 61 valid labels are still smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore modified files from `backups/20260604-140843-teacher-label-sanitized-61/` and `backups/20260604-140347-teacher-response-label-sanitizer/`; remove the added response shards and reports listed above if removing this slice entirely.
+- Remaining work: continue bounded checkpointed NVIDIA labeling toward the 10,000 valid-label gate, rerun combined conversion as shards accumulate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 13:46:12 PDT - Concurrent teacher shard extended to 45 labels
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by extending the checkpointed bounded-concurrency NVIDIA shard and converting the combined shard evidence while preserving timeout rejection and the 10,000-label fine-tune gate.
+
+### Current Objective Scratchpad
+- Goal: Accumulate schema-valid teacher labels in bounded NVIDIA shards, retry malformed/time-out rows only through `--resume-successes-only`, and keep MLX LoRA training blocked until the reviewed valid-label minimum and benchmark gates are met.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-134606-teacher-concurrent-45-labels/root/PHIplan.md` | Updated current teacher-label evidence from 31 valid labels to 45 valid labels, including one new timeout row excluded from conversion. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-134606-teacher-concurrent-45-labels/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000030_report.json` | `backups/20260604-134606-teacher-concurrent-45-labels/llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000030_report.json` | Preserved the prior 31-label combined conversion report before writing the new 45-label combined report. | Restore backup if rolling back to the prior combined conversion evidence. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000031_000039_report.json` - redacted checkpointed run report with `concurrency=3`, 14 successful responses, 1 timeout, and no early max-error stop.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000046_report.json` - conversion report for the second ignored response shard; shows 20 valid labels, 1 rejected timeout row, train=16, valid=2, test=2, and `training_allowed=false`.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000046_report.json` - combined multi-shard conversion report; shows 45 valid deduped labels, 4 rejected malformed/timeout rows, train=34, valid=5, test=6, and `training_allowed=false`.
+
+### Validation
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 25 --limit 15 --concurrency 3 --resume --resume-successes-only --run`: completed with exit code 1 because one request timed out; the report was still written with `response_success_count=14`, `response_error_count=1`, `stopped_early=false`, and `planned_request_count=15`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-concurrent-20-mlx --benchmark /private/tmp/claimguard-nvidia-10k-concurrent-20-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000046_report.json --min-records 10000 --allow-partial`: passed; converted 20 valid labels and rejected the timeout row.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-45-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-45-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000046_report.json --min-records 10000 --allow-partial`: passed; converted 45 valid deduped labels, rejected 4 malformed/timeout rows, wrote train=34, valid=5, test=6 smoke splits, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000031_000039_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000046_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000046_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, second response shard, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided converting the timeout row for `CG-DENIAL-2026-000043`; it remains in the ignored response shard as retry evidence and is excluded from MLX rows.
+- Avoided increasing concurrency beyond the already-smoked value of 3 while timeout behavior is still being measured.
+- Avoided claiming the 45-label smoke dataset is ready for fine-tuning; the converter continues to require 10,000 valid labels before `training_allowed=true`.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `PHIplan.md`, `CHANGELOG.md`, and the prior 31-label combined conversion report from `backups/20260604-134606-teacher-concurrent-45-labels/`; remove the three added reports listed above if removing this slice. The ignored local response shard can be deleted/rebuilt through checkpointed labeling if the appended response rows should be discarded.
+- Remaining work: retry timeout rows through schema-valid resume, continue bounded NVIDIA labeling toward the 10,000 valid-label gate, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 13:29:00 PDT - Bounded concurrent teacher labeling and multi-shard conversion
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: make the 10,000-request teacher-labeling path more operationally feasible by adding bounded concurrency and multi-shard conversion while preserving checkpointing, strict schema resume semantics, PHI scanning, and the 10,000-label training gate.
+
+### Current Objective Scratchpad
+- Goal: Continue NVIDIA teacher labeling in checkpointed shards, use bounded concurrency only after small clean smoke runs, convert multiple shard files into one deduplicated MLX smoke dataset, and keep `training_allowed=false` until the full reviewed-label minimum and fine-tune/benchmark gates pass.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260604-132008-teacher-runner-concurrency/llm-distill/scripts/run_teacher_label_batch.py` | Added `--concurrency` with default 1, using a bounded thread pool while preserving main-thread JSONL appends, redacted report checkpoints, safe progress output, max-error stop, and strict resume behavior. | Restore backup over the script. |
+| `llm-distill/scripts/convert_teacher_responses_to_mlx.py` | `backups/20260604-132802-teacher-converter-multi-input/llm-distill/scripts/convert_teacher_responses_to_mlx.py` | Added multi-file `--input` support so separately generated teacher-response shards can be converted into one deduplicated MLX dataset/report. | Restore backup over the script. |
+| `PHIplan.md` | `backups/20260604-132802-teacher-converter-multi-input/root/PHIplan.md` | Updated current evidence to 31 valid converted labels across strict response shards and documented bounded concurrency/multi-shard conversion. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-132802-teacher-converter-multi-input/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000025_000030_report.json` - redacted concurrent NVIDIA run report with `concurrency=3`, six successful responses, and zero response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000030_report.json` - conversion report for the six-record concurrent shard.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000030_report.json` - combined multi-shard conversion report for the first two ignored response shards; shows 31 valid deduped labels, 3 rejected malformed/timeout rows, train=23, valid=3, test=5, and `training_allowed=false`.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl` - ignored local response shard for the bounded concurrent smoke; not intended for source control.
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py`: passed after adding `--concurrency`.
+- Dry preflight with `--concurrency 3`, `--start-index 25`, and `--limit 6`: passed; planned six requests and made no API calls.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --start-index 25 --limit 6 --concurrency 3 --resume --resume-successes-only --run`: passed; wrote `teacher_label_batch_nvidia_concurrent_000025_000030_report.json` with `response_success_count=6`, `response_error_count=0`, and `concurrency=3`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-concurrent-6-mlx --benchmark /private/tmp/claimguard-nvidia-10k-concurrent-6-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000030_report.json --min-records 10000 --allow-partial`: passed; converted six valid labels and kept `training_allowed=false`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/run_teacher_label_batch.py`: passed after adding multi-input conversion.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-31-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-31-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000030_report.json --min-records 10000 --allow-partial`: passed; converted 31 valid labels, rejected 3 malformed/timeout rows, wrote train=23, valid=3, test=5 smoke splits, and kept `training_allowed=false`.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000025_000049.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_concurrent_000025_000030_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_concurrent_000025_000030_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_combined_000000_000030_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, concurrent shard output, and new reports: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided making concurrency the default; `--concurrency` defaults to 1 so conservative sequential runs remain unchanged.
+- Avoided writing from worker threads. Response JSONL appends and redacted report checkpoints remain on the main thread.
+- Avoided treating the six-record concurrent smoke as a release training dataset. The combined 31-label report remains below `--min-records 10000`.
+- Avoided concatenating response shards into a new source-controlled training artifact; the converter now accepts multiple ignored shard files directly.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `llm-distill/scripts/run_teacher_label_batch.py` from `backups/20260604-132008-teacher-runner-concurrency/`; restore `llm-distill/scripts/convert_teacher_responses_to_mlx.py`, `PHIplan.md`, and `CHANGELOG.md` from `backups/20260604-132802-teacher-converter-multi-input/`; remove the added concurrent/multi-shard reports and ignored response shard listed above if removing this slice entirely.
+- Remaining work: continue checkpointed NVIDIA labeling in larger but bounded shards, monitor schema rejection/rate behavior under concurrency, convert enough valid reviewed labels to satisfy the 10,000-label minimum, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 13:18:02 PDT - Teacher response dedupe and 25-label strict shard
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal teacher-labeling path by preventing invalid or duplicate retry attempts from contaminating MLX conversion, then extend the live NVIDIA strict shard to 25 valid converted labels.
+
+### Current Objective Scratchpad
+- Goal: Use checkpointed NVIDIA shards with schema-valid resume semantics and deduplicated conversion; keep full LoRA fine-tuning blocked until 10,000 valid reviewed labels and benchmark gates are complete.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260604-130903-teacher-dedupe-valid-resume/llm-distill/scripts/run_teacher_label_batch.py` | Tightened `--resume-successes-only` so it skips only responses with HTTP 200, `finish_reason="stop"`, parseable teacher JSON, all required keys, required array fields, `human_review_required=true`, and `draft_for_human_review` preservation. | Restore backup over the script. |
+| `llm-distill/scripts/convert_teacher_responses_to_mlx.py` | `backups/20260604-130903-teacher-dedupe-valid-resume/llm-distill/scripts/convert_teacher_responses_to_mlx.py` | Added latest-valid-response deduplication by `custom_id` plus duplicate counts in conversion reports. | Restore backup over the script. |
+| `PHIplan.md` | `backups/20260604-130903-teacher-dedupe-valid-resume/root/PHIplan.md` | Updated NVIDIA teacher-labeling status from 18 valid converted labels to 25 valid converted labels and documented dedupe/resume semantics. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-130903-teacher-dedupe-valid-resume/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000018_000024_report.json` - redacted checkpointed run report for seven additional NVIDIA calls; all seven returned HTTP 200 with no response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000024_report.json` - current conversion report for the combined ignored strict shard; shows 25 valid deduped teacher labels, 3 rejected malformed/timeout rows, train=18, valid=3, test=4, and `training_allowed=false`.
+
+### Validation
+- Current strict response shard audit: confirmed retry history for `CG-DENIAL-2026-000005`, `CG-DENIAL-2026-000006`, and `CG-DENIAL-2026-000012`; latest valid retry attempts are preserved and malformed/timeout attempts remain rejected.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py`: passed after resume/dedupe changes.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-complete-split-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-complete-split-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000017_report.json --min-records 10000 --allow-partial`: passed with 18 valid labels before the next shard.
+- Runner preflight with `--resume --resume-successes-only --limit 7`: passed; report showed `existing_response_count=18`, `planned_request_count=7`, and no API calls.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --resume --resume-successes-only --limit 7 --run`: passed; wrote `teacher_label_batch_nvidia_strict_resume_000018_000024_report.json` with `response_success_count=7`, `response_error_count=0`, `existing_response_count=18`, `planned_request_count=7`, `partial_report=false`, and `interrupted=null`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-25-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-25-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000024_report.json --min-records 10000 --allow-partial`: passed; converted 25 valid deduped labels, rejected 3 malformed/timeout rows, wrote train=18, valid=3, test=4 smoke splits, and kept `training_allowed=false`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000018_000024_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000024_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over updated docs, new reports, and strict response shard: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+
+### Failed Or Avoided Approaches
+- Avoided relying on HTTP success alone for resume decisions because earlier successful calls had aborted or malformed teacher JSON.
+- Avoided allowing retry duplicates to inflate valid-label counts or create duplicate training rows.
+- Avoided lowering the `--min-records 10000` release-training gate; the 25-label conversion remains smoke evidence only.
+- Avoided writing raw credentials, authorization headers, full NVIDIA endpoint strings, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `llm-distill/scripts/run_teacher_label_batch.py`, `llm-distill/scripts/convert_teacher_responses_to_mlx.py`, `PHIplan.md`, and `CHANGELOG.md` from `backups/20260604-130903-teacher-dedupe-valid-resume/`; remove `llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000018_000024_report.json` and `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000024_report.json` if removing this slice. The ignored local response shard can be restored to the previous state only from local backups or deleted and rebuilt through checkpointed labeling.
+- Remaining work: continue checkpointed NVIDIA labeling in larger shards, review/reject malformed teacher outputs, convert enough valid reviewed labels to satisfy the 10,000-label minimum, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 13:06:19 PDT - Checkpointed NVIDIA strict-resume teacher labeling
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: move the realistic 10,000-denial/appeal distillation path beyond the first NVIDIA smoke by making teacher-label runs resumable after malformed/time-out rows and producing a larger schema-valid MLX smoke split without lowering the full training gate.
+
+### Current Objective Scratchpad
+- Goal: Continue labeling the 10,000-request synthetic corpus in strict, resumable NVIDIA shards; convert only schema-valid teacher JSON; keep `training_allowed=false` until the valid reviewed label count reaches the approved full-corpus minimum and MLX fine-tune/benchmark gates pass.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260604-124442-teacher-runner-resume-checkpoint/llm-distill/scripts/run_teacher_label_batch.py` | Added redacted report checkpoints after each completed response, safe per-record progress output, SIGTERM/KeyboardInterrupt final-report handling, and `--resume-successes-only` that skips only prior HTTP 200 responses with clean `finish_reason="stop"`. | Restore backup over the script. |
+| `PHIplan.md` | `backups/20260604-124442-teacher-runner-resume-checkpoint/root/PHIplan.md` | Updated current NVIDIA teacher evidence from the 5-record smoke to the checkpointed strict-resume shard: 18 valid converted labels, 3 rejected malformed/timeout rows, and complete smoke splits while full training remains blocked. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-124442-teacher-runner-resume-checkpoint/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000004_000009_report.json` - redacted checkpointed run report for six resumed NVIDIA calls; all six returned HTTP 200.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000010_000017_report.json` - redacted checkpointed run report for eight resumed NVIDIA calls; all eight returned HTTP 200.
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_strict_retry_000012_report.json` - redacted retry report for the malformed `CG-DENIAL-2026-000012` attempt; the retry returned HTTP 200.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_partial_000000_000004_report.json` - partial conversion report showing 4 valid rows before the resume fix.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000009_report.json` - intermediate conversion report showing 10 valid rows and no validation split yet.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000017_report.json` - current conversion report showing 18 valid rows, 3 rejected malformed/timeout rows, complete train/valid/test smoke splits, and `training_allowed=false`.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl` - ignored local response shard used for conversion smoke and retry evidence; not intended for source control.
+
+### Validation
+- Initial 25-record strict shard was terminated after the response file stopped advancing at 5 completed rows and no final report was written. This exposed the need for checkpointed reports and resume semantics before larger batches.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py`: passed after the runner checkpoint/resume change.
+- Runner preflight with `--resume --resume-successes-only` and no `--run`: passed; wrote a temporary redacted preflight report under `/private/tmp`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --resume --resume-successes-only --limit 6 --run`: passed; wrote `teacher_label_batch_nvidia_strict_resume_000004_000009_report.json` with `response_success_count=6`, `response_error_count=0`, `existing_response_count=4`, `planned_request_count=6`, `partial_report=false`, and `interrupted=null`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --resume --resume-successes-only --limit 8 --run`: passed; wrote `teacher_label_batch_nvidia_strict_resume_000010_000017_report.json` with `response_success_count=8`, `response_error_count=0`, `existing_response_count=10`, and `planned_request_count=8`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --resume --resume-successes-only --limit 1 --run`: passed; retried the malformed `CG-DENIAL-2026-000012` row and wrote `teacher_label_batch_nvidia_strict_retry_000012_report.json` with `response_success_count=1` and `response_error_count=0`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-strict-complete-split-mlx --benchmark /private/tmp/claimguard-nvidia-10k-strict-complete-split-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000017_report.json --min-records 10000 --allow-partial`: passed; converted 18 valid teacher responses, rejected 3 malformed/timeout rows, wrote train=13, valid=3, test=2 smoke splits, and kept `training_allowed=false`.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000004_000009_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_strict_resume_000010_000017_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_strict_retry_000012_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_strict_resume_000000_000017_report.json`: passed with `findings=[]`.
+- Redaction-pattern check over new reports, docs, and strict response shard: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided treating the interrupted 25-record run as a failed full attempt; it produced useful partial response evidence but no final report, so the runner was hardened before continuing.
+- Avoided using `--max-tokens 4096` for continued strict shards because one response returned invalid/truncated JSON with `finish_reason="abort"`. Resume runs used the request corpus default token budget instead.
+- Avoided treating HTTP 200 alone as a resumable success; `--resume-successes-only` now requires clean `finish_reason="stop"` so aborted rows can be retried.
+- Avoided setting `training_allowed=true` for the 18-record smoke dataset. Complete smoke splits prove format readiness, not full fine-tune readiness.
+- Avoided writing the raw NVIDIA credential, authorization headers, full base URL, PHI/PII, production documents, or temporary MLX smoke output into source-controlled reports.
+
+### Notes
+- Rollback: restore `llm-distill/scripts/run_teacher_label_batch.py`, `PHIplan.md`, and `CHANGELOG.md` from `backups/20260604-124442-teacher-runner-resume-checkpoint/`; remove the added strict-resume reports listed above and ignored local shard output `llm-distill/data/distillation/teacher_responses_nvidia_10k_strict_shard_000000_000024.jsonl` if removing this slice entirely.
+- Remaining work: continue NVIDIA labeling in checkpointed shards, review/reject malformed teacher outputs, convert enough valid reviewed labels to satisfy the 10,000-label minimum, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 12:22:04 PDT - NVIDIA teacher shard smoke and schema hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal distillation plan by proving the configured NVIDIA OpenAI-compatible teacher path on a bounded shard, preserving strict teacher-output gating, and keeping the corpus blocked from fine-tuning until sufficient valid reviewed labels exist.
+
+### Current Objective Scratchpad
+- Goal: Use the NVIDIA teacher endpoint only through redacted environment configuration, convert only schema-valid teacher JSON into MLX smoke data, and keep `training_allowed=false` until the 10,000-request label batch has enough reviewed valid records and complete train/valid/test splits.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-121156-teacher-shard-converter-fix/root/PHIplan.md` | Documented NVIDIA 5-request shard evidence, the 4-valid/1-rejected conversion result, the `follow_up_plan` required-array gate, and the ongoing fine-tune blocker. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-121156-teacher-shard-converter-fix/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+| `llm-distill/scripts/generate_teacher_distillation_corpus.py` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/scripts/generate_teacher_distillation_corpus.py` | Hardened the teacher prompt so required keys must not be omitted and `follow_up_plan` must be an array. | Restore backup over the script. |
+| `llm-distill/scripts/convert_teacher_responses_to_mlx.py` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/scripts/convert_teacher_responses_to_mlx.py` | Fixed benchmark generation for converted MLX records and enforced `follow_up_plan` as a required array. | Restore backup over the script. |
+| `llm-distill/scripts/run_teacher_label_batch.py` | `backups/20260604-115132-teacher-json-mode-preflight/llm-distill/scripts/run_teacher_label_batch.py` | Preserved earlier JSON-mode/NVIDIA preflight improvements: sharded starts, max-error stop, max-token override, redacted reports, and bounded request summaries. | Restore backup over the script. |
+| `llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | Regenerated 10,000 teacher-label requests with the stricter schema prompt. | Restore backup over the JSONL file. |
+| `llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | Regenerated corpus manifest after prompt hardening; kept `training_allowed=false`. | Restore backup over the manifest. |
+| `llm-distill/evals/reports/teacher_distillation_corpus_report.json` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/evals/reports/teacher_distillation_corpus_report.json` | Refreshed generation report for the regenerated 10,000-request corpus. | Restore backup over the report. |
+| `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` | `backups/20260604-121156-teacher-shard-converter-fix/llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` | Refreshed full-corpus realism/PHI/training-gate audit after prompt hardening. | Restore backup over the report. |
+| `llm-distill/evals/reports/teacher_label_batch_10k_preflight_report.json` | `backups/20260604-115132-teacher-json-mode-preflight/llm-distill/evals/reports/teacher_label_batch_10k_preflight_report.json` | Refreshed dry-run teacher-label report for 10,000 configured requests with redacted NVIDIA configuration and no API calls. | Restore backup over the report. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_label_batch_nvidia_shard_000000_000004_report.json` - redacted live NVIDIA shard report with 5 successful responses and 0 response errors.
+- `llm-distill/evals/reports/teacher_to_mlx_nvidia_shard_000000_000004_report.json` - shard conversion report with 4 valid teacher responses, 1 schema rejection, `training_allowed=false`, and incomplete split evidence.
+- `llm-distill/data/distillation/teacher_responses_nvidia_10k_shard_000000_000004.jsonl` - ignored local teacher-response shard used only for smoke conversion; not intended for source control.
+
+### Validation
+- Root `.env` inspection: found a nonstandard `nvidiakey` variable and mapped it to `NVIDIA_API_KEY` only in the subprocess environment; raw credential values were not printed or written to reports.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --limit 5 --start-index 0 --max-errors 1 --max-tokens 2500 --run`: passed; wrote `llm-distill/evals/reports/teacher_label_batch_nvidia_shard_000000_000004_report.json` with `response_success_count=5`, `response_error_count=0`, `api_key_present=true`, and `base_url_redacted=true`.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --input llm-distill/data/distillation/teacher_responses_nvidia_10k_shard_000000_000004.jsonl --output-dir /private/tmp/claimguard-nvidia-10k-shard-mlx --benchmark /private/tmp/claimguard-nvidia-10k-shard-benchmark.jsonl --report llm-distill/evals/reports/teacher_to_mlx_nvidia_shard_000000_000004_report.json --min-records 5 --allow-partial`: passed after converter fix; loaded 4 valid responses and rejected `CG-DENIAL-2026-000005` because `follow_up_plan` was missing.
+- Initial conversion attempt failed with `KeyError: 'custom_id'` while building the benchmark from converted MLX records; fixed by reading `custom_id` from MLX metadata and parsing expected output from the assistant message.
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --count 10000 --seed 42 --output-dir llm-distill/data/corpus/generated_teacher_distillation`: passed; regenerated 10,000 synthetic denial scenarios and teacher requests.
+- `python3 llm-distill/scripts/audit_teacher_distillation_corpus.py --fail-on-blocked`: passed; refreshed `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` with `ready=true`, `blocker_count=0`, and `blockers=[]`.
+- `python3 llm-distill/scripts/run_teacher_label_batch.py ... --limit 10000 --max-errors 25 --max-tokens 4096` without `--run`: passed; refreshed `llm-distill/evals/reports/teacher_label_batch_10k_preflight_report.json` with `response_success_count=0`, `response_error_count=0`, `api_key_present=true`, `base_url_redacted=true`, and 10 bounded request summaries.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/run_teacher_label_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/run_phi_scan.py --json llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl llm-distill/data/corpus/generated_teacher_distillation/manifest.json llm-distill/evals/reports/teacher_distillation_corpus_report.json llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json llm-distill/evals/reports/teacher_label_batch_10k_preflight_report.json llm-distill/evals/reports/teacher_label_batch_nvidia_shard_000000_000004_report.json llm-distill/evals/reports/teacher_to_mlx_nvidia_shard_000000_000004_report.json llm-distill/data/distillation/teacher_responses_nvidia_10k_shard_000000_000004.jsonl`: passed with `findings=[]`.
+- Redaction count check over reports, docs, and shard output: passed with no NVIDIA key-prefix, bearer-token, or NVIDIA endpoint-string matches in generated reports or response output; an older unrelated `token-plan` string remains in `CHANGELOG.md`.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided continuing directly to full 10,000-response labeling after the smoke shard because one successful NVIDIA response still failed the strict schema.
+- Avoided relaxing converter validation to accept missing `follow_up_plan`; the teacher prompt and converter were hardened instead.
+- Avoided writing the raw NVIDIA key, authorization headers, full base URL, PHI/PII, production documents, or local MLX smoke output into source-controlled reports.
+- Avoided treating `/private/tmp/claimguard-nvidia-10k-shard-mlx` as release training data; it is a smoke artifact only.
+- The NVIDIA credential was exposed in chat during this work. Rotate that credential outside the repository before using it for a long batch.
+
+### Notes
+- Rollback: restore modified files from the backup paths above. Delete `llm-distill/evals/reports/teacher_label_batch_nvidia_shard_000000_000004_report.json`, `llm-distill/evals/reports/teacher_to_mlx_nvidia_shard_000000_000004_report.json`, and ignored local shard output `llm-distill/data/distillation/teacher_responses_nvidia_10k_shard_000000_000004.jsonl` if removing this slice entirely. Remove `/private/tmp/claimguard-nvidia-10k-shard-mlx` and `/private/tmp/claimguard-nvidia-10k-shard-benchmark.jsonl` if the smoke artifacts are no longer needed.
+- Remaining work: rerun a larger NVIDIA shard with the stricter prompt, review/reject malformed teacher outputs, convert enough valid reviewed labels into complete MLX splits, then run MLX LoRA fine-tuning and benchmark/acceptance gates.
+
+## 2026-06-04 11:44:53 PDT - Teacher corpus realism audit
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: add a measurable realism/readiness audit for the 10,000-scenario synthetic teacher-distillation corpus so the larger denial/appeal training-data path is validated beyond row counts before teacher conversion or fine-tuning.
+
+### Current Objective Scratchpad
+- Goal: Require the 10,000-request and 10,000 paired denial/appeal corpus to pass realism, alignment, PHI, and training-gate checks before the next distillation stage.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-114453-teacher-corpus-realism-audit/root/PHIplan.md` | Added the teacher corpus realism audit as a required pre-conversion/pre-fine-tune gate. | Restore backup over `PHIplan.md`. |
+| `CHANGELOG.md` | `backups/20260604-114453-teacher-corpus-realism-audit/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/scripts/audit_teacher_distillation_corpus.py` - validates the 10,000 teacher requests and paired denial/appeal JSONL corpus for counts, hashes, prompt/pair alignment, PHI scan status, denial/appeal realism markers, coding vocabulary, coverage thresholds, partial/complex edge cases, and training-gate preservation.
+- `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` - source-controlled audit report with `ready=true`, `blocker_count=0`, `teacher_request_count=10000`, and `document_pair_count=10000`.
+
+### Validation
+- Initial `python3 llm-distill/scripts/audit_teacher_distillation_corpus.py --fail-on-blocked`: failed because the new audit required the literal `CPT` marker while the corpus uses `Procedure:` plus real CPT/HCPCS values. The corpus already had coding vocabulary in all 10,000 pairs, so the audit was corrected to check `Procedure:` plus the separate code-pattern gate.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/audit_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/audit_teacher_distillation_corpus.py --fail-on-blocked`: passed; wrote `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json`.
+- Audit report inspection: passed; `ready=true`, `blocker_count=0`, `teacher_request_count=10000`, `document_pair_count=10000`, `phi_scan.finding_count=0`, `average_denial_chars=2064.53`, `average_appeal_chars=2352.13`, `partial_denial_count=3034`, `complex_clinical_edge_case_count=2626`, and `coding_vocabulary_pair_count=10000`.
+
+### Failed Or Avoided Approaches
+- Avoided treating row count alone as proof of realistic training data.
+- Avoided calling teacher endpoints, NVIDIA, MLX, OCR, model servers, or production APIs.
+- Avoided weakening PHI scanning or changing the training gate; the corpus remains `training_allowed=false` until valid reviewed teacher labels are converted into complete MLX splits.
+
+### Notes
+- Rollback: restore `PHIplan.md` and `CHANGELOG.md` from `backups/20260604-114453-teacher-corpus-realism-audit/`, then delete `llm-distill/scripts/audit_teacher_distillation_corpus.py` and `llm-distill/evals/reports/teacher_distillation_corpus_realism_audit_report.json` if removing this slice entirely.
+- Remaining work: run teacher labeling with an approved valid endpoint/key, review/ingest successful labels, convert labels into MLX train/valid/test splits, then run the next LoRA fine-tune and benchmark/acceptance gates.
+
+## 2026-06-04 11:38:39 PDT - Teacher-label conversion gate hardening
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the realistic 10,000-denial/appeal distillation plan by hardening the path from teacher responses to MLX SFT data so failed API calls, malformed JSON, schema-incomplete outputs, PHI/PII findings, or too-small label batches cannot become fine-tuning data.
+
+### Current Objective Scratchpad
+- Goal: Block MLX conversion until valid reviewed teacher labels exist for the 10,000 realistic synthetic denial/appeal corpus.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-113839-teacher-conversion-gate/root/PHIplan.md` | Documented strict teacher-output schema, PHI scan, valid-label-count, sharding, and early-error-stop requirements before `training_allowed=true`. | Restore backup over `PHIplan.md`. |
+| `llm-distill/scripts/convert_teacher_responses_to_mlx.py` | `backups/20260604-113839-teacher-conversion-gate/llm-distill/scripts/convert_teacher_responses_to_mlx.py` | Added required teacher JSON schema validation, array-field checks, `draft_for_human_review` enforcement, `human_review_required=true` enforcement, teacher-output PHI scanning, minimum valid-record gating, safe blocker reports, and relative source-controlled paths. | Restore backup over the script. |
+| `llm-distill/scripts/run_mimo_teacher_batch.py` | `backups/20260604-113839-teacher-conversion-gate/llm-distill/scripts/run_mimo_teacher_batch.py` | Added sharded request loading with `--start-index`, early stop with `--max-errors`, redacted base-URL reporting, relative report paths, and safer preflight output. | Restore backup over the script. |
+| `llm-distill/evals/reports/mimo_teacher_batch_report.json` | `backups/20260604-113839-teacher-conversion-gate/llm-distill/evals/reports/mimo_teacher_batch_report.json` | Preserved the prior 5-error/0-success teacher-label attempt while redacting the base URL and documenting the no-key/no-label blocker safely. | Restore backup over the report. |
+| `CHANGELOG.md` | `backups/20260604-113839-teacher-conversion-gate/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_to_mlx_conversion_report.json` - safe source-controlled conversion blocker report showing 0 valid teacher responses, 5 response errors, `training_allowed=false`, and `blockers=["no_valid_teacher_responses"]`.
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/convert_teacher_responses_to_mlx.py llm-distill/scripts/run_mimo_teacher_batch.py llm-distill/scripts/generate_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/run_mimo_teacher_batch.py --preflight --count 5 --start-index 10`: passed; validated sharded request loading and printed only boolean base-URL configuration status.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --output-dir /private/tmp/claimguard-teacher-10k-convert-smoke --benchmark /private/tmp/claimguard-teacher-10k-benchmark.jsonl`: correctly failed on the current 5-error/0-valid-label teacher response file and wrote `llm-distill/evals/reports/teacher_to_mlx_conversion_report.json`.
+- Conversion blocker report inspection: passed; `valid_teacher_response_count=0`, `error_count=5`, `training_allowed=false`, `conversion_ready=false`, `blockers=["no_valid_teacher_responses"]`.
+- Positive converter smoke with one temporary synthetic valid teacher response under `/private/tmp`: passed with one MLX row written to `/private/tmp/claimguard-valid-teacher-mlx`; manifest kept `training_allowed=false` because the smoke run lacked valid/test splits.
+- `python3 llm-distill/scripts/run_phi_scan.py llm-distill/evals/reports/teacher_to_mlx_conversion_report.json llm-distill/evals/reports/mimo_teacher_batch_report.json llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl`: passed with no findings.
+- `rg -n "https://token-plan|base_url\"|api[_ -]?key|Bearer" llm-distill/evals/reports/mimo_teacher_batch_report.json llm-distill/evals/reports/teacher_to_mlx_conversion_report.json`: passed with no matches.
+- `git diff --check`: passed.
+
+### Failed Or Avoided Approaches
+- Avoided converting invalid or failed teacher responses into MLX SFT data.
+- Avoided using baseline synthetic appeal drafts as final labels.
+- Avoided printing or storing API keys, authorization headers, teacher base URLs, PHI/PII, raw production documents, or model weights.
+- Avoided running fine-tuning before valid teacher labels exist.
+
+### Notes
+- Rollback: restore modified files from `backups/20260604-113839-teacher-conversion-gate/` and delete `llm-distill/evals/reports/teacher_to_mlx_conversion_report.json` if removing this slice entirely.
+- Remaining work: configure an approved valid teacher endpoint/API key, run the teacher queue in shards with early error stop, review successful labels, rerun conversion until train/valid/test splits and minimum valid-label counts pass, then run the next MLX LoRA fine-tune and benchmark/acceptance gates.
+
+## 2026-06-04 11:32:59 PDT - Realistic 10k denial/appeal pair corpus
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: continue the 10,000-scenario realistic synthetic training-data plan by adding paired synthetic denial-letter plus appeal-letter artifacts, feeding baseline appeal drafts into teacher review requests, and preserving the training gate until successful teacher labels exist.
+
+### Current Objective Scratchpad
+- Goal: Preserve 10,000 realistic denial/appeal document pairs while keeping baseline appeal drafts marked `baseline_draft_for_teacher_review` and `training_allowed=false`.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-113259-realistic-10k-appeal-pairs/root/PHIplan.md` | Documented `document_pairs.jsonl` as the paired denial/appeal artifact and clarified that baseline appeal drafts are for teacher critique, not final labels. | Restore backup over `PHIplan.md`. |
+| `llm-distill/scripts/generate_teacher_distillation_corpus.py` | `backups/20260604-113259-realistic-10k-appeal-pairs/llm-distill/scripts/generate_teacher_distillation_corpus.py` | Added baseline synthetic appeal draft generation, paired denial/appeal JSONL export, appeal-draft hashes, prompt inclusion for teacher critique, and pair-level PHI scan metadata. | Restore backup over the script. |
+| `llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | `backups/20260604-113259-realistic-10k-appeal-pairs/llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | Regenerated 10,000 teacher requests so each prompt includes a denial letter plus baseline synthetic appeal draft for teacher evaluation. | Restore backup over the regenerated request file. |
+| `llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | `backups/20260604-113259-realistic-10k-appeal-pairs/llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | Regenerated with `document_pair_count=10000`, `denial_letter_count=10000`, `appeal_letter_count=10000`, zero request/pair PHI findings, and `training_allowed=false`. | Restore backup over the regenerated manifest. |
+| `llm-distill/evals/reports/teacher_distillation_corpus_report.json` | `backups/20260604-113259-realistic-10k-appeal-pairs/llm-distill/evals/reports/teacher_distillation_corpus_report.json` | Regenerated the safe corpus report with paired-document counts and pair-level PHI scan status. | Restore backup over the regenerated report. |
+| `CHANGELOG.md` | `backups/20260604-113259-realistic-10k-appeal-pairs/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl` - 10,000 paired synthetic denial letters and baseline synthetic appeal drafts with hashes, metadata, full document text, and `training_allowed=false`.
+
+### Validation
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/generate_teacher_distillation_corpus.py`: passed.
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --preflight`: passed.
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --count 10000 --seed 42`: passed.
+- `wc -l llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl`: passed; 10,000 request rows and 10,000 document-pair rows.
+- Manifest/report assertion script: passed; `pair_count=10000`, `document_pair_count=10000`, `denial_letter_count=10000`, `appeal_letter_count=10000`, `safe_to_review=true`, `phi_findings_count=0`, request/pair PHI findings both zero, and `training_allowed=false`.
+- Sample document-pair inspection: passed; first row has full denial and appeal text, `appeal_draft_status=baseline_draft_for_teacher_review`, and the teacher request contains `BASELINE SYNTHETIC APPEAL DRAFT FOR TEACHER REVIEW`.
+- `python3 llm-distill/scripts/run_phi_scan.py llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl llm-distill/data/corpus/generated_teacher_distillation/manifest.json llm-distill/evals/reports/teacher_distillation_corpus_report.json`: passed with no findings.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --output-dir /private/tmp/claimguard-teacher-10k-convert-smoke --benchmark /private/tmp/claimguard-teacher-10k-benchmark.jsonl`: correctly failed because the current teacher response file still contains 5 failed API responses and 0 valid teacher labels.
+
+### Failed Or Avoided Approaches
+- Avoided converting baseline synthetic appeal drafts directly into final SFT completions; they are realistic draft artifacts for teacher critique, not teacher-reviewed labels.
+- Avoided weakening the PHI scanner, adding real PHI/PII, calling external APIs, changing credentials, starting a new fine-tune, or treating failed `HTTP 401` teacher responses as labels.
+
+### Notes
+- Rollback: restore modified files from `backups/20260604-113259-realistic-10k-appeal-pairs/` and delete `llm-distill/data/corpus/generated_teacher_distillation/document_pairs.jsonl` if removing this slice entirely.
+- Remaining work: configure an approved valid teacher endpoint/API key, run teacher labels in batches, review/ingest successful responses, convert reviewed responses into MLX SFT splits, then run the next LoRA fine-tune and benchmark/acceptance gates.
+
+## 2026-06-04 11:22:37 PDT - Realistic 10k teacher corpus safety gate
+
+Author/Architect: Raphael Malikian <rtmalikian@gmail.com>
+Agent: Codex
+
+### Objective
+- Goal: review `CHANGELOG.md` and `PHIplan.md`, improve the synthetic denial/appeal training-data path beyond the earlier small/template corpus, stage approximately 10,000 realistic synthetic teacher-distillation requests, and continue fine-tuning/distillation work without treating failed teacher calls as usable labels.
+
+### Current Objective Scratchpad
+- Goal: Advance the realistic 10,000-scenario synthetic teacher-distillation corpus while keeping it `training_allowed=false` until teacher responses succeed, are reviewed, pass PHI/PII scans, and convert into MLX SFT splits.
+
+### Files Modified
+| File | Backup | Summary | Rollback |
+|---|---|---|---|
+| `PHIplan.md` | `backups/20260604-112237-realistic-10k-teacher-corpus/root/PHIplan.md` | Updated the plan to distinguish completed synthetic-900 LoRA work from the staged 10,000-request teacher-labeling corpus and documented the blocked conversion/fine-tune continuation path. | Restore backup over `PHIplan.md`. |
+| `llm-distill/scripts/generate_teacher_distillation_corpus.py` | `backups/20260604-112237-realistic-10k-teacher-corpus/llm-distill/scripts/generate_teacher_distillation_corpus.py` | Replaced scanner-blocked member identifier labels with synthetic-reference language, made seeded generation deterministic, added PHI scan status, training gate status, relative paths, and a source-controlled corpus report. | Restore backup over the script. |
+| `llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | `backups/20260604-112237-realistic-10k-teacher-corpus/llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl` | Regenerated 10,000 realistic synthetic teacher-labeling requests with CPT/ICD, CARC/RARC, payer route, deadline, EOB, denial rationale, and strict JSON output schema context. | Restore backup over the regenerated request file. |
+| `llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | `backups/20260604-112237-realistic-10k-teacher-corpus/llm-distill/data/corpus/generated_teacher_distillation/manifest.json` | Regenerated the manifest with `pair_count=10000`, `safe_to_review=true`, `phi_findings_count=0`, `training_allowed=false`, and coverage counts. | Restore backup over the regenerated manifest. |
+| `CHANGELOG.md` | `backups/20260604-112237-realistic-10k-teacher-corpus/root/CHANGELOG.md` | Added this rollback-ready changelog entry. | Restore backup over `CHANGELOG.md`. |
+
+### Files Added
+- `llm-distill/evals/reports/teacher_distillation_corpus_report.json` - safe source-controlled report for the 10,000-request teacher-labeling corpus.
+
+### Validation
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --preflight`: passed; generated 10 sample scenarios across payer/denial/difficulty variations.
+- `PYTHONPYCACHEPREFIX=/private/tmp/claimguard-pycache python3 -m py_compile llm-distill/scripts/generate_teacher_distillation_corpus.py llm-distill/scripts/run_mimo_teacher_batch.py llm-distill/scripts/convert_teacher_responses_to_mlx.py`: passed.
+- `python3 llm-distill/scripts/generate_teacher_distillation_corpus.py --count 10000 --seed 42`: passed; wrote 10,000 teacher-labeling requests.
+- `wc -l llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl`: passed; 10,000 lines.
+- Manifest/report inspection: passed; `pair_count=10000`, `safe_to_review=true`, `phi_findings_count=0`, `training_allowed=false`, `teacher_labeling_required=true`, `teacher_success_count=0`.
+- `python3 llm-distill/scripts/run_phi_scan.py llm-distill/data/corpus/generated_teacher_distillation/teacher_label_requests.jsonl llm-distill/data/corpus/generated_teacher_distillation/manifest.json llm-distill/evals/reports/teacher_distillation_corpus_report.json`: passed with no findings.
+- `python3 llm-distill/scripts/run_mimo_teacher_batch.py --preflight --count 5`: passed; request format is ready for an OpenAI-compatible teacher endpoint.
+- `python3 llm-distill/scripts/convert_teacher_responses_to_mlx.py --output-dir /private/tmp/claimguard-teacher-10k-convert-smoke --benchmark /private/tmp/claimguard-teacher-10k-benchmark.jsonl`: correctly failed because current teacher responses contain 5 errors and 0 valid teacher labels.
+
+### Failed Or Avoided Approaches
+- The broad PHI scan initially failed because the generated teacher prompts used `Member ID` labels. Fixed the generator to use synthetic-reference language rather than weakening `llm-distill/scripts/run_phi_scan.py`.
+- Current `llm-distill/data/distillation/mimo_teacher_responses_pending.jsonl` contains 5 failed teacher responses from an earlier `HTTP 401` invalid API-key attempt; these are retained as blocker evidence and are not converted to training data.
+- Avoided external API calls, credential changes, real PHI/PII, production denial letters, model downloads, new fine-tuning runs, and treating the 10,000-request corpus as trainable labels before successful teacher review.
+
+### Notes
+- Rollback: restore every modified existing file from `backups/20260604-112237-realistic-10k-teacher-corpus/` and delete `llm-distill/evals/reports/teacher_distillation_corpus_report.json` if removing this slice entirely.
+- Remaining work: provide a valid approved teacher endpoint/API key, run teacher labeling for the 10,000 requests in safe batches, review/ingest successful labels, convert to MLX SFT splits, run the next LoRA fine-tune, benchmark base vs student, run acceptance/workflow regression gates, and keep student-default cutover disabled until Raphael approves production runtime cutover.
+
 ## 2026-06-03 15:30:00 PDT - Synthetic-900 LoRA fine-tune completed
 
 Author/Architect: Raphael Malikian <rtmalikian@gmail.com>

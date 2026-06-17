@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from datetime import datetime
 
@@ -40,6 +41,9 @@ from app.utils.phi import scan_text_for_phi, validate_declared_phi_status
 
 class RetrievalStoreError(ValueError):
     pass
+
+
+logger = logging.getLogger(__name__)
 
 
 ACCESS_SCOPE_OWNER = "owner"
@@ -264,6 +268,9 @@ class RetrievalStoreService:
         *,
         current_user: dict | None = None,
     ) -> RetrievalSearchResponse:
+        if request.search_mode == "chroma":
+            return self._search_chroma(request, current_user=current_user)
+
         chunks = self.load_source_chunks(
             source_type=request.source_type,
             phi_status=request.phi_status,
@@ -286,6 +293,37 @@ class RetrievalStoreService:
             for item in index.search(request.query, top_k=request.top_k)
         ]
         return RetrievalSearchResponse(results=results)
+
+    def _search_chroma(
+        self,
+        request: RetrievalSearchRequest,
+        *,
+        current_user: dict | None = None,
+    ) -> RetrievalSearchResponse:
+        """Search using persistent ChromaDB vector index."""
+        try:
+            from app.services.retrieval_chroma import ChromaRetrievalIndex
+        except ImportError:
+            # ChromaDB not installed; fall back to hybrid
+            logger.warning(
+                "chroma_search_fallback",
+                extra={"reason": "chromadb_not_installed"},
+            )
+            request.search_mode = "hybrid"
+            return self.search(request, current_user=current_user)
+
+        index = ChromaRetrievalIndex(
+            embedding_provider=self.embedding_provider,
+        )
+        results = index.search(
+            request.query,
+            top_k=request.top_k,
+            source_type=request.source_type,
+            phi_status=request.phi_status,
+        )
+        return RetrievalSearchResponse(
+            results=[RetrievedSourceSnippet(**item) for item in results]
+        )
 
     def load_source_chunks(
         self,
@@ -475,6 +513,9 @@ class RetrievalStoreService:
             blockers.append("embedding_model_not_approved_for_production")
         if vector_backend in LOCAL_VECTOR_BACKENDS:
             blockers.append("production_vector_backend_not_configured")
+        if vector_backend in {"chroma", "chromadb", "chroma_local"}:
+            # ChromaDB is a valid persistent backend — remove the blocker
+            blockers = [b for b in blockers if b != "production_vector_backend_not_configured"]
         if not hash_fallback_disabled_for_production:
             blockers.append("hash_fallback_not_disabled_for_production")
         if sources_requiring_reindex:
@@ -502,6 +543,7 @@ class RetrievalStoreService:
             notes=[
                 "Readiness is metadata-only; vector values, source text, credentials, and PHI are not returned.",
                 "The local hash embedding path remains acceptable for development and tests, but it is not a production semantic backend.",
+                f"Vector backend: {vector_backend}. ChromaDB: {'configured' if vector_backend in {'chroma', 'chromadb', 'chroma_local'} else 'not configured'}.",
             ],
         )
 

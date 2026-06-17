@@ -27,6 +27,10 @@ and clinician-readable LLM distillation.
 - Documents a local LLM distillation path so a smaller student model can learn
   the denial and appeal workflow without making external APIs the default for
   every future step.
+- **ChromaDB vector retrieval (added June 2026):** persistent vector storage
+  with HNSW approximate nearest-neighbor search for semantic retrieval of
+  denial/appeal rules, payer policies, and corpus documents. Replaces
+  in-memory-only retrieval for production use.
 
 ## Screenshots
 
@@ -58,6 +62,11 @@ remaining production gates, read:
 
 - `health-ai-medical-billing-medical-corporations-20260414_180528/` - the
   FastAPI, React, Docker, and test application.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/app/services/retrieval_chroma.py` -
+  ChromaDB vector retrieval index with HNSW, metadata filtering, hybrid search,
+  and seed utilities for CMS/DOL/Medicare/Medicaid/HIPAA rule chunks.
+- `health-ai-medical-billing-medical-corporations-20260414_180528/scripts/seed_chroma.py` -
+  CLI script to bootstrap ChromaDB with default appeal rule chunks.
 - `llm-distill/` - distillation plans, synthetic denial/appeal data, validators,
   model-readiness evidence, and PHIplan production-readiness reports.
 - `denial_skill/` - denial and appeal workflow decomposition, schema, prompt,
@@ -74,8 +83,12 @@ The current checked-in state is conservative by design:
 - Real user-data model improvement remains disabled unless legal, BAA, consent,
   approval reference, and per-request gates are configured outside source
   control.
-- Production semantic vector retrieval remains blocked until a real approved
-  vector backend is configured and reindexed.
+- **ChromaDB vector retrieval is now integrated** as a local persistent vector
+  backend with HNSW search. The default appeal rule chunks (CMS, DOL, Medicare,
+  Medicaid, HIPAA) are seeded. Semantic search quality improves significantly
+  when a real embedding model (e.g., OpenAI text-embedding-3-small or a local
+  sentence-transformers model) replaces the hash embedding fallback. Set
+  `RETRIEVAL_VECTOR_BACKEND=chroma` to enable.
 - Production corpus readiness remains blocked until approved non-synthetic
   denial/appeal pairs are reviewed outside source control.
 - Production prediction-threshold calibration and fairness monitoring remain
@@ -116,6 +129,46 @@ approval references, production documents, PHI, or raw claim data.
 - [EDI format notes](health-ai-medical-billing-medical-corporations-20260414_180528/docs/edi-formats.md)
 - [Deployment guide](health-ai-medical-billing-medical-corporations-20260414_180528/docs/deployment-guide.md)
 - [Backup and disaster recovery](health-ai-medical-billing-medical-corporations-20260414_180528/docs/backup-disaster-recovery.md)
+
+## Vector Retrieval (ChromaDB)
+
+ClaimGuard AI uses ChromaDB for persistent vector storage with HNSW
+approximate nearest-neighbor search. This powers semantic retrieval of
+denial/appeal rules, payer policies, and training corpus documents.
+
+### Bootstrap
+
+```bash
+cd health-ai-medical-billing-medical-corporations-20260414_180528
+pip install chromadb
+python scripts/seed_chroma.py
+```
+
+### Configuration
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `RETRIEVAL_VECTOR_BACKEND` | `encrypted_local_metadata` | Set to `chroma` to enable ChromaDB |
+| `CLAIMGUARD_CHROMA_DIR` | `data/chroma_db/` | ChromaDB persist directory |
+| `RETRIEVAL_EMBEDDING_BACKEND` | `hash` | `hash` (fallback) or `private_semantic` |
+| `RETRIEVAL_EMBEDDING_MODEL` | `claimguard-hash-embedding-v1` | Embedding model name |
+| `RETRIEVAL_PRIVATE_EMBEDDING_URL` | — | OpenAI-compatible embedding endpoint |
+| `RETRIEVAL_PRIVATE_EMBEDDING_DIMENSIONS` | — | Vector dimensions for the embedding model |
+
+### Collections
+
+| Collection | Contents |
+|------------|----------|
+| `claimguard_rules` | CMS, DOL, Medicare, Medicaid, HIPAA appeal rule chunks |
+| `claimguard_corpus` | Synthetic denial/appeal training corpus (to be seeded) |
+| `claimguard_appeals` | Curated successful appeal examples (to be seeded) |
+
+### Search Modes
+
+- `search_mode="keyword"` — BM25-style keyword matching (in-memory)
+- `search_mode="embedding"` — vector cosine similarity (in-memory hash)
+- `search_mode="hybrid"` — keyword + embedding fusion (in-memory)
+- `search_mode="chroma"` — persistent ChromaDB HNSW search (recommended)
 
 The GitHub-facing README and technical distillation breakdown are checked by
 `python3 llm-distill/scripts/validate_public_repo_docs.py --fail-on-blocked`

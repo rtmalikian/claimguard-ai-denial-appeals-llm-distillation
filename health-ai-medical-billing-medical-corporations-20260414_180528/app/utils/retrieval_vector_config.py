@@ -18,6 +18,7 @@ LOCAL_VECTOR_BACKENDS = {
     "local_encrypted_metadata",
     "local_metadata",
 }
+CHROMA_VECTOR_BACKENDS = {"chroma", "chromadb", "chroma_local"}
 
 
 def _str_value(settings_like, name: str, default: str = "") -> str:
@@ -79,6 +80,10 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
         blockers.append("embedding_model_not_approved_for_production")
     if not vector_backend or vector_backend in LOCAL_VECTOR_BACKENDS:
         blockers.append("production_vector_backend_not_configured")
+    if vector_backend in CHROMA_VECTOR_BACKENDS:
+        # ChromaDB is a valid local persistent vector backend.
+        # Remove the "not configured" blocker if it was added above.
+        blockers = [b for b in blockers if b != "production_vector_backend_not_configured"]
     if not hash_fallback_disabled:
         blockers.append("hash_fallback_not_disabled_for_production")
     if vector_backend_has_url_or_credentials:
@@ -108,6 +113,7 @@ def validate_retrieval_vector_startup_config(settings_like=None) -> dict[str, An
             and not vector_backend_has_url_or_credentials
         ),
         "vector_backend_has_url_or_credentials": vector_backend_has_url_or_credentials,
+        "vector_backend_is_chroma": vector_backend in CHROMA_VECTOR_BACKENDS,
         "hash_fallback_disabled_for_production": hash_fallback_disabled,
         "private_embedding_provider_requested": private_provider_status[
             "provider_requested"
